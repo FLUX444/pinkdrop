@@ -8,6 +8,9 @@ telegram:
   bot_id: "8853654522"
   bot_username: "p1nkdrop_bot"
 
+  ops_channel:
+    id: -1003999192222
+
   store_channel:
     id: -1003672785955
     link: ""

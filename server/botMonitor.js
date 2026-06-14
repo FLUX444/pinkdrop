@@ -4,7 +4,17 @@ import { logSiteEvent, getSiteLogs } from './siteMonitor.js';
 const HEARTBEAT_STALE_MS = Number(process.env.BOT_MONITOR_OFFLINE_MS) || 2 * 60 * 1000;
 const MAX_BOT_LOGS = 200;
 
-let lastHeartbeat = null;
+function loadPersistedBotState() {
+  try {
+    const row = db.prepare('SELECT * FROM bot_monitor_state WHERE id = 1').get();
+    if (!row?.payload) return null;
+    return JSON.parse(row.payload);
+  } catch {
+    return null;
+  }
+}
+
+let lastHeartbeat = loadPersistedBotState();
 
 function normalizeLevel(level) {
   const value = String(level ?? 'info').toLowerCase();
@@ -52,16 +62,6 @@ export function recordBotHeartbeat(payload = {}) {
   const status = lastHeartbeat.apiOk ? 'online' : 'degraded';
   persistBotState({ status, ...lastHeartbeat, checkedAt: now });
   return lastHeartbeat;
-}
-
-function loadPersistedBotState() {
-  try {
-    const row = db.prepare('SELECT * FROM bot_monitor_state WHERE id = 1').get();
-    if (!row?.payload) return null;
-    return JSON.parse(row.payload);
-  } catch {
-    return null;
-  }
 }
 
 export function getBotMonitorStatus() {

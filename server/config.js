@@ -1,5 +1,5 @@
 import './loadEnv.js';
-import { getYamlString } from './yamlConfig.js';
+import { getYamlNumber, getYamlString } from './yamlConfig.js';
 
 const frontendUrl =
   getYamlString(['site', 'frontend_url']) || process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -32,7 +32,11 @@ export const config = {
     botUsername:
       getYamlString(['telegram', 'bot_username']) || process.env.TELEGRAM_BOT_USERNAME || '',
     adminChatId: process.env.TELEGRAM_ADMIN_CHAT_ID || '',
-    opsChatId: process.env.TELEGRAM_OPS_CHAT_ID || '',
+    opsChatId: (() => {
+      const fromYaml = getYamlNumber(['telegram', 'ops_channel', 'id']);
+      if (fromYaml != null) return String(fromYaml);
+      return process.env.TELEGRAM_OPS_CHAT_ID || '';
+    })(),
     storeChannelId:
       getYamlString(['telegram', 'store_channel', 'id']) ||
       process.env.TELEGRAM_STORE_CHANNEL_ID ||

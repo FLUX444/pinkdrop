@@ -369,7 +369,17 @@ export function AdminMonitorPage() {
               </div>
             </>
           ) : (
-            <p className="admin-monitor__empty">Статус бота пока не получен. Запустите npm run dev:bot</p>
+            <p className="admin-monitor__empty">
+              Статус бота пока не получен. На VPS:{' '}
+              <code>pm2 start ecosystem.config.cjs --only pinkdrop-bot</code>
+            </p>
+          )}
+
+          {botStatus?.status === 'offline' && (
+            <p className="admin-monitor__hint">
+              Бот не шлёт heartbeat на API. Проверьте: процесс <code>pinkdrop-bot</code>, совпадение{' '}
+              <code>BOT_API_SECRET</code> в .env и <code>API_URL=https://pinkdrop.ru</code> для бота.
+            </p>
           )}
 
           {botLogs.length === 0 ? (

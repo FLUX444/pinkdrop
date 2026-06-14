@@ -40,8 +40,13 @@ async def _post_monitor(path: str, payload: dict[str, Any]) -> bool:
                 headers=headers,
                 timeout=aiohttp.ClientTimeout(total=8),
             ) as response:
-                return response.status < 400
-    except Exception:
+                if response.status < 400:
+                    return True
+                body = await response.text()
+                logger.warning("Monitor POST %s failed: HTTP %s %s", path, response.status, body[:200])
+                return False
+    except Exception as error:
+        logger.warning("Monitor POST %s failed: %s", path, error)
         return False
 
 
@@ -64,7 +69,7 @@ async def send_bot_log(
 
 
 async def send_bot_heartbeat(*, api_ok: bool, proxy_enabled: bool, mode: str = "polling") -> None:
-    await _post_monitor(
+    ok = await _post_monitor(
         "/api/bot/monitor/heartbeat",
         {
             "pid": os.getpid(),
@@ -77,6 +82,11 @@ async def send_bot_heartbeat(*, api_ok: bool, proxy_enabled: bool, mode: str = "
             "version": "v2-cart",
         },
     )
+    if not ok:
+        logger.warning(
+            "Heartbeat not delivered to %s — проверьте API_URL и BOT_API_SECRET",
+            config.api_url,
+        )
 
 
 async def check_site_api() -> bool:
