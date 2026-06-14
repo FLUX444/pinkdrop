@@ -48,7 +48,6 @@ export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
       <ChromeStar size={56} className="hero__star hero__star--1" />
       <ChromeStar size={36} className="hero__star hero__star--2" />
       <ChromeStar size={28} className="hero__star hero__star--3" />
-      <PriceDropInfo variant="hero-top" />
       <div className="hero__content">
         <div className="hero__headline">
           <div className="hero__tag mono">
@@ -102,6 +101,8 @@ export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
           ||| || ||| | || |||| | |||
         </div>
       </div>
+
+      <PriceDropInfo variant="hero-center" />
 
       <div className="hero__product" aria-label={`Новинка: ${config.productTitle}`}>
         {featuredProduct ? (

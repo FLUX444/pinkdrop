@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
 import type { Product } from '../types';
 import { ProductArtwork } from './ProductArtwork';
 
@@ -21,6 +22,16 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
     <div className="product-gallery">
       <div className="product-modal__slider">
         <ProductArtwork product={product} imageSrc={images[activeIndex]} />
+        {product.category && (
+          <Link
+            to={`/catalog/similar/${product.category}/${product.id}`}
+            className="product-gallery__similar-btn"
+            aria-label={`Похожие товары: ${product.name}`}
+          >
+            <Layers size={14} aria-hidden />
+            <span>Похожие</span>
+          </Link>
+        )}
         {images.length > 1 && (
           <>
             <button type="button" className="slider-btn slider-btn--prev" onClick={prevImage}>

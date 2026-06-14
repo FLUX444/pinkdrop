@@ -20,6 +20,7 @@ import {
   getProductReferencePrice,
   hasActivePriceDropDiscount,
 } from '../utils/productPriceDrop';
+import { getSimilarProducts } from '../utils/similarProducts';
 
 type Tab = 'description' | 'specs' | 'reviews';
 
@@ -184,14 +185,8 @@ export function ProductPage() {
   }, [allProducts, product]);
 
   const similarProducts = useMemo(() => {
-    if (!product?.category) return [];
-    return allProducts
-      .filter((item) => {
-        if (item.category !== product.category || item.id === product.id) return false;
-        if (isAdmin) return true;
-        return typeof item.stock !== 'number' || item.stock > 0;
-      })
-      .slice(0, 4);
+    if (!product) return [];
+    return getSimilarProducts(product, allProducts, { isAdmin, limit: 4 });
   }, [allProducts, isAdmin, product]);
 
   const pendingStockCheck =

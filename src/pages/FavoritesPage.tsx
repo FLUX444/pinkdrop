@@ -42,7 +42,7 @@ export function FavoritesPage() {
     }
 
     return (
-      <div className="favorites-page__grid product-grid product-grid--comfortable">
+      <div className="favorites-page__grid product-grid product-grid--compact favorites-page__grid--wide">
         {items.map((entry) =>
           entry.product ? (
             <ProductCard key={`${entry.category}:${entry.productId}`} product={entry.product} />

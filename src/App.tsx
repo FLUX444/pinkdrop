@@ -5,6 +5,7 @@ import { SiteFooter } from './components/SiteFooter';
 import { CartPage } from './pages/CartPage';
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
+import { SimilarCatalogPage } from './pages/SimilarCatalogPage';
 import { AdminPage } from './pages/AdminPage';
 import { AdminAddProductPage } from './pages/AdminAddProductPage';
 import { AdminEditProductPage } from './pages/AdminEditProductPage';
@@ -35,6 +36,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
+          <Route path="/catalog/similar/:category/:id" element={<SimilarCatalogPage />} />
           <Route path="/product/:category/:id" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/profile" element={<ProfilePage />} />

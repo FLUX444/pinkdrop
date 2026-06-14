@@ -15,7 +15,7 @@ function formatMs(ms: number) {
 }
 
 interface PriceDropInfoProps {
-  variant?: 'standalone' | 'hero-top';
+  variant?: 'standalone' | 'hero-top' | 'hero-center';
 }
 
 export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
@@ -67,7 +67,13 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
 
   return (
     <section
-      className={`price-drop-info${variant === 'hero-top' ? ' price-drop-info--hero-top' : ''}`}
+      className={`price-drop-info${
+        variant === 'hero-top'
+          ? ' price-drop-info--hero-top'
+          : variant === 'hero-center'
+            ? ' price-drop-info--hero-center'
+            : ''
+      }`}
       aria-label="Механика снижения цен"
     >
       <div className="price-drop-info__panel">
