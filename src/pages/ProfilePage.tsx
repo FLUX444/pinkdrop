@@ -37,12 +37,8 @@ import {
   getAccountFromSearchParams,
 } from '../utils/accountSession';
 import { useCredentialsEntry } from '../hooks/useCredentialsEntry';
+import { useTelegramLinkFlow } from '../hooks/useTelegramLinkFlow';
 import { userHasTelegramAccess } from '../utils/bargainLink';
-import {
-  openTelegramBot,
-  openTelegramBotPopup,
-  saveTelegramLinkSession,
-} from '../utils/telegramLink';
 
 export function ProfilePage() {
   const {
@@ -218,47 +214,7 @@ export function ProfilePage() {
   }, [user]);
 
   const [productSupportBusyKey, setProductSupportBusyKey] = useState<string | null>(null);
-  const [telegramLinkBusy, setTelegramLinkBusy] = useState(false);
-
-  const handleStartTelegramLink = async () => {
-    const popup = openTelegramBotPopup();
-    setTelegramLinkBusy(true);
-
-    try {
-      const health = await fetch('/api/health').then((response) => response.json()).catch(() => null);
-      if (!health?.features?.telegramLink) {
-        throw new Error(
-          'API привязки Telegram недоступен. Перезапустите npm run dev:server и попробуйте снова.'
-        );
-      }
-
-      const result = await api.startTelegramLink();
-      saveTelegramLinkSession({
-        sessionId: result.sessionId,
-        botUrl: result.botUrl,
-        botUsername: result.botUsername,
-        expiresAt: result.expiresAt,
-      });
-      openTelegramBot(
-        {
-          sessionId: result.sessionId,
-          botUrl: result.botUrl,
-          botUsername: result.botUsername,
-          expiresAt: result.expiresAt,
-        },
-        popup
-      );
-      navigate('/profile/link-telegram');
-    } catch (err) {
-      popup?.close();
-      await alert({
-        title: 'Не удалось открыть Telegram',
-        message: err instanceof Error ? err.message : 'Попробуйте ещё раз',
-      });
-    } finally {
-      setTelegramLinkBusy(false);
-    }
-  };
+  const { startTelegramLink, telegramLinkBusy } = useTelegramLinkFlow('/profile/link-telegram');
 
   const openProductSupportPage = async (orderId: string, product: Product) => {
     const busyKey = `${orderId}:${product.id}`;
@@ -581,7 +537,7 @@ export function ProfilePage() {
               <button
                 type="button"
                 className="btn btn--telegram profile-password__cta"
-                onClick={() => void handleStartTelegramLink()}
+                onClick={() => void startTelegramLink()}
                 disabled={telegramLinkBusy}
               >
                 {telegramLinkBusy ? 'Открываем Telegram...' : 'Привязать Telegram'}

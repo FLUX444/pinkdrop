@@ -3,6 +3,7 @@ import { Trash2, Minus, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useTelegramLinkFlow } from '../hooks/useTelegramLinkFlow';
 import { formatPrice } from '../utils/formatPrice';
 import { getProductPath } from '../utils/productUrl';
 import { getMaxPurchasableQuantity } from '../utils/productStock';
@@ -22,6 +23,7 @@ interface CartContentProps {
 
 export function CartContent({ onCheckout }: CartContentProps) {
   const { user, authProviders } = useAuth();
+  const { startTelegramLink, telegramLinkBusy } = useTelegramLinkFlow('/profile/link-telegram');
   const {
     items,
     removeItem,
@@ -209,9 +211,19 @@ export function CartContent({ onCheckout }: CartContentProps) {
             Войдите на сайт, чтобы поторговаться с ботом.
           </p>
         ) : !telegramAccess ? (
-          <p className="product-modal__bargain-hint">
-            Привяжите Telegram в профиле, чтобы торговаться с ботом.
-          </p>
+          <div className="cart-page__telegram-prompt">
+            <p className="cart-page__telegram-prompt-text">
+              Привяжите Telegram, чтобы торговаться с ботом и получать персональные скидки.
+            </p>
+            <button
+              type="button"
+              className="btn btn--telegram btn--full cart-page__telegram-link-btn"
+              onClick={() => void startTelegramLink()}
+              disabled={telegramLinkBusy}
+            >
+              {telegramLinkBusy ? 'Открываем Telegram...' : 'Привязать Telegram'}
+            </button>
+          </div>
         ) : bargainState.ok ? (
           <a
             href={bargainHref}
