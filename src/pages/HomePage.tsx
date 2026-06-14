@@ -8,7 +8,6 @@ import { AboutSection } from '../components/AboutSection';
 import { FilterModal } from '../components/FilterModal';
 import { Header } from '../components/Header';
 import { HeroBanner } from '../components/HeroBanner';
-import { PriceDropInfo } from '../components/PriceDropInfo';
 import { ReviewPromptModal } from '../components/ReviewPromptModal';
 import { MobileMenu } from '../components/MobileMenu';
 import { ContactsSection } from '../components/ContactsSection';
@@ -217,7 +216,6 @@ export function HomePage() {
         <HeroBanner config={heroConfig} featuredProduct={featuredProduct} />
         <AboutSection />
         <TrustSection />
-        <PriceDropInfo />
         <ContactsSection />
       </main>
 

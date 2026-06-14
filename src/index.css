@@ -1319,8 +1319,8 @@ a.hero__product-card {
 @media (max-width: 819px) {
   .hero {
     min-height: 0;
-    padding: 20px 16px 28px;
-    gap: 16px;
+    padding: 16px 16px 28px;
+    gap: 14px;
   }
 
   .hero__product {
@@ -11342,6 +11342,50 @@ a.checkout-summary__product-name:active {
 
 /* ── Price drop explainer under hero ── */
 
+.price-drop-info--hero-top {
+  position: relative;
+  z-index: 2;
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 6px;
+}
+
+.price-drop-info--hero-top .price-drop-info__panel {
+  margin: 0;
+  padding: 14px 16px;
+  gap: 12px;
+  border-radius: 16px;
+  border-color: rgba(255, 45, 149, 0.42);
+  background:
+    linear-gradient(135deg, rgba(255, 45, 149, 0.14), rgba(10, 10, 10, 0.82) 52%),
+    rgba(8, 8, 10, 0.9);
+}
+
+.price-drop-info--hero-top .price-drop-info__eyebrow {
+  margin-bottom: 6px;
+  font-size: 0.62rem;
+}
+
+.price-drop-info--hero-top h2 {
+  margin-bottom: 6px;
+  font-size: clamp(1.45rem, 4.8vw, 2.35rem);
+}
+
+.price-drop-info--hero-top p {
+  font-size: clamp(0.78rem, 2.8vw, 0.9rem);
+  line-height: 1.45;
+}
+
+.price-drop-info--hero-top .price-drop-info__timer {
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.price-drop-info--hero-top .price-drop-info__timer strong {
+  font-size: clamp(1.65rem, 6.5vw, 2.6rem);
+}
+
 .price-drop-info {
   position: relative;
   z-index: 2;
@@ -11493,6 +11537,12 @@ a.checkout-summary__product-name:active {
     align-items: center;
     padding: 22px;
   }
+
+  .price-drop-info--hero-top .price-drop-info__panel {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    padding: 16px 18px;
+    gap: 14px;
+  }
 }
 
 @media (min-width: 1100px) {
@@ -11502,15 +11552,28 @@ a.checkout-summary__product-name:active {
 }
 
 @media (max-width: 620px) {
-  .price-drop-info {
+  .price-drop-info:not(.price-drop-info--hero-top) {
     padding-inline: 12px;
   }
 
-  .price-drop-info h2 {
+  .price-drop-info--hero-top .price-drop-info__panel {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .price-drop-info--hero-top h2 {
+    font-size: clamp(1.35rem, 7.5vw, 1.9rem);
+  }
+
+  .price-drop-info--hero-top .price-drop-info__timer strong {
+    font-size: clamp(1.55rem, 10vw, 2.2rem);
+  }
+
+  .price-drop-info:not(.price-drop-info--hero-top) h2 {
     font-size: clamp(2rem, 11vw, 3rem);
   }
 
-  .price-drop-info__timer strong {
+  .price-drop-info:not(.price-drop-info--hero-top) .price-drop-info__timer strong {
     font-size: clamp(2.2rem, 15vw, 3.4rem);
   }
 }

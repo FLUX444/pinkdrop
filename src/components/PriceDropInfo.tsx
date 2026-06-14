@@ -14,7 +14,11 @@ function formatMs(ms: number) {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
-export function PriceDropInfo() {
+interface PriceDropInfoProps {
+  variant?: 'standalone' | 'hero-top';
+}
+
+export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
   const [nextDropAt, setNextDropAt] = useState<string | null>(null);
   const [isMaxDiscount, setIsMaxDiscount] = useState(false);
   const [ready, setReady] = useState(false);
@@ -62,7 +66,10 @@ export function PriceDropInfo() {
   }
 
   return (
-    <section className="price-drop-info" aria-label="Механика снижения цен">
+    <section
+      className={`price-drop-info${variant === 'hero-top' ? ' price-drop-info--hero-top' : ''}`}
+      aria-label="Механика снижения цен"
+    >
       <div className="price-drop-info__panel">
         <div className="price-drop-info__main">
           <span className="price-drop-info__eyebrow mono">PINK_DROP_TIMER</span>
