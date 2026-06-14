@@ -86,7 +86,11 @@ async function sendTelegramToChat(chatId, text) {
   return response.ok;
 }
 
-function getAdminTelegramChatIds() {
+function getSupportNotificationChatIds() {
+  if (config.telegram.supportChannelId) {
+    return [config.telegram.supportChannelId];
+  }
+
   const chatIds = new Set();
   if (config.telegram.adminChatId) chatIds.add(config.telegram.adminChatId);
   for (const id of config.admin.allowedTelegramIds) {
@@ -637,7 +641,9 @@ async function notifyAdminsAboutSupport({ user, thread, body }) {
     `<a href="${supportUrl}">Открыть чат</a>`,
   ].join('\n');
 
-  await Promise.all(getAdminTelegramChatIds().map((chatId) => sendTelegramToChat(chatId, telegramText)));
+  await Promise.all(
+    getSupportNotificationChatIds().map((chatId) => sendTelegramToChat(chatId, telegramText))
+  );
 }
 
 export async function addUserSupportMessage(user, bodyRaw, threadId = null, uploadedFiles = [], urlBase = '') {

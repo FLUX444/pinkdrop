@@ -11,6 +11,9 @@ telegram:
   ops_channel:
     id: -1003999192222
 
+  support_channel:
+    id: -1003924177661
+
   store_channel:
     id: -1003672785955
     link: ""

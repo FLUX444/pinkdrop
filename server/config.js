@@ -37,6 +37,11 @@ export const config = {
       if (fromYaml != null) return String(fromYaml);
       return process.env.TELEGRAM_OPS_CHAT_ID || '';
     })(),
+    supportChannelId: (() => {
+      const fromYaml = getYamlNumber(['telegram', 'support_channel', 'id']);
+      if (fromYaml != null) return String(fromYaml);
+      return process.env.TELEGRAM_SUPPORT_CHANNEL_ID || '';
+    })(),
     storeChannelId:
       getYamlString(['telegram', 'store_channel', 'id']) ||
       process.env.TELEGRAM_STORE_CHANNEL_ID ||
