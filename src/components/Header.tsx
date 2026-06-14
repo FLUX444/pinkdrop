@@ -2,8 +2,9 @@ import { Menu, MessageSquarePlus, ShoppingCart, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import type { Product } from '../types';
+import type { CatalogFilters, CatalogView, Product, SortOption } from '../types';
 import type { SearchSuggestion } from '../utils/productSearch';
+import { FilterBar } from './FilterBar';
 import { SearchBar } from './SearchBar';
 
 interface HeaderProps {
@@ -21,6 +22,12 @@ interface HeaderProps {
   isMenuOpen: boolean;
   onLogoClick: () => void;
   onReviewPromptClick?: () => void;
+  catalogFilters: CatalogFilters;
+  onCatalogFiltersChange: (filters: CatalogFilters) => void;
+  catalogSort: SortOption;
+  onCatalogSortChange: (sort: SortOption) => void;
+  catalogView: CatalogView;
+  onCatalogViewChange: (view: CatalogView) => void;
 }
 
 export function Header({
@@ -37,6 +44,12 @@ export function Header({
   onMenuOpen,
   onLogoClick,
   onReviewPromptClick,
+  catalogFilters,
+  onCatalogFiltersChange,
+  catalogSort,
+  onCatalogSortChange,
+  catalogView,
+  onCatalogViewChange,
 }: HeaderProps) {
   const navigate = useNavigate();
   const { totalItems } = useCart();
@@ -111,6 +124,15 @@ export function Header({
           onClearRecent={onClearRecentSearches}
         />
       </div>
+
+      <FilterBar
+        filters={catalogFilters}
+        onFiltersChange={onCatalogFiltersChange}
+        sort={catalogSort}
+        onSortChange={onCatalogSortChange}
+        view={catalogView}
+        onViewChange={onCatalogViewChange}
+      />
     </header>
   );
 }

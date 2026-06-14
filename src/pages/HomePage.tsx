@@ -7,7 +7,6 @@ import type { CatalogFilters, CatalogView, FilterTag, HeroConfig, Product, Revie
 import { AdminAddProductCard } from '../components/AdminAddProductCard';
 import { Header } from '../components/Header';
 import { HeroBanner } from '../components/HeroBanner';
-import { FilterBar } from '../components/FilterBar';
 import { PriceDropInfo } from '../components/PriceDropInfo';
 import { ProductGrid } from '../components/ProductGrid';
 import { ReviewPromptModal } from '../components/ReviewPromptModal';
@@ -312,6 +311,15 @@ export function HomePage() {
         isMenuOpen={isMenuOpen}
         onLogoClick={scrollToTop}
         onReviewPromptClick={() => void openReviewPrompt()}
+        catalogFilters={catalogFilters}
+        onCatalogFiltersChange={(nextFilters) => {
+          setFilter('all');
+          setCatalogFilters(nextFilters);
+        }}
+        catalogSort={sort}
+        onCatalogSortChange={setSort}
+        catalogView={catalogView}
+        onCatalogViewChange={setCatalogView}
       />
 
       <MobileMenu
@@ -324,18 +332,6 @@ export function HomePage() {
         <HeroBanner config={heroConfig} featuredProduct={featuredProduct} />
         <PriceDropInfo />
         <TrustSection />
-
-        <FilterBar
-          filters={catalogFilters}
-          onFiltersChange={(nextFilters) => {
-            setFilter('all');
-            setCatalogFilters(nextFilters);
-          }}
-          sort={sort}
-          onSortChange={setSort}
-          view={catalogView}
-          onViewChange={setCatalogView}
-        />
 
         <SearchResultsBanner
           query={search}
