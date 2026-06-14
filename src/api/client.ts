@@ -210,10 +210,15 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
-  loginWithTelegram: (payload: Record<string, string | number>) =>
-    request<{ user: User }>('/auth/telegram', {
+  startTelegramLogin: () =>
+    request<{ sessionId: string; botUrl: string; botUsername: string; expiresAt: string }>(
+      '/auth/telegram/login/start',
+      { method: 'POST' }
+    ),
+  confirmTelegramLogin: (code: string) =>
+    request<{ user: User }>('/auth/telegram/login/confirm', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ code }),
     }),
   startTelegramLink: () =>
     request<{ sessionId: string; botUrl: string; botUsername: string; expiresAt: string }>(

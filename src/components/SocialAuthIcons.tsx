@@ -1,12 +1,12 @@
 import { authUrls } from '../api/client';
 import type { AuthProvidersConfig } from '../types';
-import { openTelegramLogin, type TelegramAuthUser } from '../utils/telegramOAuth';
 
 interface SocialAuthIconsProps {
   providers: AuthProvidersConfig | null;
   providersLoading?: boolean;
   onError: (message: string) => void;
-  onTelegramAuth?: (user: TelegramAuthUser) => void | Promise<void>;
+  onTelegramLogin?: () => void | Promise<void>;
+  telegramLoginBusy?: boolean;
 }
 
 function TelegramIcon() {
@@ -35,21 +35,22 @@ export function SocialAuthIcons({
   providers,
   providersLoading = false,
   onError,
-  onTelegramAuth,
+  onTelegramLogin,
+  telegramLoginBusy = false,
 }: SocialAuthIconsProps) {
   const telegramEnabled =
-    providers?.telegram.enabled && providers.telegram.botUsername && providers.telegram.botId;
+    providers?.telegram.enabled && providers.telegram.botUsername;
   const googleEnabled = providers?.google;
 
   const handleTelegramClick = () => {
-    if (!telegramEnabled || !onTelegramAuth) {
+    if (!telegramEnabled || !onTelegramLogin) {
       onError(
-        'Telegram не настроен — проверьте TELEGRAM_BOT_USERNAME в .env, bot_username в pinkdrop.yaml и /setdomain в BotFather'
+        'Telegram не настроен — проверьте TELEGRAM_BOT_USERNAME в .env и bot_username в pinkdrop.yaml'
       );
       return;
     }
 
-    openTelegramLogin(providers.telegram.botId!, onTelegramAuth, onError);
+    void onTelegramLogin();
   };
 
   const handleGoogleClick = () => {
@@ -76,6 +77,7 @@ export function SocialAuthIcons({
           type="button"
           className={`social-auth__btn social-auth__btn--telegram${telegramEnabled ? '' : ' social-auth__btn--disabled'}`}
           onClick={handleTelegramClick}
+          disabled={telegramLoginBusy}
           aria-label="Войти через Telegram"
         >
           <TelegramIcon />

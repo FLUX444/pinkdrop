@@ -181,6 +181,11 @@ import {
   getPendingTelegramLinkForChat,
   markTelegramLinkBotNotified,
 } from './telegramLink.js';
+import {
+  activateTelegramAuthSession,
+  confirmTelegramAuthCode,
+  startTelegramAuthSession,
+} from './telegramAuth.js';
 import { startInactiveUserCleanupScheduler } from './userCleanup.js';
 import {
   clearUserPresence,
@@ -331,6 +336,7 @@ app.get('/api/health', (_req, res) => {
       brand: 'PINKDROP',
       features: {
         telegramLink: true,
+        telegramAuth: true,
         bargain: true,
         botTelegramLink: true,
       },
@@ -972,13 +978,45 @@ app.get('/api/auth/vk/callback', async (req, res) => {
   }
 });
 
-app.post('/api/auth/telegram', authLimiter, (req, res) => {
+app.post('/api/auth/telegram', authLimiter, (_req, res) => {
+  res.status(400).json({
+    error:
+      'Вход через Telegram теперь только по коду из бота. Нажмите иконку Telegram на сайте, откройте бота и введите код.',
+  });
+});
+
+app.post('/api/auth/telegram/login/start', authLimiter, (_req, res) => {
   try {
-    const { user, token, expiresAt } = verifyTelegramAuth(req.body ?? {}, createAuthEmailContext(req));
-    setSessionCookie(res, token, expiresAt);
-    res.json({ user: userToJson(user) });
+    const result = startTelegramAuthSession();
+    res.json(result);
   } catch (error) {
-    res.status(400).json({ error: error.message || 'Telegram login failed' });
+    res.status(400).json({ error: error.message || 'Не удалось начать вход через Telegram' });
+  }
+});
+
+app.post('/api/auth/telegram/login/confirm', authLimiter, (req, res) => {
+  try {
+    const { user, token, expiresAt } = confirmTelegramAuthCode(req.body?.code);
+    setSessionCookie(res, token, expiresAt);
+    res.json({ user });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Не удалось войти через Telegram' });
+  }
+});
+
+app.post('/api/bot/telegram/auth/activate', botMiddleware, (req, res) => {
+  try {
+    const telegramUser = req.body?.telegramUser;
+    const chatId = req.body?.chatId;
+    const sessionId = req.body?.sessionId;
+    if (!telegramUser?.id || !chatId || !sessionId) {
+      return res.status(400).json({ error: 'telegramUser, chatId и sessionId обязательны' });
+    }
+    const result = activateTelegramAuthSession({ sessionId, telegramUser, chatId });
+    if (!result.ok) return res.status(400).json(result);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to activate telegram auth' });
   }
 });
 

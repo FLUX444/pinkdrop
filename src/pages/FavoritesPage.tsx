@@ -22,28 +22,23 @@ export function FavoritesPage() {
     );
   }
 
+  const pageClass = 'profile-page favorites-page';
+
   if (!user) {
     return (
-      <div className="profile-page favorites-page">
-        <div className="profile-page__header">
+      <div className={pageClass}>
+        <div className="favorites-page__top">
           <Link to="/profile" className="profile-page__back" aria-label="В профиль">
             <ArrowLeft size={22} />
           </Link>
-          <h1 className="title-with-code">
-            <span className="title-code">&lt;/&gt;</span>
-            <span>ИЗБРАННОЕ</span>
-          </h1>
-        </div>
-
-        <section className="favorites-page__intro">
-          <span className="favorites-page__icon" aria-hidden>
-            <Heart size={20} />
-          </span>
-          <div>
-            <span className="mono favorites-page__tag">WISHLIST</span>
-            <p>Войдите в аккаунт, чтобы синхронизировать избранное между устройствами</p>
+          <div className="favorites-page__title-wrap">
+            <h1 className="title-with-code">
+              <span className="title-code">&lt;/&gt;</span>
+              <span>ИЗБРАННОЕ</span>
+            </h1>
+            <p className="favorites-page__subtitle">Войдите, чтобы синхронизировать список между устройствами</p>
           </div>
-        </section>
+        </div>
 
         {isLoading ? (
           <p className="mono favorites-page__loading">LOADING_FAVORITES...</p>
@@ -72,30 +67,26 @@ export function FavoritesPage() {
   }
 
   return (
-    <div className="profile-page favorites-page">
-      <div className="profile-page__header">
+    <div className={pageClass}>
+      <div className="favorites-page__top">
         <Link to="/profile" className="profile-page__back" aria-label="В профиль">
           <ArrowLeft size={22} />
         </Link>
-        <h1 className="title-with-code">
-          <span className="title-code">&lt;/&gt;</span>
-          <span>ИЗБРАННОЕ</span>
-        </h1>
-      </div>
-
-      <section className="favorites-page__intro">
-        <span className="favorites-page__icon" aria-hidden>
-          <Heart size={20} />
-        </span>
-        <div>
-          <span className="mono favorites-page__tag">WISHLIST</span>
-          <p>
+        <div className="favorites-page__title-wrap">
+          <h1 className="title-with-code">
+            <span className="title-code">&lt;/&gt;</span>
+            <span>ИЗБРАННОЕ</span>
+          </h1>
+          <p className="favorites-page__subtitle">
             {items.length > 0
-              ? `Сохранено ${items.length} ${items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'}`
-              : 'Добавляйте звёздочкой в каталоге — список останется здесь, пока вы сами не уберёте'}
+              ? `${items.length} ${items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'}`
+              : 'Добавляйте звёздочкой в каталоге'}
           </p>
         </div>
-      </section>
+        <span className="favorites-page__icon" aria-hidden>
+          <Heart size={18} />
+        </span>
+      </div>
 
       {isLoading ? (
         <p className="mono favorites-page__loading">LOADING_FAVORITES...</p>

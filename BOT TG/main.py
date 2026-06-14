@@ -319,6 +319,15 @@ async def start_cart_bargain_flow(
     )
 
 
+def parse_auth_deeplink(args: str | None) -> str | None:
+    if not args or not args.startswith("login_"):
+        return None
+    session_id = args[len("login_") :].strip()
+    if len(session_id) != 32:
+        return None
+    return session_id
+
+
 def parse_link_deeplink(args: str | None) -> str | None:
     if not args or not args.startswith("link_"):
         return None
@@ -434,6 +443,55 @@ def start_link_watch(bot: Bot, chat_id: int, session: UserSession, session_id: s
     cancel_link_watch(chat_id)
     _link_watch_tasks[chat_id] = asyncio.create_task(
         watch_telegram_link_completion(bot, chat_id, session, session_id)
+    )
+
+
+async def start_telegram_auth_flow(
+    bot: Bot,
+    message: Message,
+    session_id: str,
+    *,
+    edit_message: Message | None = None,
+) -> None:
+    session = get_session(message.chat.id)
+    session.mode = "idle"
+    reset_bargain(session)
+
+    try:
+        result = await site_api.activate_telegram_auth(
+            telegram_user_dict(message.from_user),
+            message.chat.id,
+            session_id,
+        )
+    except RuntimeError as error:
+        await show_screen(
+            bot,
+            chat_id=message.chat.id,
+            session=session,
+            text=str(error),
+            reply_markup=sub_menu_keyboard(),
+            edit_message=edit_message,
+        )
+        return
+
+    if not result.get("ok"):
+        await show_screen(
+            bot,
+            chat_id=message.chat.id,
+            session=session,
+            text=result.get("message", "Вход недоступен"),
+            reply_markup=sub_menu_keyboard(),
+            edit_message=edit_message,
+        )
+        return
+
+    await show_screen(
+        bot,
+        chat_id=message.chat.id,
+        session=session,
+        text=result.get("message", "Код отправлен"),
+        reply_markup=None,
+        edit_message=edit_message,
     )
 
 
@@ -567,6 +625,12 @@ def register_handlers(dp: Dispatcher) -> None:
                 session,
                 message.from_user,
             )
+            await cleanup_user_message(message)
+            return
+
+        auth_session_id = parse_auth_deeplink(command.args)
+        if auth_session_id:
+            await start_telegram_auth_flow(message.bot, message, auth_session_id)
             await cleanup_user_message(message)
             return
 

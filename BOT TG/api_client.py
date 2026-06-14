@@ -129,6 +129,17 @@ class SiteApi:
         )
 
 
+    async def activate_telegram_auth(self, telegram_user: dict, chat_id: int, session_id: str) -> dict:
+        return await self._request(
+            "POST",
+            "/api/bot/telegram/auth/activate",
+            json={
+                "telegramUser": telegram_user,
+                "chatId": chat_id,
+                "sessionId": session_id,
+            },
+        )
+
     async def activate_telegram_link(self, telegram_user: dict, chat_id: int, session_id: str) -> dict:
         return await self._request(
             "POST",

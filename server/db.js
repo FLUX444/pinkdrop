@@ -560,6 +560,25 @@ function migrateTelegramLinkTables() {
   }
 }
 
+function migrateTelegramAuthTables() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS telegram_auth_sessions (
+      id TEXT PRIMARY KEY,
+      code TEXT,
+      telegram_user_id TEXT,
+      telegram_chat_id TEXT,
+      telegram_payload TEXT,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'awaiting_bot',
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_telegram_auth_sessions_code
+      ON telegram_auth_sessions(code);
+  `);
+}
+
 function migrateSecurityIncidentTokens() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS security_incident_tokens (
@@ -854,6 +873,7 @@ export function initDb() {
   migrateBotTelegramTables();
   migrateBargainTables();
   migrateTelegramLinkTables();
+  migrateTelegramAuthTables();
   migrateOrderItemDiscountColumns();
   migrateSupportTicketCounter();
   seedProducts();

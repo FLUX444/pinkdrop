@@ -494,6 +494,12 @@ function loginOrRegisterProvider(
   }
 
   if (!user) {
+    if (provider === 'telegram') {
+      throw new Error(
+        'Этот Telegram не привязан к аккаунту. Зарегистрируйтесь по почте и привяжите Telegram в профиле.'
+      );
+    }
+
     try {
       user = createUserFromProvider({
         provider,

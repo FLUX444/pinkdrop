@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTelegramLoginFlow } from '../hooks/useTelegramLoginFlow';
 import { OtpCodeInput } from './OtpCodeInput';
 import { SocialAuthIcons } from './SocialAuthIcons';
-import type { TelegramAuthUser } from '../utils/telegramOAuth';
+import { clearTelegramAuthSession } from '../utils/telegramAuth';
 
 interface AuthPanelProps {
   variant?: 'inline' | 'modal';
@@ -29,12 +30,13 @@ export function AuthPanel({
     sendPasswordResetCode,
     verifyPasswordResetCode,
     resetPasswordWithCode,
-    loginWithTelegram,
+    confirmTelegramLogin,
   } = useAuth();
+  const { startTelegramLogin, telegramLoginBusy } = useTelegramLoginFlow();
 
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [panelFlow, setPanelFlow] = useState<
-    'auth' | 'forgot-email' | 'forgot-code' | 'forgot-password'
+    'auth' | 'forgot-email' | 'forgot-code' | 'forgot-password' | 'telegram-login'
   >('auth');
   const [codeStep, setCodeStep] = useState<'form' | 'code'>('form');
   const [codeIntent, setCodeIntent] = useState<'login' | 'register'>('register');
@@ -51,6 +53,7 @@ export function AuthPanel({
   const [newConfirmPassword, setNewConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showNewConfirmPassword, setShowNewConfirmPassword] = useState(false);
+  const [telegramCode, setTelegramCode] = useState('');
 
   useEffect(() => {
     if (initialFlow === 'forgot-email') {
@@ -287,11 +290,28 @@ export function AuthPanel({
     }
   };
 
-  const handleTelegramAuth = async (user: TelegramAuthUser) => {
+  const resetTelegramFlow = () => {
+    setPanelFlow('auth');
+    setTelegramCode('');
+    clearTelegramAuthSession();
+  };
+
+  const handleTelegramLoginStart = async () => {
+    setError('');
+    const started = await startTelegramLogin();
+    if (started) {
+      setPanelFlow('telegram-login');
+      setTelegramCode('');
+    }
+  };
+
+  const handleTelegramCodeSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError('');
     setSubmitting(true);
     try {
-      await loginWithTelegram(user as unknown as Record<string, string | number>);
+      await confirmTelegramLogin(telegramCode.trim());
+      clearTelegramAuthSession();
       navigateAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось войти через Telegram');
@@ -312,9 +332,12 @@ export function AuthPanel({
     variant === 'modal' ? 'auth-panel auth-panel--modal' : 'auth-panel auth-panel--inline';
 
   const isCodeStep = codeStep === 'code';
-  const isForgotFlow = panelFlow !== 'auth';
+  const isForgotFlow = panelFlow.startsWith('forgot-');
+  const isTelegramLoginFlow = panelFlow === 'telegram-login';
 
-  const title = isForgotFlow
+  const title = isTelegramLoginFlow
+    ? 'Вход через'
+    : isForgotFlow
     ? panelFlow === 'forgot-password'
       ? 'Новый пароль'
       : 'Восстановление'
@@ -324,7 +347,9 @@ export function AuthPanel({
         ? 'Войдите в'
         : 'Регистрация в';
 
-  const subtitle = isForgotFlow
+  const subtitle = isTelegramLoginFlow
+    ? 'Откройте бота в новой вкладке, скопируйте код и вставьте его здесь'
+    : isForgotFlow
     ? panelFlow === 'forgot-email'
       ? 'Введите email — отправим код для сброса пароля'
       : panelFlow === 'forgot-code'
@@ -346,7 +371,32 @@ export function AuthPanel({
         {subtitle ? <p className="auth-panel__subtitle">{subtitle}</p> : null}
       </div>
 
-      {panelFlow === 'forgot-email' ? (
+      {panelFlow === 'telegram-login' ? (
+        <form className="auth-panel__code-step" onSubmit={(event) => void handleTelegramCodeSubmit(event)}>
+          <OtpCodeInput
+            idPrefix="telegram-auth"
+            value={telegramCode}
+            onChange={setTelegramCode}
+            disabled={submitting}
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="btn btn--primary auth-panel__submit"
+            disabled={submitting || telegramCode.length !== 6}
+          >
+            {submitting ? 'Входим...' : 'Войти через Telegram'}
+          </button>
+          <button
+            type="button"
+            className="auth-panel__forgot-back"
+            onClick={resetTelegramFlow}
+            disabled={submitting}
+          >
+            ← Назад ко входу
+          </button>
+        </form>
+      ) : panelFlow === 'forgot-email' ? (
         <form className="auth-panel__form" onSubmit={handleForgotEmail} noValidate>
           <label className="auth-panel__field">
             Email
@@ -649,12 +699,13 @@ export function AuthPanel({
         </p>
       )}
 
-      {!isCodeStep && !isForgotFlow && (
+      {!isCodeStep && !isForgotFlow && !isTelegramLoginFlow && (
         <SocialAuthIcons
           providers={authProviders}
           providersLoading={providersLoading}
           onError={setError}
-          onTelegramAuth={handleTelegramAuth}
+          onTelegramLogin={handleTelegramLoginStart}
+          telegramLoginBusy={telegramLoginBusy}
         />
       )}
     </div>

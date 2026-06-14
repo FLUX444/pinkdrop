@@ -44,7 +44,7 @@ interface AuthContextValue {
     password: string;
     confirmPassword: string;
   }) => Promise<void>;
-  loginWithTelegram: (payload: Record<string, string | number>) => Promise<void>;
+  confirmTelegramLogin: (code: string) => Promise<void>;
   signInWithPassword: (payload: {
     intent: 'login' | 'register';
     mode: 'phone' | 'email';
@@ -353,8 +353,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await applyAuthenticatedUser(nextUser);
   };
 
-  const loginWithTelegram = async (payload: Record<string, string | number>) => {
-    const { user: nextUser } = await api.loginWithTelegram(payload);
+  const confirmTelegramLogin = async (code: string) => {
+    const { user: nextUser } = await api.confirmTelegramLogin(code);
     setIsAuthModalOpen(false);
     await applyAuthenticatedUser(nextUser);
   };
@@ -432,7 +432,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sendPasswordResetCode,
         verifyPasswordResetCode,
         resetPasswordWithCode,
-        loginWithTelegram,
+        confirmTelegramLogin,
         signInWithPassword,
         logout,
         updateName,
