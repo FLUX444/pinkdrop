@@ -11766,6 +11766,17 @@ a.checkout-summary__product-name:active {
   overflow-wrap: anywhere;
 }
 
+.price-drop-info__headline {
+  display: block;
+}
+
+.price-drop-info__period {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  text-align: center;
+}
+
 .price-drop-info__two {
   display: inline-block;
   color: var(--accent);

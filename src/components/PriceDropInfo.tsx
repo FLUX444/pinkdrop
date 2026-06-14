@@ -80,7 +80,10 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
         <div className="price-drop-info__main">
           <span className="price-drop-info__eyebrow mono">PINK_DROP_TIMER</span>
           <h2>
-            Цены падают каждые <span className="price-drop-info__two">{PRICE_DROP_PERIOD_HOURS}</span> часа
+            <span className="price-drop-info__headline">Цены падают каждые</span>
+            <span className="price-drop-info__period">
+              <span className="price-drop-info__two">{PRICE_DROP_PERIOD_HOURS}</span> часа
+            </span>
           </h2>
         </div>
 
