@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { products as staticProducts } from '../data/products';
 import { api } from '../api/client';
 import type { CatalogFilters, CatalogView, FilterTag, Product, ReviewPrompt, SortOption } from '../types';
@@ -22,9 +22,11 @@ import {
   POPULAR_SEARCH_QUERIES,
 } from '../utils/productSearch';
 import { getProductPath } from '../utils/productUrl';
+import type { CatalogNavigationState } from '../utils/catalogNavigation';
 
 export function CatalogPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>(staticProducts);
   const [search, setSearch] = useState(() => searchParams.get('q') ?? '');
@@ -40,6 +42,20 @@ export function CatalogPage() {
   const isLoadingProductsRef = useRef(false);
   const { reviewPrompts, markReviewPromptSeen } = useAuth();
   const { recentQueries, addRecentQuery, clearRecentQueries } = useRecentSearches();
+  const appliedNavigationStateRef = useRef(false);
+
+  useEffect(() => {
+    if (appliedNavigationStateRef.current) return;
+
+    const state = location.state as CatalogNavigationState | null;
+    if (!state) return;
+
+    appliedNavigationStateRef.current = true;
+    if (state.catalogFilters) setCatalogFilters(state.catalogFilters);
+    if (state.sort) setSort(state.sort);
+    if (state.catalogView) setCatalogView(state.catalogView);
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [location.pathname, location.search, location.state, navigate]);
 
   useEffect(() => {
     const query = searchParams.get('q') ?? '';
@@ -214,14 +230,6 @@ export function CatalogPage() {
         onLogoClick={scrollToTop}
         onReviewPromptClick={() => void openReviewPrompt()}
         catalogFilters={catalogFilters}
-        onCatalogFiltersChange={(nextFilters) => {
-          setFilter('all');
-          setCatalogFilters(nextFilters);
-        }}
-        catalogSort={sort}
-        onCatalogSortChange={setSort}
-        catalogView={catalogView}
-        onCatalogViewChange={setCatalogView}
         onOpenFilters={() => setIsFilterModalOpen(true)}
         isFilterModalOpen={isFilterModalOpen}
       />

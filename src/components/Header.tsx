@@ -2,12 +2,13 @@ import { Menu, MessageSquarePlus, ShoppingCart, SlidersHorizontal, User } from '
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import type { CatalogFilters, CatalogView, Product, SortOption } from '../types';
+import type { CatalogFilters, Product } from '../types';
 import type { SearchSuggestion } from '../utils/productSearch';
 import { countActiveCatalogFilters } from '../utils/catalogLogic';
 import { SearchBar } from './SearchBar';
 
-interface HeaderBaseProps {
+interface HeaderProps {
+  variant: 'landing' | 'catalog';
   search: string;
   onSearchChange: (v: string) => void;
   suggestions: SearchSuggestion[];
@@ -22,56 +23,41 @@ interface HeaderBaseProps {
   isMenuOpen: boolean;
   onLogoClick: () => void;
   onReviewPromptClick?: () => void;
-}
-
-interface LandingHeaderProps extends HeaderBaseProps {
-  variant: 'landing';
-}
-
-interface CatalogHeaderProps extends HeaderBaseProps {
-  variant: 'catalog';
-  catalogFilters: CatalogFilters;
-  onCatalogFiltersChange: (filters: CatalogFilters) => void;
-  catalogSort: SortOption;
-  onCatalogSortChange: (sort: SortOption) => void;
-  catalogView: CatalogView;
-  onCatalogViewChange: (view: CatalogView) => void;
-  onOpenFilters: () => void;
+  catalogFilters?: CatalogFilters;
+  onOpenFilters?: () => void;
   isFilterModalOpen?: boolean;
 }
 
-type HeaderProps = LandingHeaderProps | CatalogHeaderProps;
-
-export function Header(props: HeaderProps) {
-  const {
-    search,
-    onSearchChange,
-    suggestions,
-    recentQueries,
-    popularQueries,
-    resultsCount,
-    onSearchSelect,
-    onSearchProductSelect,
-    onSearchSubmit,
-    onClearRecentSearches,
-    onMenuOpen,
-    isMenuOpen,
-    onLogoClick,
-    onReviewPromptClick,
-    variant,
-  } = props;
-
+export function Header({
+  variant,
+  search,
+  onSearchChange,
+  suggestions,
+  recentQueries,
+  popularQueries,
+  resultsCount,
+  onSearchSelect,
+  onSearchProductSelect,
+  onSearchSubmit,
+  onClearRecentSearches,
+  onMenuOpen,
+  isMenuOpen,
+  onLogoClick,
+  onReviewPromptClick,
+  catalogFilters,
+  onOpenFilters,
+  isFilterModalOpen,
+}: HeaderProps) {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { user, reviewPrompts } = useAuth();
   const hasReviewPrompt = reviewPrompts.length > 0;
   const hasUnseenPrompt = reviewPrompts.some((prompt) => !prompt.seen);
-  const isCatalog = variant === 'catalog';
-  const activeFilterCount = isCatalog ? countActiveCatalogFilters(props.catalogFilters) : 0;
+  const activeFilterCount = catalogFilters ? countActiveCatalogFilters(catalogFilters) : 0;
 
   return (
     <header
-      className={`header${isCatalog ? ' header--catalog' : ' header--landing'}${isMenuOpen ? ' header--menu-open' : ''}`}
+      className={`header${variant === 'catalog' ? ' header--catalog' : ' header--landing'}${isMenuOpen ? ' header--menu-open' : ''}`}
     >
       <div className="header__top">
         <button type="button" className="header__burger" onClick={onMenuOpen} aria-label="Меню">
@@ -137,13 +123,13 @@ export function Header(props: HeaderProps) {
             />
           </div>
 
-          {isCatalog && (
+          {onOpenFilters && (
             <button
               type="button"
-              className={`header__filter-btn${props.isFilterModalOpen ? ' is-open' : ''}${activeFilterCount > 0 ? ' has-active' : ''}`}
-              onClick={props.onOpenFilters}
+              className={`header__filter-btn${isFilterModalOpen ? ' is-open' : ''}${activeFilterCount > 0 ? ' has-active' : ''}`}
+              onClick={onOpenFilters}
               aria-label="Открыть фильтры"
-              aria-expanded={props.isFilterModalOpen}
+              aria-expanded={isFilterModalOpen}
             >
               <SlidersHorizontal size={18} className="header__filter-btn-icon" aria-hidden />
               {activeFilterCount > 0 && <span className="header__filter-btn-badge">{activeFilterCount}</span>}

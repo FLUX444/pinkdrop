@@ -7,6 +7,7 @@ import { FilterBar } from './FilterBar';
 interface FilterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onApply?: () => void;
   filters: CatalogFilters;
   onFiltersChange: (filters: CatalogFilters) => void;
   sort: SortOption;
@@ -18,6 +19,7 @@ interface FilterModalProps {
 export function FilterModal({
   isOpen,
   onClose,
+  onApply,
   filters,
   onFiltersChange,
   sort,
@@ -73,7 +75,7 @@ export function FilterModal({
           />
         </div>
 
-        <button type="button" className="btn btn--primary filter-modal__apply" onClick={onClose}>
+        <button type="button" className="btn btn--primary filter-modal__apply" onClick={onApply ?? onClose}>
           Показать товары
         </button>
       </div>

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { products as staticProducts } from '../data/products';
 import { DEFAULT_HERO } from '../data/hero';
 import { api } from '../api/client';
-import type { HeroConfig, Product, ReviewPrompt } from '../types';
+import type { CatalogFilters, CatalogView, HeroConfig, Product, ReviewPrompt, SortOption } from '../types';
 import { AboutSection } from '../components/AboutSection';
+import { FilterModal } from '../components/FilterModal';
 import { Header } from '../components/Header';
 import { HeroBanner } from '../components/HeroBanner';
 import { PriceDropInfo } from '../components/PriceDropInfo';
@@ -16,11 +17,17 @@ import { useAuth } from '../context/AuthContext';
 import { useRecentSearches } from '../hooks/useRecentSearches';
 import { getSearchSuggestions, POPULAR_SEARCH_QUERIES } from '../utils/productSearch';
 import { getProductPath } from '../utils/productUrl';
+import { DEFAULT_CATALOG_FILTERS } from '../utils/catalogLogic';
+import type { CatalogNavigationState } from '../utils/catalogNavigation';
 
 export function HomePage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>(staticProducts);
   const [search, setSearch] = useState('');
+  const [catalogFilters, setCatalogFilters] = useState<CatalogFilters>(DEFAULT_CATALOG_FILTERS);
+  const [catalogView, setCatalogView] = useState<CatalogView>('comfortable');
+  const [sort, setSort] = useState<SortOption>('popular');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [selectedReviewPrompt, setSelectedReviewPrompt] = useState<ReviewPrompt | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [heroConfig, setHeroConfig] = useState<HeroConfig>(DEFAULT_HERO);
@@ -97,13 +104,24 @@ export function HomePage() {
   );
 
   const goToCatalog = useCallback(
-    (query?: string) => {
+    (query?: string, prefs?: CatalogNavigationState) => {
       const trimmed = (query ?? search).trim();
       if (trimmed) addRecentQuery(trimmed);
-      navigate(trimmed ? `/catalog?q=${encodeURIComponent(trimmed)}` : '/catalog');
+      const path = trimmed ? `/catalog?q=${encodeURIComponent(trimmed)}` : '/catalog';
+      const state: CatalogNavigationState = {
+        catalogFilters: prefs?.catalogFilters ?? catalogFilters,
+        sort: prefs?.sort ?? sort,
+        catalogView: prefs?.catalogView ?? catalogView,
+      };
+      navigate(path, { state });
     },
-    [addRecentQuery, navigate, search]
+    [addRecentQuery, catalogFilters, catalogView, navigate, search, sort]
   );
+
+  const applyFiltersAndGoToCatalog = useCallback(() => {
+    setIsFilterModalOpen(false);
+    goToCatalog();
+  }, [goToCatalog]);
 
   const handleSearchSelect = useCallback(
     (value: string) => {
@@ -158,6 +176,21 @@ export function HomePage() {
         isMenuOpen={isMenuOpen}
         onLogoClick={scrollToTop}
         onReviewPromptClick={() => void openReviewPrompt()}
+        catalogFilters={catalogFilters}
+        onOpenFilters={() => setIsFilterModalOpen(true)}
+        isFilterModalOpen={isFilterModalOpen}
+      />
+
+      <FilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApply={applyFiltersAndGoToCatalog}
+        filters={catalogFilters}
+        onFiltersChange={setCatalogFilters}
+        sort={sort}
+        onSortChange={setSort}
+        view={catalogView}
+        onViewChange={setCatalogView}
       />
 
       <MobileMenu
