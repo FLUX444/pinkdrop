@@ -242,6 +242,7 @@ import {
   isPayOnDelivery,
   removeUnusedProductImages,
 } from './orderFulfillment.js';
+import { buildSitemapXml } from './sitemap.js';
 
 initDb();
 clearExpiredOAuthStates();
@@ -646,6 +647,12 @@ app.get('/api/bargain/eligibility/:category/:productId', authMiddleware, (req, r
     ...result,
     telegramSiteLinked: isTelegramSiteLinked(req.user.id),
   });
+});
+
+app.get('/sitemap.xml', (_req, res) => {
+  res.type('application/xml');
+  res.set('Cache-Control', 'public, max-age=3600');
+  res.send(buildSitemapXml());
 });
 
 app.get('/api/products', (_req, res) => {

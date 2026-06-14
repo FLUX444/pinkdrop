@@ -1,5 +1,19 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+
+function seoHtmlPlugin(): Plugin {
+  return {
+    name: 'pinkdrop-seo-html',
+    transformIndexHtml(html) {
+      const env = loadEnv(process.env.NODE_ENV === 'production' ? 'production' : 'development', process.cwd(), '')
+      const googleVerification = env.VITE_GOOGLE_SITE_VERIFICATION?.trim()
+      if (!googleVerification) return html
+
+      const tag = `    <meta name="google-site-verification" content="${googleVerification}" />\n`
+      return html.replace('    <meta name="theme-color"', `${tag}    <meta name="theme-color"`)
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -7,7 +21,7 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.API_URL || 'http://localhost:3001'
 
   return {
-    plugins: [react()],
+    plugins: [react(), seoHtmlPlugin()],
     server: {
       proxy: {
         '/api': {
@@ -31,6 +45,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
         },
         '/images': {
+          target: apiTarget,
+          secure: false,
+          changeOrigin: true,
+        },
+        '/sitemap.xml': {
           target: apiTarget,
           secure: false,
           changeOrigin: true,

@@ -28,11 +28,13 @@ import { AdminUserEditPage } from './pages/AdminUserEditPage';
 import { AdminSupportPage } from './pages/AdminSupportPage';
 import { UserSupportPage } from './pages/UserSupportPage';
 import { SupportChatWidget } from './components/SupportChatWidget';
+import { SeoManager } from './components/SeoManager';
 
 function App() {
   return (
     <BrowserRouter>
       <div className="app">
+        <SeoManager />
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/catalog" element={<CatalogPage />} />
