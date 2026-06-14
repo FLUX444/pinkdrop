@@ -345,25 +345,25 @@ export function FilterBar({
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
         />
+      </div>
 
-        <div className="filter-view" aria-label="Вид каталога">
-          <button
-            type="button"
-            className={`filter-view__button ${view === 'comfortable' ? 'filter-view__button--active' : ''}`}
-            onClick={() => onViewChange('comfortable')}
-            aria-label="Крупная сетка"
-          >
-            <Grid2X2 size={16} />
-          </button>
-          <button
-            type="button"
-            className={`filter-view__button ${view === 'compact' ? 'filter-view__button--active' : ''}`}
-            onClick={() => onViewChange('compact')}
-            aria-label="Компактная сетка"
-          >
-            <Grid3X3 size={16} />
-          </button>
-        </div>
+      <div className="filter-bar__view" aria-label="Вид каталога">
+        <button
+          type="button"
+          className={`filter-view__button ${view === 'comfortable' ? 'filter-view__button--active' : ''}`}
+          onClick={() => onViewChange('comfortable')}
+          aria-label="Крупная сетка"
+        >
+          <Grid2X2 size={16} />
+        </button>
+        <button
+          type="button"
+          className={`filter-view__button ${view === 'compact' ? 'filter-view__button--active' : ''}`}
+          onClick={() => onViewChange('compact')}
+          aria-label="Компактная сетка"
+        >
+          <Grid3X3 size={16} />
+        </button>
       </div>
     </div>
   );

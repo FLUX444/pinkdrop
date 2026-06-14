@@ -110,29 +110,31 @@ export function Header({
         </div>
       </div>
 
-      <div className="header__search">
-        <SearchBar
-          value={search}
-          onChange={onSearchChange}
-          suggestions={suggestions}
-          recentQueries={recentQueries}
-          popularQueries={popularQueries}
-          resultsCount={resultsCount}
-          onSelectQuery={onSearchSelect}
-          onSelectProduct={onSearchProductSelect}
-          onSubmit={onSearchSubmit}
-          onClearRecent={onClearRecentSearches}
+      <div className="header__toolbar">
+        <div className="header__search">
+          <SearchBar
+            value={search}
+            onChange={onSearchChange}
+            suggestions={suggestions}
+            recentQueries={recentQueries}
+            popularQueries={popularQueries}
+            resultsCount={resultsCount}
+            onSelectQuery={onSearchSelect}
+            onSelectProduct={onSearchProductSelect}
+            onSubmit={onSearchSubmit}
+            onClearRecent={onClearRecentSearches}
+          />
+        </div>
+
+        <FilterBar
+          filters={catalogFilters}
+          onFiltersChange={onCatalogFiltersChange}
+          sort={catalogSort}
+          onSortChange={onCatalogSortChange}
+          view={catalogView}
+          onViewChange={onCatalogViewChange}
         />
       </div>
-
-      <FilterBar
-        filters={catalogFilters}
-        onFiltersChange={onCatalogFiltersChange}
-        sort={catalogSort}
-        onSortChange={onCatalogSortChange}
-        view={catalogView}
-        onViewChange={onCatalogViewChange}
-      />
     </header>
   );
 }
