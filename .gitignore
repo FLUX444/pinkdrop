@@ -29,6 +29,9 @@ server/data/
 # Environment
 .env
 
+# Local site config (secrets stay in .env)
+config/pinkdrop.yaml
+
 # Local HTTPS certs
 server/certs/
 

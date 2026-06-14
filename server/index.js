@@ -73,6 +73,7 @@ import {
   enrichProduct,
   enrichProducts,
   enablePriceDrop,
+  getGlobalPriceDropTimer,
   getPriceDropRow,
   priceDropToJson,
   PERIOD_MS,
@@ -625,6 +626,10 @@ app.get('/api/products', (_req, res) => {
 
 app.get('/api/hero', (_req, res) => {
   res.json(getHeroConfig());
+});
+
+app.get('/api/price-drop/timer', (_req, res) => {
+  res.json(getGlobalPriceDropTimer());
 });
 
 app.get('/api/products/:category/:id', (req, res) => {

@@ -26,3 +26,12 @@ def yaml_get(path: list[str], default: Any = "") -> Any:
             return default
         current = current.get(key)
     return default if current is None else current
+
+
+def yaml_has(path: list[str]) -> bool:
+    current: Any = load_pinkdrop_yaml()
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            return False
+        current = current[key]
+    return True

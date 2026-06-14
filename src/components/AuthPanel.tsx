@@ -4,7 +4,6 @@ import { Eye, EyeOff, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { OtpCodeInput } from './OtpCodeInput';
 import { SocialAuthIcons } from './SocialAuthIcons';
-import { TelegramLoginButton } from './TelegramLoginButton';
 
 interface AuthPanelProps {
   variant?: 'inline' | 'modal';
@@ -44,7 +43,6 @@ export function AuthPanel({
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [showTelegram, setShowTelegram] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetCode, setResetCode] = useState('');
@@ -298,10 +296,14 @@ export function AuthPanel({
     hash: string;
   }) => {
     setError('');
+    setSubmitting(true);
     try {
       await loginWithTelegram(user as unknown as Record<string, string | number>);
+      navigateAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось войти через Telegram');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -659,31 +661,9 @@ export function AuthPanel({
           providers={authProviders}
           providersLoading={providersLoading}
           onError={setError}
-          onTelegramClick={() => setShowTelegram(true)}
+          onTelegramAuth={handleTelegramAuth}
         />
       )}
-
-      {showTelegram &&
-        authProviders?.telegram.enabled &&
-        authProviders.telegram.botUsername && (
-          <div className="auth-panel__telegram-popover">
-            <p className="mono">Войти через Telegram</p>
-            <TelegramLoginButton
-              botUsername={authProviders.telegram.botUsername}
-              onAuth={async (user) => {
-                await handleTelegramAuth(user);
-                setShowTelegram(false);
-              }}
-            />
-            <button
-              type="button"
-              className="auth-panel__telegram-close"
-              onClick={() => setShowTelegram(false)}
-            >
-              Отмена
-            </button>
-          </div>
-        )}
     </div>
   );
 }

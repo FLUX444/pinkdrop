@@ -103,6 +103,7 @@ export const orderLimiter = rateLimit({
 const MUTATION_SKIP_PATHS = [
   /^\/api\/auth\/google\/callback$/,
   /^\/api\/auth\/vk\/callback$/,
+  /^\/api\/bot\//,
 ];
 
 export function mutationOriginGuard(req, res, next) {

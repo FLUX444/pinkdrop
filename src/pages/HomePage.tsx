@@ -322,7 +322,7 @@ export function HomePage() {
 
       <main>
         <HeroBanner config={heroConfig} featuredProduct={featuredProduct} />
-        <PriceDropInfo products={catalogProducts} />
+        <PriceDropInfo />
         <TrustSection />
 
         <FilterBar

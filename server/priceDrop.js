@@ -94,6 +94,33 @@ export function getGlobalDropStartedAt() {
   return ensureGlobalDropAnchor();
 }
 
+export function getGlobalPriceDropTimer(now = Date.now()) {
+  const globalAnchor = getGlobalDropStartedAt();
+  const globalDiscount = getDiscountPercent(globalAnchor, now);
+  const nextDropAt = getNextDropAt(globalAnchor, globalDiscount);
+
+  if (globalDiscount >= MAX_DISCOUNT || !nextDropAt) {
+    return {
+      enabled: true,
+      discountPercent: globalDiscount,
+      dropStartedAt: globalAnchor,
+      nextDropAt: null,
+      remainingMs: 0,
+      isMaxDiscount: true,
+    };
+  }
+
+  const remainingMs = Math.max(0, new Date(nextDropAt).getTime() - now);
+  return {
+    enabled: true,
+    discountPercent: globalDiscount,
+    dropStartedAt: globalAnchor,
+    nextDropAt,
+    remainingMs,
+    isMaxDiscount: false,
+  };
+}
+
 function setGlobalDropStartedAt(dropStartedAt) {
   db.prepare(
     `INSERT INTO site_price_drop (id, drop_started_at, period_ms, updated_at)

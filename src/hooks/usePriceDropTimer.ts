@@ -7,7 +7,9 @@ import {
 import type { ProductPriceDrop } from '../types';
 
 export function usePriceDropTimer(priceDrop?: ProductPriceDrop | null) {
-  const [state, setState] = useState<PriceDropTimerState | null>(null);
+  const [state, setState] = useState<PriceDropTimerState | null>(() =>
+    priceDrop?.enabled ? getPriceDropTimerState(priceDrop) : null
+  );
 
   useEffect(() => {
     if (!priceDrop?.enabled) {

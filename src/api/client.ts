@@ -90,6 +90,15 @@ export const api = {
       method: 'PATCH',
     }),
   getHero: () => request<HeroConfig>('/hero'),
+  getPriceDropTimer: () =>
+    request<{
+      enabled: boolean;
+      discountPercent: number;
+      dropStartedAt: string;
+      nextDropAt: string | null;
+      remainingMs: number;
+      isMaxDiscount: boolean;
+    }>('/price-drop/timer'),
   getAuthProviders: () => request<AuthProvidersConfig>('/auth/providers'),
   sendCode: (payload: {
     phone: string;

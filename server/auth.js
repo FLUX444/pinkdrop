@@ -701,13 +701,16 @@ export function loginOrRegisterWithPassword(
 }
 
 export function getAuthProvidersPayload() {
+  const botUsername = String(config.telegram.botUsername ?? '').trim();
+  const telegramReady = isTelegramEnabled() && Boolean(botUsername);
+
   return {
     phone: false,
     google: isGoogleEnabled(),
-    vk: isVkEnabled(),
+    vk: false,
     telegram: {
-      enabled: isTelegramEnabled(),
-      botUsername: isTelegramEnabled() ? config.telegram.botUsername : null,
+      enabled: telegramReady,
+      botUsername: telegramReady ? botUsername : null,
     },
     smsConfigured: isSmsEnabled(),
     emailCodeConfigured: isEmailSmtpConfigured(),

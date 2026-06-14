@@ -2,7 +2,7 @@
 
 site:
   public_url: "https://pinkdrop.ru"
-  frontend_url: "http://localhost:5173"
+  frontend_url: "https://pinkdrop.ru"
 
 telegram:
   bot_username: "p1nkdrop_bot"
@@ -26,6 +26,12 @@ telegram:
     restock_title: "🔥 PINKDROP — снова в наличии"
 
 bot:
+  proxy:
+    enabled: false
+    host: "127.0.0.1"
+    port: 2080
+    type: "http"
+
   menu:
     bargain: "🤝 Торг"
     link: "🔗 Привязка"

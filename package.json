@@ -9,7 +9,7 @@
     "dev:server": "node scripts/free-port.mjs 3001 && node server/index.js",
     "dev:bot": "npm run bot:kill && py -3 \"BOT TG/main.py\"",
     "bot:kill": "powershell -ExecutionPolicy Bypass -File scripts/kill-bot.ps1 -IncludePyLaunchers",
-    "bot:install": "py -3 -m pip install -r \"BOT TG/requirements.txt\"",
+    "bot:install": "python3 -m pip install -r \"BOT TG/requirements.txt\"",
     "certs:dev": "node scripts/generate-dev-certs.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

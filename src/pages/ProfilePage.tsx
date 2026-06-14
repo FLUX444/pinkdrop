@@ -56,6 +56,7 @@ export function ProfilePage() {
     removeAvatar,
     refreshUser,
     refreshOrders,
+    refreshReviewPrompts,
   } = useAuth();
   const navigate = useNavigate();
   const { alert } = useAppDialog();
@@ -171,7 +172,7 @@ export function ProfilePage() {
       searchParams.delete('auth_error');
       setSearchParams(searchParams, { replace: true });
     }
-  }, [refreshUser, refreshOrders, searchParams, setSearchParams, user]);
+  }, [refreshUser, refreshOrders, refreshReviewPrompts, searchParams, setSearchParams, user]);
 
   useEffect(() => {
     if (searchParams.get('action') === 'change-password') {

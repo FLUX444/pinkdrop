@@ -4986,6 +4986,17 @@ a.checkout-summary__product-name:active {
   filter: grayscale(0.35);
 }
 
+.social-auth__telegram-widget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+}
+
+.social-auth__telegram-widget iframe {
+  border-radius: 12px;
+}
+
 .auth-modal {
   position: relative;
   background: var(--bg);
@@ -12097,6 +12108,8 @@ a.checkout-summary__product-name:active {
 .admin-monitor__log-list--bot {
   margin-top: 16px;
 }
+
+.admin-monitor__sessions {
   display: grid;
   gap: 12px;
   margin-bottom: 24px;

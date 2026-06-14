@@ -1,18 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { Product } from '../types';
-import {
-  getPriceDropTimerState,
-  PRICE_DROP_PERIOD_HOURS,
-  PRICE_DROP_PERIOD_MS,
-} from '../utils/priceDropTimer';
-
-interface PriceDropInfoProps {
-  products: Product[];
-}
-
-function getActiveDropProducts(products: Product[]) {
-  return products.filter((product) => product.priceDrop?.enabled && !product.isFree && !product.isSecret);
-}
+import { useEffect, useState } from 'react';
+import { api } from '../api/client';
+import { PRICE_DROP_PERIOD_HOURS } from '../utils/priceDropTimer';
 
 function pad(value: number) {
   return String(value).padStart(2, '0');
@@ -26,33 +14,52 @@ function formatMs(ms: number) {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 }
 
-export function PriceDropInfo({ products }: PriceDropInfoProps) {
-  const [now, setNow] = useState(Date.now());
+export function PriceDropInfo() {
+  const [nextDropAt, setNextDropAt] = useState<string | null>(null);
+  const [isMaxDiscount, setIsMaxDiscount] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTimer = () => {
+      api
+        .getPriceDropTimer()
+        .then((timer) => {
+          if (cancelled) return;
+          setNextDropAt(timer.nextDropAt);
+          setIsMaxDiscount(timer.isMaxDiscount);
+          setReady(true);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setReady(false);
+        });
+    };
+
+    loadTimer();
+    const refresh = window.setInterval(loadTimer, 30000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(refresh);
+    };
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
   }, []);
 
-  const activeProducts = useMemo(() => getActiveDropProducts(products), [products]);
-
-  const nearest = useMemo(() => {
-    return activeProducts
-      .map((product) => {
-        const drop = product.priceDrop;
-        if (!drop) return null;
-        const state = getPriceDropTimerState(drop, now);
-        return { product, state };
-      })
-      .filter(
-        (item): item is { product: Product; state: NonNullable<ReturnType<typeof getPriceDropTimerState>> } =>
-          Boolean(item?.state && item.state.remainingMs > 0)
-      )
-      .sort((a, b) => a.state.remainingMs - b.state.remainingMs)[0];
-  }, [activeProducts, now]);
-
-  const fallbackRemainingMs = PRICE_DROP_PERIOD_MS - (now % PRICE_DROP_PERIOD_MS);
-  const countdown = nearest?.state ? formatMs(nearest.state.remainingMs) : formatMs(fallbackRemainingMs);
+  let displayCountdown = '--:--:--';
+  if (ready) {
+    if (isMaxDiscount) {
+      displayCountdown = 'MAX −28%';
+    } else if (nextDropAt) {
+      const remainingMs = Math.max(0, new Date(nextDropAt).getTime() - now);
+      displayCountdown = formatMs(remainingMs);
+    }
+  }
 
   return (
     <section className="price-drop-info" aria-label="Механика снижения цен">
@@ -67,7 +74,7 @@ export function PriceDropInfo({ products }: PriceDropInfoProps) {
 
         <div className="price-drop-info__timer">
           <span className="price-drop-info__timer-label mono">ДО СЛЕДУЮЩЕГО СНИЖЕНИЯ</span>
-          <strong className="mono">{countdown}</strong>
+          <strong className="mono">{displayCountdown}</strong>
         </div>
       </div>
     </section>

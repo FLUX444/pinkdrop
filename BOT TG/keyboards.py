@@ -30,8 +30,6 @@ def get_store_channel_url() -> str:
 def get_support_contact_url() -> str:
     if config.support_contact_username:
         return f"https://t.me/{config.support_contact_username}"
-    if config.support_contact_user_id:
-        return f"tg://user?id={config.support_contact_user_id}"
     return ""
 
 
@@ -122,32 +120,38 @@ def sub_menu_keyboard() -> InlineKeyboardMarkup:
 
 
 def proxy_keyboard(proxy_settings: dict | None = None) -> InlineKeyboardMarkup:
-    from proxy_settings import load_proxy_settings
+    from proxy_settings import is_proxy_configured_in_yaml, load_proxy_settings
 
     proxy_settings = proxy_settings or load_proxy_settings()
     proxy_status = "✅ ВКЛ" if proxy_settings.get("enabled") else "❌ ВЫКЛ"
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
+    rows = []
+    if not is_proxy_configured_in_yaml():
+        rows.append(
             [
                 InlineKeyboardButton(
                     text=f"Переключить прокси ({proxy_status})",
                     callback_data="proxy:toggle",
                 )
-            ],
-            [back_button()],
-        ]
-    )
+            ]
+        )
+    rows.append([back_button()])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def proxy_info_text() -> str:
-    from proxy_settings import load_proxy_settings, proxy_label
+    from proxy_settings import is_proxy_configured_in_yaml, load_proxy_settings, proxy_label
 
     settings = load_proxy_settings()
+    yaml_note = (
+        "\n\nНастройка задаётся в <code>config/pinkdrop.yaml</code> "
+        "(раздел <code>bot.proxy.enabled</code>)."
+        if is_proxy_configured_in_yaml()
+        else "\n\nПереключатель доступен через команду /proxy."
+    )
     return (
         "<b>🌐 Настройки прокси</b>\n\n"
         f"Адрес: <code>{settings.get('host', '127.0.0.1')}:{settings.get('port', 2080)}</code>\n"
         f"Статус: <b>{'включен' if settings.get('enabled') else 'выключен'}</b>\n\n"
-        f"{proxy_label(settings)}\n\n"
-        "В России Telegram часто не работает без прокси.\n"
-        "Переключатель доступен только через команду /proxy."
+        f"{proxy_label(settings)}"
+        f"{yaml_note}"
     )
