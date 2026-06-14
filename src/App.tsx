@@ -4,6 +4,7 @@ import { BottomNav } from './components/BottomNav';
 import { SiteFooter } from './components/SiteFooter';
 import { CartPage } from './pages/CartPage';
 import { HomePage } from './pages/HomePage';
+import { CatalogPage } from './pages/CatalogPage';
 import { AdminPage } from './pages/AdminPage';
 import { AdminAddProductPage } from './pages/AdminAddProductPage';
 import { AdminEditProductPage } from './pages/AdminEditProductPage';
@@ -33,6 +34,7 @@ function App() {
       <div className="app">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/product/:category/:id" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/profile" element={<ProfilePage />} />

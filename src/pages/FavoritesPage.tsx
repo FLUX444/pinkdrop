@@ -46,7 +46,7 @@ export function FavoritesPage() {
           <div className="favorites-page__empty">
             <p>Пока пусто</p>
             <span className="mono">NO_FAVORITES</span>
-            <Link to="/#catalog" className="btn btn--primary">
+            <Link to="/catalog" className="btn btn--primary">
               В каталог
             </Link>
           </div>
@@ -94,7 +94,7 @@ export function FavoritesPage() {
         <div className="favorites-page__empty">
           <p>Пока пусто</p>
           <span className="mono">NO_FAVORITES</span>
-          <Link to="/#catalog" className="btn btn--primary">
+          <Link to="/catalog" className="btn btn--primary">
             В каталог
           </Link>
         </div>

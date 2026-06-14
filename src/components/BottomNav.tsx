@@ -3,51 +3,52 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
+function focusSearchInput() {
+  document.querySelector<HTMLInputElement>('.search-bar__input')?.focus();
+}
+
 export function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItems } = useCart();
   const { user } = useAuth();
+  const isCatalog = location.pathname === '/catalog';
 
-  const focusSearch = () => {
-    if (location.pathname !== '/') {
-      navigate('/');
-      window.setTimeout(() => {
-        document.querySelector<HTMLInputElement>('.search-bar__input')?.focus();
-      }, 120);
+  const openCatalogSearch = () => {
+    if (isCatalog) {
+      focusSearchInput();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    document.querySelector<HTMLInputElement>('.search-bar__input')?.focus();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    navigate('/catalog');
+    window.setTimeout(() => {
+      focusSearchInput();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 150);
   };
 
   const goCatalog = () => {
-    if (location.pathname !== '/') {
-      navigate('/');
-      window.setTimeout(() => {
-        document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
-      }, 120);
-      return;
-    }
-    document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+    navigate('/catalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <nav className="bottom-nav" aria-label="Быстрая навигация">
-      <button type="button" onClick={goCatalog}>
+      <button type="button" className={isCatalog ? 'is-active' : ''} onClick={goCatalog}>
         <Grid2X2 size={20} />
         <span>Каталог</span>
       </button>
-      <button type="button" onClick={focusSearch}>
+      <button type="button" onClick={openCatalogSearch}>
         <Search size={20} />
         <span>Поиск</span>
       </button>
-      <Link to="/cart" className="bottom-nav__cart">
+      <Link to="/cart" className={`bottom-nav__cart${location.pathname === '/cart' ? ' is-active' : ''}`}>
         <ShoppingCart size={20} />
         <span>Корзина</span>
         {totalItems > 0 && <i>{totalItems}</i>}
       </Link>
-      <Link to="/profile">
+      <Link to="/profile" className={location.pathname.startsWith('/profile') ? 'is-active' : ''}>
         <User size={20} />
         <span>{user ? 'Профиль' : 'Войти'}</span>
       </Link>

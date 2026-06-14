@@ -1,22 +1,52 @@
 import type { CSSProperties } from 'react';
+import { useEffect } from 'react';
 import { ChevronRight, X } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Y2KIcon } from './Y2KIcon';
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate: (section: string) => void;
 }
 
 const links = [
-  { id: 'new', label: 'Новинка', icon: 'heart' as const, hint: 'Свежие дропы' },
-  { id: 'catalog', label: 'Каталог', icon: 'box' as const, hint: 'Все товары' },
-  { id: 'catalog', label: 'Украшения', icon: 'ring' as const, hint: 'Кольца и наборы' },
-  { id: 'catalog', label: 'Аксессуары', icon: 'accessory' as const, hint: 'Сумки и детали' },
-  { id: 'contacts', label: 'Контакты', icon: 'phone' as const, hint: 'Связаться с нами' },
+  { id: 'new', label: 'Новинка', icon: 'heart' as const, hint: 'Свежие дропы', route: '/' as const },
+  { id: 'catalog', label: 'Каталог', icon: 'box' as const, hint: 'Все товары', route: '/catalog' as const },
+  { id: 'catalog', label: 'Украшения', icon: 'ring' as const, hint: 'Кольца и наборы', route: '/catalog' as const },
+  { id: 'catalog', label: 'Аксессуары', icon: 'accessory' as const, hint: 'Сумки и детали', route: '/catalog' as const },
+  { id: 'contacts', label: 'Контакты', icon: 'phone' as const, hint: 'Связаться с нами', route: '/' as const },
 ] as const;
 
-export function MobileMenu({ isOpen, onClose, onNavigate }: MobileMenuProps) {
+export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  const handleNavigate = (route: '/' | '/catalog', section: string) => {
+    if (route === '/catalog') {
+      navigate('/catalog');
+      onClose();
+      return;
+    }
+
+    if (location.pathname !== '/') {
+      navigate(section === 'contacts' ? '/#contacts' : '/#new');
+      onClose();
+      return;
+    }
+
+    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -51,10 +81,7 @@ export function MobileMenu({ isOpen, onClose, onNavigate }: MobileMenuProps) {
               <button
                 type="button"
                 className="mobile-menu__link"
-                onClick={() => {
-                  onNavigate(link.id);
-                  onClose();
-                }}
+                onClick={() => handleNavigate(link.route, link.id)}
               >
                 <span className="mobile-menu__index mono">{String(index + 1).padStart(2, '0')}</span>
                 <span className="mobile-menu__icon-wrap">

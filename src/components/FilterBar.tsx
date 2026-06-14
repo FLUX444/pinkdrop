@@ -10,6 +10,8 @@ interface FilterBarProps {
   onSortChange: (sort: SortOption) => void;
   view: CatalogView;
   onViewChange: (view: CatalogView) => void;
+  layout?: 'inline' | 'modal';
+  className?: string;
 }
 
 const defaultFilters: CatalogFilters = {
@@ -270,6 +272,8 @@ export function FilterBar({
   onSortChange,
   view,
   onViewChange,
+  layout = 'inline',
+  className,
 }: FilterBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
@@ -281,8 +285,10 @@ export function FilterBar({
   };
 
   return (
-    <div className={`filter-bar${openMenu ? ' filter-bar--open' : ''}`}>
-      {openMenu && (
+    <div
+      className={`filter-bar${openMenu ? ' filter-bar--open' : ''}${layout === 'modal' ? ' filter-bar--modal' : ''}${className ? ` ${className}` : ''}`}
+    >
+      {openMenu && layout === 'inline' && (
         <button
           type="button"
           className="filter-bar__backdrop"

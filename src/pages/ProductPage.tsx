@@ -221,7 +221,7 @@ export function ProductPage() {
             ? 'Этот товар временно недоступен — выберите другой в каталоге.'
             : 'Такой страницы нет — вернитесь в каталог.'}
         </p>
-        <Link to="/#catalog" className="btn btn--primary">
+        <Link to="/catalog" className="btn btn--primary">
           В каталог
         </Link>
       </div>
@@ -239,7 +239,7 @@ export function ProductPage() {
   return (
     <div className="product-page">
       <div className="product-page__header">
-        <SmartBackLink fallback="/#catalog" className="product-page__back" ariaLabel="Назад">
+        <SmartBackLink fallback="/catalog" className="product-page__back" ariaLabel="Назад">
           <ArrowLeft size={22} />
         </SmartBackLink>
         <h1 className="title-with-code">

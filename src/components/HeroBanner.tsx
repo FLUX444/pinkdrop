@@ -91,8 +91,8 @@ export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
         </p>
         <div className="hero__cta-block">
           <div className="hero__actions">
-            <a className="btn btn--primary" href="#catalog">{config.ctaPrimary}</a>
-            <a className="btn btn--secondary" href="#catalog">{config.ctaSecondary}</a>
+            <Link to="/catalog" className="btn btn--primary">{config.ctaPrimary}</Link>
+            <Link to="/catalog" className="btn btn--secondary">{config.ctaSecondary}</Link>
           </div>
           <DeliveryTimer variant="hero" />
         </div>

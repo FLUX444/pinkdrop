@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import type { Product } from '../types';
 import { getProductPath } from '../utils/productUrl';
 import { formatPrice } from '../utils/formatPrice';
@@ -22,8 +22,14 @@ interface ProductCardProps {
   onPriceDropDue?: () => void;
 }
 
+function isInteractiveTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  return Boolean(target.closest('button, a, input, textarea, select, label'));
+}
+
 export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
-  const productPath = product.category ? getProductPath(product) : '/#catalog';
+  const navigate = useNavigate();
+  const productPath = product.category ? getProductPath(product) : '/catalog';
   const isHit = product.categories.includes('hit');
   const isFree = product.isFree;
   const hasDropTimer = !product.isFree && !product.isSecret;
@@ -42,6 +48,17 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
         ? `В наличии ${product.stock} шт`
         : 'Нет в наличии'
       : 'В наличии';
+
+  const openProductPage = () => {
+    if (!product.category) return;
+    navigate(productPath);
+  };
+
+  const handleCardClick = (event: MouseEvent<HTMLElement>) => {
+    if (isInteractiveTarget(event.target)) return;
+    openProductPage();
+  };
+
   const handleQuickAdd = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (!inStock) return;
@@ -90,14 +107,20 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
   ]);
 
   return (
-    <article className="product-card">
-      {product.category && (
-        <Link
-          to={productPath}
-          className="product-card__overlay-link"
-          aria-label={`Открыть ${product.name}`}
-        />
-      )}
+    <article
+      className={`product-card${product.category ? ' product-card--clickable' : ''}`}
+      onClick={handleCardClick}
+      onKeyDown={(event) => {
+        if (!product.category) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openProductPage();
+        }
+      }}
+      tabIndex={product.category ? 0 : undefined}
+      role={product.category ? 'link' : undefined}
+      aria-label={product.category ? `Открыть ${product.name}` : undefined}
+    >
       <div className="product-card__image-wrap">
         <ProductArtwork product={product} />
         <div className="product-card__badges">
