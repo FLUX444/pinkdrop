@@ -82,7 +82,6 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
           <h2>
             Цены падают каждые <span className="price-drop-info__two">{PRICE_DROP_PERIOD_HOURS}</span> часа
           </h2>
-          <p>Один тик — и весь каталог дешевеет разом. Лови дроп, пока таймер не сбросился.</p>
         </div>
 
         <div className="price-drop-info__timer">

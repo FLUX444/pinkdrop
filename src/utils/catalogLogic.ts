@@ -212,7 +212,11 @@ export function removeFilterByChipKey(
 ) {
   switch (key) {
     case 'filterTag':
-      return { ...current, filterTag: 'all' as FilterTag };
+      return {
+        catalogFilters: DEFAULT_CATALOG_FILTERS,
+        sort: 'popular' as SortOption,
+        filterTag: 'all' as FilterTag,
+      };
     case 'sort':
       return { ...current, sort: 'popular' as SortOption };
     case 'price':
