@@ -7013,14 +7013,17 @@ a.checkout-summary__product-name:active {
 
 .bottom-nav {
   position: fixed;
-  left: 10px;
-  right: 10px;
+  left: max(10px, env(safe-area-inset-left, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
   bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   z-index: 180;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
-  padding: 8px;
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+  padding: 8px 6px;
   background: rgba(10, 10, 10, 0.9);
   border: 1px solid rgba(255, 45, 149, 0.28);
   border-radius: 18px;
@@ -7031,6 +7034,8 @@ a.checkout-summary__product-name:active {
 .bottom-nav button,
 .bottom-nav a {
   position: relative;
+  min-width: 0;
+  width: 100%;
   min-height: 48px;
   border: none;
   background: transparent;
@@ -7041,10 +7046,20 @@ a.checkout-summary__product-name:active {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 0.66rem;
+  padding: 0 2px;
+  font-size: 0.64rem;
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
+}
+
+.bottom-nav button span,
+.bottom-nav a span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bottom-nav button:hover,
@@ -7058,8 +7073,8 @@ a.checkout-summary__product-name:active {
 
 .bottom-nav i {
   position: absolute;
-  top: 3px;
-  right: 18%;
+  top: 2px;
+  right: 12%;
   min-width: 17px;
   height: 17px;
   display: inline-flex;
@@ -7070,6 +7085,21 @@ a.checkout-summary__product-name:active {
   color: #0a0a0a;
   font-style: normal;
   font-size: 0.62rem;
+}
+
+@media (max-width: 380px) {
+  .bottom-nav {
+    left: max(6px, env(safe-area-inset-left, 0px));
+    right: max(6px, env(safe-area-inset-right, 0px));
+    padding: 6px 4px;
+    gap: 2px;
+  }
+
+  .bottom-nav button,
+  .bottom-nav a {
+    font-size: 0.58rem;
+    min-height: 44px;
+  }
 }
 
 @media (min-width: 820px) {
