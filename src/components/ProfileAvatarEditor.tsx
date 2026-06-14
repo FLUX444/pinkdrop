@@ -31,8 +31,15 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
   const [error, setError] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null);
+  const [avatarVersion, setAvatarVersion] = useState(0);
 
-  const displayAvatar = previewUrl ?? user.avatarUrl ?? null;
+  const resolveAvatarUrl = (url: string | null | undefined) => {
+    if (!url) return null;
+    if (!url.startsWith('/uploads/avatars/')) return url;
+    return avatarVersion > 0 ? `${url}?v=${avatarVersion}` : url;
+  };
+
+  const displayAvatar = previewUrl ?? resolveAvatarUrl(user.avatarUrl);
   const hasUploadedAvatar = Boolean(user.avatarUrl?.startsWith('/uploads/avatars/'));
 
   useEffect(() => {
@@ -79,6 +86,7 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
 
     try {
       await onUpload(file);
+      setAvatarVersion((value) => value + 1);
       closeCropModal();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось загрузить фото');
@@ -113,7 +121,12 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
           aria-label="Изменить фото профиля"
         >
           {displayAvatar ? (
-            <img src={displayAvatar} alt="" className="profile-avatar-editor__image" />
+            <img
+              src={displayAvatar}
+              alt=""
+              className="profile-avatar-editor__image"
+              onError={() => setError('Не удалось загрузить фото профиля')}
+            />
           ) : (
             <span className="profile-avatar-editor__placeholder" aria-hidden>
               {getDisplayLabel(user).charAt(0).toUpperCase()}

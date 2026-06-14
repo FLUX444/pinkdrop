@@ -5,10 +5,11 @@ import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const uploadsDir = join(__dirname, '..', 'public', 'images', 'products');
-const reviewUploadsRoot = join(__dirname, '..', 'public', 'uploads', 'reviews');
-const avatarUploadsDir = join(__dirname, '..', 'public', 'uploads', 'avatars');
-const supportUploadsRoot = join(__dirname, '..', 'public', 'uploads', 'support');
+export const publicRoot = join(__dirname, '..', 'public');
+const uploadsDir = join(publicRoot, 'images', 'products');
+const reviewUploadsRoot = join(publicRoot, 'uploads', 'reviews');
+const avatarUploadsDir = join(publicRoot, 'uploads', 'avatars');
+const supportUploadsRoot = join(publicRoot, 'uploads', 'support');
 mkdirSync(uploadsDir, { recursive: true });
 mkdirSync(reviewUploadsRoot, { recursive: true });
 mkdirSync(avatarUploadsDir, { recursive: true });

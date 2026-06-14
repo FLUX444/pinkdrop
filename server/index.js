@@ -49,6 +49,7 @@ import {
   uploadReviewMedia,
   uploadSupportMedia,
   uploadUserAvatar,
+  publicRoot,
 } from './upload.js';
 import { config, isGoogleEnabled, isVkEnabled } from './config.js';
 import { verifyEmailTransport } from './email.js';
@@ -237,6 +238,21 @@ clearExpiredOAuthStates();
 const app = express();
 
 applySecurityMiddleware(app);
+app.use(
+  '/uploads',
+  express.static(join(publicRoot, 'uploads'), {
+    maxAge: '7d',
+    etag: true,
+    fallthrough: false,
+  })
+);
+app.use(
+  '/images',
+  express.static(join(publicRoot, 'images'), {
+    maxAge: '30d',
+    etag: true,
+  })
+);
 app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
@@ -1020,7 +1036,7 @@ app.patch('/api/auth/profile', authMiddleware, (req, res) => {
 });
 
 app.post('/api/auth/profile/avatar', authMiddleware, (req, res) => {
-  uploadUserAvatar(req, res, (error) => {
+  uploadUserAvatar(req, res, async (error) => {
     if (error) {
       return res.status(400).json({ error: error.message || 'Upload failed' });
     }
@@ -1028,9 +1044,28 @@ app.post('/api/auth/profile/avatar', authMiddleware, (req, res) => {
       return res.status(400).json({ error: 'Выберите изображение' });
     }
 
+    const previousAvatar = db
+      .prepare('SELECT avatar_url FROM users WHERE id = ?')
+      .get(req.user.id)?.avatar_url;
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
     db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, req.user.id);
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+
+    if (
+      previousAvatar &&
+      previousAvatar !== avatarUrl &&
+      previousAvatar.startsWith('/uploads/avatars/')
+    ) {
+      const previousPath = join(publicRoot, previousAvatar.replace(/^\//, ''));
+      if (existsSync(previousPath)) {
+        try {
+          await unlink(previousPath);
+        } catch {
+          // ignore cleanup errors
+        }
+      }
+    }
+
     res.json({ user: userToJson(user), avatarUrl });
   });
 });

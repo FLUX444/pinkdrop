@@ -25,6 +25,16 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
+        '/uploads': {
+          target: apiTarget,
+          secure: false,
+          changeOrigin: true,
+        },
+        '/images': {
+          target: apiTarget,
+          secure: false,
+          changeOrigin: true,
+        },
       },
     },
     build: {
