@@ -99,7 +99,6 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
         />
       )}
       <div className="product-card__image-wrap">
-        {product.category && <FavoriteButton product={product} className="favorite-btn--catalog" />}
         <ProductArtwork product={product} />
         <div className="product-card__badges">
           {isHit && (
@@ -163,14 +162,17 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
             {isFree ? 'БЕСПЛАТНО' : formatPrice(product.price)}
           </span>
         </div>
-        <button
-          type="button"
-          className="product-card__quick-add"
-          onClick={handleQuickAdd}
-          disabled={!inStock && !isFree}
-        >
-          {!inStock && !isFree ? 'Нет в наличии' : isFree ? 'Добавить подарок' : 'В корзину'}
-        </button>
+        <div className="product-card__actions">
+          {product.category && <FavoriteButton product={product} className="favorite-btn--catalog" />}
+          <button
+            type="button"
+            className="product-card__quick-add"
+            onClick={handleQuickAdd}
+            disabled={!inStock && !isFree}
+          >
+            {!inStock && !isFree ? 'Нет в наличии' : isFree ? 'Подарок' : 'Корзина'}
+          </button>
+        </div>
       </div>
     </article>
   );
