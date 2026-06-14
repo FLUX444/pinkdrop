@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { DEFAULT_LEGAL_PAGES, legalRowToJson, sanitizeLegalHtml } from './legalPages.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(__dirname, 'data');
@@ -796,6 +797,15 @@ export function initDb() {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS site_legal_pages (
+      slug TEXT PRIMARY KEY CHECK (slug IN ('privacy', 'terms')),
+      tag TEXT NOT NULL,
+      title TEXT NOT NULL,
+      subtitle TEXT NOT NULL,
+      content_html TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS admin_notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL,
@@ -880,6 +890,7 @@ export function initDb() {
   seedPriceDrops();
   seedGlobalPriceDrop();
   seedHero();
+  seedLegalPages();
   ensureReviewTablesForAllProducts();
   syncAllProductRatings();
 }
@@ -1672,6 +1683,51 @@ export function updateHeroConfig(patch) {
   );
 
   return getHeroConfig();
+}
+
+function seedLegalPages() {
+  const insert = db.prepare(
+    `INSERT INTO site_legal_pages (slug, tag, title, subtitle, content_html)
+     VALUES (?, ?, ?, ?, ?)`
+  );
+
+  for (const page of Object.values(DEFAULT_LEGAL_PAGES)) {
+    const existing = db.prepare('SELECT slug FROM site_legal_pages WHERE slug = ?').get(page.slug);
+    if (existing) continue;
+    insert.run(page.slug, page.tag, page.title, page.subtitle, page.contentHtml);
+  }
+}
+
+export function getLegalPage(slug) {
+  const row = db.prepare('SELECT * FROM site_legal_pages WHERE slug = ?').get(slug);
+  return legalRowToJson(row);
+}
+
+export function getAllLegalPages() {
+  const rows = db
+    .prepare('SELECT * FROM site_legal_pages WHERE slug IN (\'privacy\', \'terms\') ORDER BY slug')
+    .all();
+  return rows.map(legalRowToJson);
+}
+
+export function updateLegalPage(slug, patch = {}) {
+  const current = db.prepare('SELECT * FROM site_legal_pages WHERE slug = ?').get(slug);
+  if (!current) throw new Error('Legal page not found');
+
+  const next = {
+    tag: patch.tag ?? current.tag,
+    title: patch.title ?? current.title,
+    subtitle: patch.subtitle ?? current.subtitle,
+    content_html: sanitizeLegalHtml(patch.contentHtml ?? current.content_html),
+  };
+
+  db.prepare(
+    `UPDATE site_legal_pages
+     SET tag = ?, title = ?, subtitle = ?, content_html = ?, updated_at = datetime('now')
+     WHERE slug = ?`
+  ).run(next.tag, next.title, next.subtitle, next.content_html, slug);
+
+  return getLegalPage(slug);
 }
 
 const SENSITIVE_COLUMNS = new Set(['password_hash']);

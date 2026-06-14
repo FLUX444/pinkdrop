@@ -13,6 +13,7 @@ import type {
   FavoritesSyncResponse,
   DeliveryZoneCheck,
   HeroConfig,
+  LegalPageContent,
   Product,
   Review,
   ReviewPrompt,
@@ -91,6 +92,8 @@ export const api = {
       method: 'PATCH',
     }),
   getHero: () => request<HeroConfig>('/hero'),
+  getLegalPage: (slug: 'privacy' | 'terms') =>
+    request<{ page: LegalPageContent }>(`/legal/${slug}`),
   getPriceDropTimer: () =>
     request<{
       enabled: boolean;
@@ -511,6 +514,12 @@ export const api = {
   getAdminHero: () => request<{ hero: HeroConfig }>('/admin/hero'),
   updateAdminHero: (payload: Partial<HeroConfig>) =>
     request<{ hero: HeroConfig }>('/admin/hero', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  getAdminLegalPages: () => request<{ pages: LegalPageContent[] }>('/admin/legal'),
+  updateAdminLegalPage: (slug: 'privacy' | 'terms', payload: Partial<LegalPageContent>) =>
+    request<{ page: LegalPageContent }>(`/admin/legal/${slug}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),

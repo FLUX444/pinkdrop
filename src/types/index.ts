@@ -392,6 +392,15 @@ export interface HeroConfig {
   updatedAt?: string;
 }
 
+export interface LegalPageContent {
+  slug: 'privacy' | 'terms';
+  tag: string;
+  title: string;
+  subtitle: string;
+  contentHtml: string;
+  updatedAt?: string;
+}
+
 export type PaymentMethod = 'cash' | 'card' | 'test';
 
 export interface SavedDeliveryAddress {

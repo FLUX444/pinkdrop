@@ -24,6 +24,8 @@ import db, {
   getAllProductsRaw,
   getDatabaseDump,
   getHeroConfig,
+  getLegalPage,
+  getAllLegalPages,
   getPendingReviewPrompts,
   getProductReviews,
   getProductById,
@@ -37,6 +39,7 @@ import db, {
   productExists,
   syncUserReviewAuthorNames,
   updateHeroConfig,
+  updateLegalPage,
 } from './db.js';
 import {
   CATEGORY_LABELS,
@@ -661,6 +664,16 @@ app.get('/api/products', (_req, res) => {
 
 app.get('/api/hero', (_req, res) => {
   res.json(getHeroConfig());
+});
+
+app.get('/api/legal/:slug', (req, res) => {
+  const slug = String(req.params.slug ?? '');
+  if (slug !== 'privacy' && slug !== 'terms') {
+    return res.status(404).json({ error: 'Legal page not found' });
+  }
+  const page = getLegalPage(slug);
+  if (!page) return res.status(404).json({ error: 'Legal page not found' });
+  res.json({ page });
 });
 
 app.get('/api/price-drop/timer', (_req, res) => {
@@ -1856,6 +1869,23 @@ app.patch('/api/admin/hero', adminMiddleware, (req, res) => {
     res.json({ hero });
   } catch (error) {
     res.status(400).json({ error: error.message || 'Failed to update hero' });
+  }
+});
+
+app.get('/api/admin/legal', adminMiddleware, (_req, res) => {
+  res.json({ pages: getAllLegalPages() });
+});
+
+app.patch('/api/admin/legal/:slug', adminMiddleware, (req, res) => {
+  const slug = String(req.params.slug ?? '');
+  if (slug !== 'privacy' && slug !== 'terms') {
+    return res.status(404).json({ error: 'Legal page not found' });
+  }
+  try {
+    const page = updateLegalPage(slug, req.body ?? {});
+    res.json({ page });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to update legal page' });
   }
 });
 

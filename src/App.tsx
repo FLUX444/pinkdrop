@@ -10,6 +10,7 @@ import { AdminPage } from './pages/AdminPage';
 import { AdminAddProductPage } from './pages/AdminAddProductPage';
 import { AdminEditProductPage } from './pages/AdminEditProductPage';
 import { AdminHeroPage } from './pages/AdminHeroPage';
+import { AdminLegalPage } from './pages/AdminLegalPage';
 import { AdminDatabasePage } from './pages/AdminDatabasePage';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { AdminMonitorPage } from './pages/AdminMonitorPage';
@@ -55,6 +56,7 @@ function App() {
           <Route path="/admin/products/new" element={<AdminAddProductPage />} />
           <Route path="/admin/products/:category/:id/edit" element={<AdminEditProductPage />} />
           <Route path="/admin/hero" element={<AdminHeroPage />} />
+          <Route path="/admin/legal" element={<AdminLegalPage />} />
           <Route path="/admin/database" element={<AdminDatabasePage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:orderId" element={<AdminOrdersPage />} />

@@ -16,6 +16,7 @@ const NAV = [
   { to: '/admin/support', label: 'Поддержка' },
   { to: '/admin/products/new', label: 'Добавить товар' },
   { to: '/admin/hero', label: 'Главная' },
+  { to: '/admin/legal', label: 'Документы' },
   { to: '/admin/database', label: 'База данных' },
   { to: '/admin/monitor', label: 'Мониторинг' },
 ];
