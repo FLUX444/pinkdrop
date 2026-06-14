@@ -31,7 +31,10 @@ def mark_bot_error() -> None:
 
 async def _post_monitor(path: str, payload: dict[str, Any]) -> bool:
     url = f"{config.api_url}{path}"
-    headers = {"X-Bot-Secret": config.bot_api_secret, "Content-Type": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {config.bot_api_secret}",
+        "Content-Type": "application/json",
+    }
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -94,7 +97,7 @@ async def check_site_api() -> bool:
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 f"{config.api_url}/api/bot/products",
-                headers={"X-Bot-Secret": config.bot_api_secret},
+                headers={"Authorization": f"Bearer {config.bot_api_secret}"},
                 timeout=aiohttp.ClientTimeout(total=5),
             ) as response:
                 return response.status < 400
