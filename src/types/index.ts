@@ -90,6 +90,21 @@ export interface CartSyncResponse {
   notice?: CartNotice | null;
 }
 
+export interface FavoriteEntry {
+  productId: string;
+  category: ProductDbCategory | string;
+  name: string;
+  addedAt: string;
+  available: boolean;
+  missing: boolean;
+  product: Product | null;
+}
+
+export interface FavoritesSyncResponse {
+  items: FavoriteEntry[];
+  added?: boolean;
+}
+
 export type PromoCodeStatus = 'active' | 'expired' | 'exhausted';
 
 export interface PromoCode {

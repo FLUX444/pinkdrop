@@ -10,6 +10,7 @@ import type {
   BotMonitorStatus,
   CartItem,
   CartSyncResponse,
+  FavoritesSyncResponse,
   DeliveryZoneCheck,
   HeroConfig,
   Product,
@@ -277,6 +278,21 @@ export const api = {
           quantity: item.quantity,
         })),
       }),
+    }),
+  getFavorites: () => request<FavoritesSyncResponse>('/favorites'),
+  toggleFavorite: (productId: string, category: string) =>
+    request<FavoritesSyncResponse>('/favorites/toggle', {
+      method: 'POST',
+      body: JSON.stringify({ productId, category }),
+    }),
+  removeFavorite: (productId: string, category: string) =>
+    request<FavoritesSyncResponse>(`/favorites/${encodeURIComponent(category)}/${encodeURIComponent(productId)}`, {
+      method: 'DELETE',
+    }),
+  saveFavorites: (items: Array<{ productId: string; category: string; addedAt?: string }>) =>
+    request<FavoritesSyncResponse>('/favorites', {
+      method: 'PUT',
+      body: JSON.stringify({ items }),
     }),
   getOrders: () => request<{ orders: UserOrder[] }>('/orders'),
   confirmOrderReceipt: (orderId: string) =>

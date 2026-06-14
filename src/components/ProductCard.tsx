@@ -10,6 +10,7 @@ import { ChromeStar } from './ChromeStar';
 import { ProductArtwork } from './ProductArtwork';
 import { PriceDropBadge } from './PriceDropBadge';
 import { Y2KIcon } from './Y2KIcon';
+import { FavoriteButton } from './FavoriteButton';
 import { getProductDisplayLabels } from '../utils/productDisplayTitle';
 import {
   getProductReferencePrice,
@@ -98,6 +99,7 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
         />
       )}
       <div className="product-card__image-wrap">
+        {product.category && <FavoriteButton product={product} className="favorite-btn--catalog" />}
         <ProductArtwork product={product} />
         <div className="product-card__badges">
           {isHit && (

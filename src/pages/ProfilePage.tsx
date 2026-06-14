@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   SlidersHorizontal,
   Activity,
+  Heart,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { AdminNotifications } from '../components/AdminNotifications';
@@ -38,6 +39,7 @@ import {
 } from '../utils/accountSession';
 import { useCredentialsEntry } from '../hooks/useCredentialsEntry';
 import { useTelegramLinkFlow } from '../hooks/useTelegramLinkFlow';
+import { useFavorites } from '../context/FavoritesContext';
 import { userHasTelegramAccess } from '../utils/bargainLink';
 
 export function ProfilePage() {
@@ -87,6 +89,7 @@ export function ProfilePage() {
   const returnTo = searchParams.get('returnTo') || '';
   const [accountSwitching, setAccountSwitching] = useState(false);
   const { isEntering, error: entryError } = useCredentialsEntry();
+  const { items: favoriteItems } = useFavorites();
 
   const needsAccountSwitch = Boolean(
     signinRequested && accountEmail && user && !accountEmailsMatch(user.email, accountEmail)
@@ -481,6 +484,25 @@ export function ProfilePage() {
           <LogOut size={18} />
           Выйти
         </button>
+      </section>
+
+      <section className="profile-favorites">
+        <div className="profile-favorites__head">
+          <span className="profile-favorites__icon" aria-hidden>
+            <Heart size={20} />
+          </span>
+          <div>
+            <span className="mono profile-favorites__tag">WISHLIST</span>
+            <h2>Избранное</h2>
+          </div>
+        </div>
+        <p className="profile-favorites__hint">
+          Сохраняйте понравившиеся товары звёздочкой в каталоге — список останется здесь, пока вы сами не уберёте.
+        </p>
+        <Link to="/profile/favorites" className="btn btn--secondary profile-favorites__open">
+          <Heart size={18} />
+          {favoriteItems.length > 0 ? `Избранное (${favoriteItems.length})` : 'Открыть избранное'}
+        </Link>
       </section>
 
       {user && (

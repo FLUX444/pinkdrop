@@ -15,6 +15,7 @@ import { PriceDropBadge } from '../components/PriceDropBadge';
 import { ProductImageGallery } from '../components/ProductImageGallery';
 import { SimilarProducts } from '../components/SimilarProducts';
 import { ReviewItem } from '../components/ReviewItem';
+import { FavoriteButton } from '../components/FavoriteButton';
 import {
   getProductReferencePrice,
   hasActivePriceDropDiscount,
@@ -253,7 +254,10 @@ export function ProductPage() {
         </div>
 
         <div className="product-modal__info">
-          <h2 className="product-modal__name">{product.name}</h2>
+          <div className="product-modal__name-row">
+            <h2 className="product-modal__name">{product.name}</h2>
+            <FavoriteButton product={product} className="favorite-btn--page" size={22} />
+          </div>
           <button type="button" className="product-modal__rating" onClick={() => setTab('reviews')}>
             ★ {formatRatingValue(product.reviewCount > 0 ? product.rating : 0)} (
             {formatReviewCount(product.reviewCount)})

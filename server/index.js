@@ -167,6 +167,12 @@ import {
 } from './bargain.js';
 import { syncUserCart, buildRemovedCartMessage } from './cartSync.js';
 import {
+  removeUserFavorite,
+  replaceUserFavorites,
+  syncUserFavorites,
+  toggleUserFavorite,
+} from './favorites.js';
+import {
   activateTelegramLinkSession,
   confirmTelegramLinkCode,
   startTelegramLinkSession,
@@ -1131,6 +1137,36 @@ app.put('/api/cart', authMiddleware, (req, res) => {
     removed: synced.removed,
     notice: buildRemovedCartMessage(synced.removed),
   });
+});
+
+app.get('/api/favorites', authMiddleware, (req, res) => {
+  res.json(syncUserFavorites(req.user.id));
+});
+
+app.post('/api/favorites/toggle', authMiddleware, (req, res) => {
+  try {
+    const productId = String(req.body?.productId ?? '');
+    const category = req.body?.category ? String(req.body.category) : undefined;
+    const result = toggleUserFavorite(req.user.id, productId, category);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Не удалось обновить избранное' });
+  }
+});
+
+app.delete('/api/favorites/:category/:productId', authMiddleware, (req, res) => {
+  try {
+    const result = removeUserFavorite(req.user.id, req.params.productId, req.params.category);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Не удалось удалить из избранного' });
+  }
+});
+
+app.put('/api/favorites', authMiddleware, (req, res) => {
+  const entries = Array.isArray(req.body?.items) ? req.body.items : [];
+  const result = replaceUserFavorites(req.user.id, entries);
+  res.json(result);
 });
 
 app.get('/api/delivery/zones', (_req, res) => {

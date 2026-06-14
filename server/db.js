@@ -679,6 +679,17 @@ export function initDb() {
       UNIQUE(user_id, product_id, category)
     );
 
+    CREATE TABLE IF NOT EXISTS favorite_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id TEXT NOT NULL,
+      category TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(user_id, product_id, category)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_favorite_items_user ON favorite_items(user_id);
+
     CREATE TABLE IF NOT EXISTS orders (
       id TEXT PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,

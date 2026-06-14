@@ -281,7 +281,15 @@ export function FilterBar({
   };
 
   return (
-    <div className="filter-bar">
+    <div className={`filter-bar${openMenu ? ' filter-bar--open' : ''}`}>
+      {openMenu && (
+        <button
+          type="button"
+          className="filter-bar__backdrop"
+          aria-label="Закрыть фильтр"
+          onClick={() => setOpenMenu(null)}
+        />
+      )}
       <div className="filter-bar__controls" aria-label="Фильтры каталога">
         <FilterDropdown
           id="sort"

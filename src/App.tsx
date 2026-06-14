@@ -16,6 +16,7 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { ChangeEmailPage } from './pages/ChangeEmailPage';
 import { SecuritySupportPage } from './pages/SecuritySupportPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { FavoritesPage } from './pages/FavoritesPage';
 import { LinkTelegramPage } from './pages/LinkTelegramPage';
 import { ProductPage } from './pages/ProductPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -35,6 +36,7 @@ function App() {
           <Route path="/product/:category/:id" element={<ProductPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/favorites" element={<FavoritesPage />} />
           <Route path="/profile/link-telegram" element={<LinkTelegramPage />} />
           <Route path="/profile/change-password" element={<ChangePasswordPage />} />
           <Route path="/profile/change-email" element={<ChangeEmailPage />} />

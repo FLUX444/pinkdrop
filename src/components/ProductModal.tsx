@@ -15,6 +15,7 @@ import { PriceDropBadge } from './PriceDropBadge';
 import { CrossSell } from './CrossSell';
 import { ReviewItem } from './ReviewItem';
 import { ProductImageGallery } from './ProductImageGallery';
+import { FavoriteButton } from './FavoriteButton';
 
 interface ProductModalProps {
   product: Product | null;
@@ -125,7 +126,10 @@ export function ProductModal({ product, onClose, onPriceDropDue }: ProductModalP
           </div>
 
           <div className="product-modal__info">
-            <h2 className="product-modal__name">{product.name}</h2>
+            <div className="product-modal__name-row">
+              <h2 className="product-modal__name">{product.name}</h2>
+              <FavoriteButton product={product} className="favorite-btn--page" size={22} />
+            </div>
             <button
               type="button"
               className="product-modal__rating"
