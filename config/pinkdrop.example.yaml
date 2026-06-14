@@ -1,0 +1,34 @@
+# Скопируйте в pinkdrop.yaml и настройте под себя
+
+site:
+  public_url: "https://pinkdrop.ru"
+  frontend_url: "http://localhost:5173"
+
+telegram:
+  bot_username: "p1nkdrop_bot"
+
+  store_channel:
+    id: -1003672785955
+    link: ""
+    username: ""
+
+  support:
+    contact_user_id: "5550995560"
+    contact_username: ""
+    new_request_button: "✉️ Новое обращение"
+    intro: |
+      <b>💬 Поддержка PINKDROP</b>
+
+      Нажмите «Новое обращение» — откроется чат с оператором.
+
+  notifications:
+    new_product_title: "✨ PINKDROP — новинка в каталоге"
+    restock_title: "🔥 PINKDROP — снова в наличии"
+
+bot:
+  menu:
+    bargain: "🤝 Торг"
+    link: "🔗 Привязка"
+    support: "💬 Поддержка"
+    subscribe: "🔔 Подписаться"
+    site: "🌐 Сайт"
