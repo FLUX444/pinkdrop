@@ -7,10 +7,18 @@ function seoHtmlPlugin(): Plugin {
     transformIndexHtml(html) {
       const env = loadEnv(process.env.NODE_ENV === 'production' ? 'production' : 'development', process.cwd(), '')
       const googleVerification = env.VITE_GOOGLE_SITE_VERIFICATION?.trim()
-      if (!googleVerification) return html
+      const yandexVerification = env.VITE_YANDEX_VERIFICATION?.trim()
 
-      const tag = `    <meta name="google-site-verification" content="${googleVerification}" />\n`
-      return html.replace('    <meta name="theme-color"', `${tag}    <meta name="theme-color"`)
+      let extra = '';
+      if (googleVerification) {
+        extra += `    <meta name="google-site-verification" content="${googleVerification}" />\n`;
+      }
+      if (yandexVerification) {
+        extra += `    <meta name="yandex-verification" content="${yandexVerification}" />\n`;
+      }
+      if (!extra) return html;
+
+      return html.replace('    <meta name="theme-color"', `${extra}    <meta name="theme-color"`)
     },
   }
 }
