@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { products as staticProducts } from '../data/products';
 import { DEFAULT_HERO } from '../data/hero';
 import { api } from '../api/client';
@@ -17,11 +17,12 @@ import { useAuth } from '../context/AuthContext';
 import { useRecentSearches } from '../hooks/useRecentSearches';
 import { getSearchSuggestions, POPULAR_SEARCH_QUERIES } from '../utils/productSearch';
 import { getProductPath } from '../utils/productUrl';
-import { DEFAULT_CATALOG_FILTERS } from '../utils/catalogLogic';
+import { DEFAULT_CATALOG_FILTERS, buildFilterChips, countActiveFilterChips, removeFilterByChipKey } from '../utils/catalogLogic';
 import type { CatalogNavigationState } from '../utils/catalogNavigation';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [products, setProducts] = useState<Product[]>(staticProducts);
   const [search, setSearch] = useState('');
   const [catalogFilters, setCatalogFilters] = useState<CatalogFilters>(DEFAULT_CATALOG_FILTERS);
@@ -62,22 +63,13 @@ export function HomePage() {
   }, [refreshProducts]);
 
   useEffect(() => {
-    const hash = window.location.hash.replace('#', '');
+    const hash = location.hash.replace('#', '');
     if (!hash) return undefined;
     const timeout = window.setTimeout(() => {
       document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' });
     }, 120);
     return () => window.clearTimeout(timeout);
-  }, []);
-
-  useEffect(() => {
-    if (!isMenuOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMenuOpen]);
+  }, [location.hash]);
 
   const catalogProducts = useMemo(
     () =>
@@ -122,6 +114,25 @@ export function HomePage() {
     setIsFilterModalOpen(false);
     goToCatalog();
   }, [goToCatalog]);
+
+  const filterChips = useMemo(
+    () => buildFilterChips({ catalogFilters, sort }),
+    [catalogFilters, sort]
+  );
+
+  const handleRemoveFilterChip = useCallback(
+    (key: string) => {
+      const next = removeFilterByChipKey(key, { catalogFilters, sort, filterTag: 'all' });
+      setCatalogFilters(next.catalogFilters);
+      setSort(next.sort);
+    },
+    [catalogFilters, sort]
+  );
+
+  const handleClearAllFilters = useCallback(() => {
+    setCatalogFilters(DEFAULT_CATALOG_FILTERS);
+    setSort('popular');
+  }, []);
 
   const handleSearchSelect = useCallback(
     (value: string) => {
@@ -179,6 +190,10 @@ export function HomePage() {
         catalogFilters={catalogFilters}
         onOpenFilters={() => setIsFilterModalOpen(true)}
         isFilterModalOpen={isFilterModalOpen}
+        filterChips={filterChips}
+        onRemoveFilterChip={handleRemoveFilterChip}
+        onClearAllFilters={handleClearAllFilters}
+        activeFilterCount={countActiveFilterChips({ catalogFilters, sort })}
       />
 
       <FilterModal

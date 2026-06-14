@@ -121,6 +121,7 @@ interface FilterDropdownProps<Value extends string> {
   openMenu: string | null;
   setOpenMenu: (id: string | null) => void;
   wide?: boolean;
+  stacked?: boolean;
 }
 
 function FilterDropdown<Value extends string>({
@@ -132,12 +133,13 @@ function FilterDropdown<Value extends string>({
   openMenu,
   setOpenMenu,
   wide,
+  stacked,
 }: FilterDropdownProps<Value>) {
   const isOpen = openMenu === id;
   const selected = options.find((option) => option.value === value) ?? options[0];
 
   return (
-    <div className={`filter-dropdown ${wide ? 'filter-dropdown--wide' : ''}`}>
+    <div className={`filter-dropdown ${wide ? 'filter-dropdown--wide' : ''}${stacked ? ' filter-dropdown--stacked' : ''}`}>
       <button
         type="button"
         className={`filter-dropdown__trigger ${isOpen ? 'filter-dropdown__trigger--open' : ''}`}
@@ -172,9 +174,10 @@ interface PriceFilterDropdownProps {
   onFiltersChange: (filters: CatalogFilters) => void;
   openMenu: string | null;
   setOpenMenu: (id: string | null) => void;
+  stacked?: boolean;
 }
 
-function PriceFilterDropdown({ filters, onFiltersChange, openMenu, setOpenMenu }: PriceFilterDropdownProps) {
+function PriceFilterDropdown({ filters, onFiltersChange, openMenu, setOpenMenu, stacked }: PriceFilterDropdownProps) {
   const isOpen = openMenu === 'price';
   const hasActiveFilter = filters.priceFrom != null || filters.priceTo != null;
   const [fromInput, setFromInput] = useState('');
@@ -198,7 +201,7 @@ function PriceFilterDropdown({ filters, onFiltersChange, openMenu, setOpenMenu }
   };
 
   return (
-    <div className="filter-dropdown filter-dropdown--price">
+    <div className={`filter-dropdown filter-dropdown--price${stacked ? ' filter-dropdown--stacked' : ''}`}>
       <button
         type="button"
         className={`filter-dropdown__trigger ${isOpen ? 'filter-dropdown__trigger--open' : ''} ${hasActiveFilter ? 'filter-dropdown__trigger--active' : ''}`}
@@ -230,11 +233,11 @@ function PriceFilterDropdown({ filters, onFiltersChange, openMenu, setOpenMenu }
 
         <div className="filter-price__custom">
           <label className="filter-price__field">
-            <span>От</span>
+            <span className="filter-price__label">От, ₽</span>
             <input
               type="text"
               inputMode="numeric"
-              placeholder="100"
+              placeholder="0"
               value={fromInput}
               onChange={(event) => setFromInput(event.target.value.replace(/[^\d\s]/g, ''))}
               onKeyDown={(event) => {
@@ -242,12 +245,13 @@ function PriceFilterDropdown({ filters, onFiltersChange, openMenu, setOpenMenu }
               }}
             />
           </label>
+          <span className="filter-price__divider" aria-hidden />
           <label className="filter-price__field">
-            <span>До</span>
+            <span className="filter-price__label">До, ₽</span>
             <input
               type="text"
               inputMode="numeric"
-              placeholder="1 000"
+              placeholder="10 000"
               value={toInput}
               onChange={(event) => setToInput(event.target.value.replace(/[^\d\s]/g, ''))}
               onKeyDown={(event) => {
@@ -276,6 +280,7 @@ export function FilterBar({
   className,
 }: FilterBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const stacked = layout === 'modal';
 
   const updateFilter = <Key extends keyof CatalogFilters>(
     key: Key,
@@ -306,6 +311,7 @@ export function FilterBar({
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
           wide
+          stacked={stacked}
         />
 
         <button
@@ -322,6 +328,7 @@ export function FilterBar({
           onFiltersChange={onFiltersChange}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
+          stacked={stacked}
         />
 
         <FilterDropdown
@@ -331,6 +338,7 @@ export function FilterBar({
           onChange={(value) => updateFilter('type', value)}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
+          stacked={stacked}
         />
 
         <FilterDropdown
@@ -340,6 +348,7 @@ export function FilterBar({
           onChange={(value) => updateFilter('audience', value)}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
+          stacked={stacked}
         />
 
         <FilterDropdown
@@ -349,6 +358,7 @@ export function FilterBar({
           onChange={(value) => updateFilter('color', value)}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
+          stacked={stacked}
         />
 
         <FilterDropdown
@@ -358,6 +368,7 @@ export function FilterBar({
           onChange={(value) => updateFilter('material', value)}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
+          stacked={stacked}
         />
 
         <div className="filter-bar__view" aria-label="Вид каталога">

@@ -15,7 +15,10 @@ import { useAuth } from '../context/AuthContext';
 import { useRecentSearches } from '../hooks/useRecentSearches';
 import {
   DEFAULT_CATALOG_FILTERS,
+  buildFilterChips,
+  countActiveFilterChips,
   filterCatalogProducts,
+  removeFilterByChipKey,
 } from '../utils/catalogLogic';
 import {
   getSearchSuggestions,
@@ -42,18 +45,17 @@ export function CatalogPage() {
   const isLoadingProductsRef = useRef(false);
   const { reviewPrompts, markReviewPromptSeen } = useAuth();
   const { recentQueries, addRecentQuery, clearRecentQueries } = useRecentSearches();
-  const appliedNavigationStateRef = useRef(false);
 
   useEffect(() => {
-    if (appliedNavigationStateRef.current) return;
-
     const state = location.state as CatalogNavigationState | null;
     if (!state) return;
 
-    appliedNavigationStateRef.current = true;
     if (state.catalogFilters) setCatalogFilters(state.catalogFilters);
     if (state.sort) setSort(state.sort);
     if (state.catalogView) setCatalogView(state.catalogView);
+    if (state.filterTag) setFilter(state.filterTag);
+    else if (state.catalogFilters || state.sort || state.catalogView) setFilter('all');
+
     navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
   }, [location.pathname, location.search, location.state, navigate]);
 
@@ -98,15 +100,6 @@ export function CatalogPage() {
       }
     };
   }, [refreshProducts]);
-
-  useEffect(() => {
-    if (!isMenuOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMenuOpen]);
 
   const catalogProducts = useMemo(
     () =>
@@ -211,6 +204,36 @@ export function CatalogPage() {
     }
   };
 
+  const filterChips = useMemo(
+    () => buildFilterChips({ catalogFilters, sort, filterTag: filter }),
+    [catalogFilters, filter, sort]
+  );
+
+  const handleRemoveFilterChip = useCallback(
+    (key: string) => {
+      const next = removeFilterByChipKey(key, { catalogFilters, sort, filterTag: filter });
+      setCatalogFilters(next.catalogFilters);
+      setSort(next.sort);
+      setFilter(next.filterTag);
+    },
+    [catalogFilters, filter, sort]
+  );
+
+  const handleClearAllFilters = useCallback(() => {
+    setFilter('all');
+    setCatalogFilters(DEFAULT_CATALOG_FILTERS);
+    setSort('popular');
+  }, []);
+
+  const catalogTitle =
+    filter === 'today'
+      ? 'НОВИНКИ'
+      : filter === 'hit'
+        ? 'ХИТЫ'
+        : filter !== 'all'
+          ? undefined
+          : 'КАТАЛОГ';
+
   return (
     <>
       <Header
@@ -232,6 +255,10 @@ export function CatalogPage() {
         catalogFilters={catalogFilters}
         onOpenFilters={() => setIsFilterModalOpen(true)}
         isFilterModalOpen={isFilterModalOpen}
+        filterChips={filterChips}
+        onRemoveFilterChip={handleRemoveFilterChip}
+        onClearAllFilters={handleClearAllFilters}
+        activeFilterCount={countActiveFilterChips({ catalogFilters, sort, filterTag: filter })}
       />
 
       <FilterModal
@@ -267,7 +294,7 @@ export function CatalogPage() {
           id="catalog"
           products={filteredProducts}
           onPriceDropDue={refreshProductsAfterPriceDrop}
-          title={filter === 'hit' ? 'ХИТЫ' : filter !== 'all' ? undefined : 'КАТАЛОГ'}
+          title={catalogTitle}
           view={catalogView}
           append={isAdmin ? <AdminAddProductCard /> : undefined}
         />

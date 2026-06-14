@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Heart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { FavoriteProductCard } from '../components/FavoriteProductCard';
+import { ProductCard } from '../components/ProductCard';
 import { AuthPanel } from '../components/AuthPanel';
 
 export function FavoritesPage() {
@@ -24,6 +24,39 @@ export function FavoritesPage() {
 
   const pageClass = 'profile-page favorites-page';
 
+  const renderGrid = () => {
+    if (isLoading) {
+      return <p className="mono favorites-page__loading">LOADING_FAVORITES...</p>;
+    }
+
+    if (items.length === 0) {
+      return (
+        <div className="favorites-page__empty">
+          <p>Пока пусто</p>
+          <span className="mono">NO_FAVORITES</span>
+          <Link to="/catalog" className="btn btn--primary">
+            В каталог
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <div className="favorites-page__grid product-grid product-grid--comfortable">
+        {items.map((entry) =>
+          entry.product ? (
+            <ProductCard key={`${entry.category}:${entry.productId}`} product={entry.product} />
+          ) : (
+            <article key={`${entry.category}:${entry.productId}`} className="favorites-page__missing-card">
+              <p>{entry.name}</p>
+              <span className="mono">UNAVAILABLE</span>
+            </article>
+          )
+        )}
+      </div>
+    );
+  };
+
   if (!user) {
     return (
       <div className={pageClass}>
@@ -40,27 +73,7 @@ export function FavoritesPage() {
           </div>
         </div>
 
-        {isLoading ? (
-          <p className="mono favorites-page__loading">LOADING_FAVORITES...</p>
-        ) : items.length === 0 ? (
-          <div className="favorites-page__empty">
-            <p>Пока пусто</p>
-            <span className="mono">NO_FAVORITES</span>
-            <Link to="/catalog" className="btn btn--primary">
-              В каталог
-            </Link>
-          </div>
-        ) : (
-          <div className="favorites-page__grid">
-            {items.map((entry) => (
-              <FavoriteProductCard
-                key={`${entry.category}:${entry.productId}`}
-                entry={entry}
-              />
-            ))}
-          </div>
-        )}
-
+        {renderGrid()}
         <AuthPanel variant="inline" />
       </div>
     );
@@ -88,26 +101,7 @@ export function FavoritesPage() {
         </span>
       </div>
 
-      {isLoading ? (
-        <p className="mono favorites-page__loading">LOADING_FAVORITES...</p>
-      ) : items.length === 0 ? (
-        <div className="favorites-page__empty">
-          <p>Пока пусто</p>
-          <span className="mono">NO_FAVORITES</span>
-          <Link to="/catalog" className="btn btn--primary">
-            В каталог
-          </Link>
-        </div>
-      ) : (
-        <div className="favorites-page__grid">
-          {items.map((entry) => (
-            <FavoriteProductCard
-              key={`${entry.category}:${entry.productId}`}
-              entry={entry}
-            />
-          ))}
-        </div>
-      )}
+      {renderGrid()}
     </div>
   );
 }

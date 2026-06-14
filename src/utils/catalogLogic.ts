@@ -84,6 +84,167 @@ export function countActiveCatalogFilters(filters: CatalogFilters) {
   return count;
 }
 
+export type FilterChipItem = {
+  key: string;
+  label: string;
+};
+
+const SORT_LABELS: Record<SortOption, string> = {
+  popular: 'По популярности',
+  rating: 'По рейтингу',
+  discount: 'Больше скидка',
+  'price-asc': 'Сначала дешевле',
+  'price-desc': 'Сначала дороже',
+};
+
+const TYPE_LABELS: Record<CatalogFilters['type'], string> = {
+  all: 'Тип товара',
+  rings: 'Кольца',
+  sets: 'Наборы',
+  bags: 'Сумки',
+  lashes: 'Ресницы',
+  shoes: 'Обувь',
+  accessories: 'Аксессуары',
+  clothes: 'Одежда',
+  beauty: 'Красота',
+  other: 'Другое',
+};
+
+const AUDIENCE_LABELS: Record<CatalogFilters['audience'], string> = {
+  all: 'Муж / Жен',
+  women: 'Женское',
+  men: 'Мужское',
+};
+
+const COLOR_LABELS: Record<CatalogFilters['color'], string> = {
+  all: 'Цвет',
+  pink: 'Розовый',
+  black: 'Чёрный',
+  silver: 'Серебро',
+  white: 'Белый',
+};
+
+const MATERIAL_LABELS: Record<CatalogFilters['material'], string> = {
+  all: 'Состав',
+  jewelry: 'Бижутерия',
+  textile: 'Текстиль / экокожа',
+  synthetic: 'Синтетика',
+};
+
+const FILTER_TAG_LABELS: Partial<Record<FilterTag, string>> = {
+  today: 'Новинки',
+  hit: 'Хиты',
+  cooling: 'Охлаждение',
+  tourism: 'Туризм',
+  free: 'Бесплатно',
+};
+
+function formatPriceChipValue(value: number) {
+  return value.toLocaleString('ru-RU');
+}
+
+function getPriceChipLabel(from: number | null, to: number | null) {
+  if (from != null && to != null) return `${formatPriceChipValue(from)}–${formatPriceChipValue(to)} ₽`;
+  if (from != null) return `От ${formatPriceChipValue(from)} ₽`;
+  return `До ${formatPriceChipValue(to!)} ₽`;
+}
+
+export function buildFilterChips(options: {
+  catalogFilters: CatalogFilters;
+  sort: SortOption;
+  filterTag?: FilterTag;
+}): FilterChipItem[] {
+  const { catalogFilters, sort, filterTag = 'all' } = options;
+  const chips: FilterChipItem[] = [];
+
+  if (filterTag !== 'all') {
+    chips.push({
+      key: 'filterTag',
+      label: FILTER_TAG_LABELS[filterTag] ?? filterTag,
+    });
+  }
+
+  if (sort !== 'popular') {
+    chips.push({ key: 'sort', label: SORT_LABELS[sort] });
+  }
+
+  if (catalogFilters.priceFrom != null || catalogFilters.priceTo != null) {
+    chips.push({
+      key: 'price',
+      label: getPriceChipLabel(catalogFilters.priceFrom, catalogFilters.priceTo),
+    });
+  }
+
+  if (catalogFilters.type !== 'all') {
+    chips.push({ key: 'type', label: TYPE_LABELS[catalogFilters.type] });
+  }
+
+  if (catalogFilters.audience !== 'all') {
+    chips.push({ key: 'audience', label: AUDIENCE_LABELS[catalogFilters.audience] });
+  }
+
+  if (catalogFilters.color !== 'all') {
+    chips.push({ key: 'color', label: COLOR_LABELS[catalogFilters.color] });
+  }
+
+  if (catalogFilters.material !== 'all') {
+    chips.push({ key: 'material', label: MATERIAL_LABELS[catalogFilters.material] });
+  }
+
+  return chips;
+}
+
+export function countActiveFilterChips(options: {
+  catalogFilters: CatalogFilters;
+  sort: SortOption;
+  filterTag?: FilterTag;
+}) {
+  return buildFilterChips(options).length;
+}
+
+export function removeFilterByChipKey(
+  key: string,
+  current: {
+    catalogFilters: CatalogFilters;
+    sort: SortOption;
+    filterTag: FilterTag;
+  }
+) {
+  switch (key) {
+    case 'filterTag':
+      return { ...current, filterTag: 'all' as FilterTag };
+    case 'sort':
+      return { ...current, sort: 'popular' as SortOption };
+    case 'price':
+      return {
+        ...current,
+        catalogFilters: { ...current.catalogFilters, priceFrom: null, priceTo: null },
+      };
+    case 'type':
+      return {
+        ...current,
+        catalogFilters: { ...current.catalogFilters, type: 'all' as CatalogFilters['type'] },
+      };
+    case 'audience':
+      return {
+        ...current,
+        catalogFilters: { ...current.catalogFilters, audience: 'all' as CatalogFilters['audience'] },
+      };
+    case 'color':
+      return {
+        ...current,
+        catalogFilters: { ...current.catalogFilters, color: 'all' as CatalogFilters['color'] },
+      };
+    case 'material':
+      return {
+        ...current,
+        catalogFilters: { ...current.catalogFilters, material: 'all' as CatalogFilters['material'] },
+      };
+    default:
+      return current;
+  }
+}
+
 export function filterCatalogProducts(
   products: Product[],
   options: {

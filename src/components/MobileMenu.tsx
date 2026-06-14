@@ -1,8 +1,10 @@
 import type { CSSProperties } from 'react';
 import { useEffect } from 'react';
 import { ChevronRight, X } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Y2KIcon } from './Y2KIcon';
+import { DEFAULT_CATALOG_FILTERS } from '../utils/catalogLogic';
+import type { CatalogNavigationState } from '../utils/catalogNavigation';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -10,41 +12,73 @@ interface MobileMenuProps {
 }
 
 const links = [
-  { id: 'new', label: 'Новинка', icon: 'heart' as const, hint: 'Свежие дропы', route: '/' as const },
-  { id: 'catalog', label: 'Каталог', icon: 'box' as const, hint: 'Все товары', route: '/catalog' as const },
-  { id: 'catalog', label: 'Украшения', icon: 'ring' as const, hint: 'Кольца и наборы', route: '/catalog' as const },
-  { id: 'catalog', label: 'Аксессуары', icon: 'accessory' as const, hint: 'Сумки и детали', route: '/catalog' as const },
-  { id: 'contacts', label: 'Контакты', icon: 'phone' as const, hint: 'Связаться с нами', route: '/' as const },
+  {
+    id: 'new',
+    label: 'Новинка',
+    icon: 'heart' as const,
+    hint: 'Свежие дропы',
+    state: { filterTag: 'today' } satisfies CatalogNavigationState,
+  },
+  {
+    id: 'catalog',
+    label: 'Каталог',
+    icon: 'box' as const,
+    hint: 'Все товары',
+    state: undefined,
+  },
+  {
+    id: 'jewelry',
+    label: 'Украшения',
+    icon: 'ring' as const,
+    hint: 'Кольца и наборы',
+    state: {
+      catalogFilters: { ...DEFAULT_CATALOG_FILTERS, type: 'rings' },
+    } satisfies CatalogNavigationState,
+  },
+  {
+    id: 'accessories',
+    label: 'Аксессуары',
+    icon: 'accessory' as const,
+    hint: 'Сумки и детали',
+    state: {
+      catalogFilters: { ...DEFAULT_CATALOG_FILTERS, type: 'bags' },
+    } satisfies CatalogNavigationState,
+  },
+  {
+    id: 'contacts',
+    label: 'Контакты',
+    icon: 'phone' as const,
+    hint: 'Связаться с нами',
+    state: undefined,
+  },
 ] as const;
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     if (!isOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = '';
     };
   }, [isOpen]);
 
-  const handleNavigate = (route: '/' | '/catalog', section: string) => {
-    if (route === '/catalog') {
-      navigate('/catalog');
-      onClose();
-      return;
-    }
-
-    if (location.pathname !== '/') {
-      navigate(section === 'contacts' ? '/#contacts' : '/#new');
-      onClose();
-      return;
-    }
-
-    document.getElementById(section)?.scrollIntoView({ behavior: 'smooth' });
+  const handleNavigate = (link: (typeof links)[number]) => {
     onClose();
+
+    window.setTimeout(() => {
+      if (link.id === 'contacts') {
+        navigate({ pathname: '/', hash: 'contacts' });
+        window.setTimeout(() => {
+          document.getElementById('contacts')?.scrollIntoView({ behavior: 'smooth' });
+        }, 120);
+        return;
+      }
+
+      navigate('/catalog', { state: link.state ?? null });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 0);
   };
 
   if (!isOpen) return null;
@@ -77,12 +111,8 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
         <ul className="mobile-menu__list">
           {links.map((link, index) => (
-            <li key={`${link.id}-${link.label}`} style={{ '--menu-item-index': index } as CSSProperties}>
-              <button
-                type="button"
-                className="mobile-menu__link"
-                onClick={() => handleNavigate(link.route, link.id)}
-              >
+            <li key={link.id} style={{ '--menu-item-index': index } as CSSProperties}>
+              <button type="button" className="mobile-menu__link" onClick={() => handleNavigate(link)}>
                 <span className="mobile-menu__index mono">{String(index + 1).padStart(2, '0')}</span>
                 <span className="mobile-menu__icon-wrap">
                   <Y2KIcon name={link.icon} size={20} />

@@ -4,7 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import type { CatalogFilters, Product } from '../types';
 import type { SearchSuggestion } from '../utils/productSearch';
-import { countActiveCatalogFilters } from '../utils/catalogLogic';
+import { countActiveFilterChips, type FilterChipItem } from '../utils/catalogLogic';
+import { ActiveFilterChips } from './ActiveFilterChips';
 import { SearchBar } from './SearchBar';
 
 interface HeaderProps {
@@ -26,6 +27,10 @@ interface HeaderProps {
   catalogFilters?: CatalogFilters;
   onOpenFilters?: () => void;
   isFilterModalOpen?: boolean;
+  filterChips?: FilterChipItem[];
+  onRemoveFilterChip?: (key: string) => void;
+  onClearAllFilters?: () => void;
+  activeFilterCount?: number;
 }
 
 export function Header({
@@ -47,13 +52,17 @@ export function Header({
   catalogFilters,
   onOpenFilters,
   isFilterModalOpen,
+  filterChips = [],
+  onRemoveFilterChip,
+  onClearAllFilters,
+  activeFilterCount,
 }: HeaderProps) {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { user, reviewPrompts } = useAuth();
   const hasReviewPrompt = reviewPrompts.length > 0;
   const hasUnseenPrompt = reviewPrompts.some((prompt) => !prompt.seen);
-  const activeFilterCount = catalogFilters ? countActiveCatalogFilters(catalogFilters) : 0;
+  const badgeCount = activeFilterCount ?? (catalogFilters ? countActiveFilterChips({ catalogFilters, sort: 'popular' }) : 0);
 
   return (
     <header
@@ -126,16 +135,24 @@ export function Header({
           {onOpenFilters && (
             <button
               type="button"
-              className={`header__filter-btn${isFilterModalOpen ? ' is-open' : ''}${activeFilterCount > 0 ? ' has-active' : ''}`}
+              className={`header__filter-btn${isFilterModalOpen ? ' is-open' : ''}${badgeCount > 0 ? ' has-active' : ''}`}
               onClick={onOpenFilters}
               aria-label="Открыть фильтры"
               aria-expanded={isFilterModalOpen}
             >
               <SlidersHorizontal size={18} className="header__filter-btn-icon" aria-hidden />
-              {activeFilterCount > 0 && <span className="header__filter-btn-badge">{activeFilterCount}</span>}
+              {badgeCount > 0 && <span className="header__filter-btn-badge">{badgeCount}</span>}
             </button>
           )}
         </div>
+
+        {filterChips.length > 0 && onRemoveFilterChip && (
+          <ActiveFilterChips
+            chips={filterChips}
+            onRemove={onRemoveFilterChip}
+            onClearAll={onClearAllFilters}
+          />
+        )}
       </div>
     </header>
   );
