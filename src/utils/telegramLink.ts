@@ -1,9 +1,17 @@
 export function buildTelegramLinkDeepLink(botUsername: string, sessionId: string) {
-  return `https://t.me/${botUsername}?start=link_${sessionId}`;
+  const username = normalizeBotUsername(botUsername);
+  return `https://t.me/${username}?start=link_${sessionId}`;
 }
 
 export function buildTelegramAppDeepLink(botUsername: string, sessionId: string) {
-  return `tg://resolve?domain=${botUsername}&start=link_${sessionId}`;
+  const username = normalizeBotUsername(botUsername);
+  return `tg://resolve?domain=${username}&start=link_${sessionId}`;
+}
+
+function normalizeBotUsername(botUsername: string) {
+  return String(botUsername ?? '')
+    .trim()
+    .replace(/^@+/, '');
 }
 
 const LINK_SESSION_STORAGE_KEY = 'pinkdrop_telegram_link_session';
@@ -24,12 +32,17 @@ export function readTelegramLinkSession(): StoredTelegramLinkSession | null {
     const raw = sessionStorage.getItem(LINK_SESSION_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredTelegramLinkSession;
-    if (!parsed?.sessionId || !parsed?.botUrl || !parsed?.expiresAt) return null;
+    if (!parsed?.sessionId || !parsed?.expiresAt) return null;
     if (new Date(parsed.expiresAt).getTime() <= Date.now()) {
       sessionStorage.removeItem(LINK_SESSION_STORAGE_KEY);
       return null;
     }
-    return parsed;
+    const botUrl = getTelegramWebUrl(parsed);
+    if (!botUrl) {
+      sessionStorage.removeItem(LINK_SESSION_STORAGE_KEY);
+      return null;
+    }
+    return { ...parsed, botUrl };
   } catch {
     return null;
   }
@@ -39,43 +52,66 @@ export function clearTelegramLinkSession() {
   sessionStorage.removeItem(LINK_SESSION_STORAGE_KEY);
 }
 
-/** Открывает пустую вкладку синхронно по клику — иначе браузер заблокирует popup после await. */
-export function openTelegramBotPopup(): Window | null {
-  try {
-    return window.open('about:blank', '_blank', 'noopener,noreferrer');
-  } catch {
-    return null;
+export function getTelegramWebUrl(
+  session: Pick<StoredTelegramLinkSession, 'sessionId' | 'botUsername' | 'botUrl'>
+) {
+  const username = normalizeBotUsername(session.botUsername);
+  if (!username || !session.sessionId) return null;
+
+  const built = buildTelegramLinkDeepLink(username, session.sessionId);
+  const raw = String(session.botUrl ?? '').trim();
+  if (raw.startsWith('https://t.me/') && raw.includes('start=link_')) {
+    return raw;
   }
+  return built;
 }
 
-export function openTelegramBot(session: StoredTelegramLinkSession, popup?: Window | null) {
-  const appUrl = buildTelegramAppDeepLink(session.botUsername, session.sessionId);
-  const webUrl = session.botUrl || buildTelegramLinkDeepLink(session.botUsername, session.sessionId);
+function isMobileDevice() {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
 
-  try {
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = appUrl;
-    document.body.appendChild(iframe);
-    window.setTimeout(() => iframe.remove(), 1500);
-  } catch {
-    // tg:// через iframe — текущая вкладка не уходит со страницы сайта
+function openUrlInNewTab(url: string) {
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  if (opened) {
+    opened.focus();
+    return true;
   }
 
-  if (popup && !popup.closed) {
-    popup.location.replace(webUrl);
-    popup.focus();
-    return;
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.target = '_blank';
+  anchor.rel = 'noopener noreferrer';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  return true;
+}
+
+export function openTelegramDeepLink(webUrl: string, appUrl?: string) {
+  if (isMobileDevice() && appUrl) {
+    try {
+      window.location.assign(appUrl);
+      window.setTimeout(() => openUrlInNewTab(webUrl), 900);
+      return;
+    } catch {
+      openUrlInNewTab(webUrl);
+      return;
+    }
   }
 
-  const opened = window.open(webUrl, '_blank', 'noopener,noreferrer');
-  if (!opened) {
-    const anchor = document.createElement('a');
-    anchor.href = webUrl;
-    anchor.target = '_blank';
-    anchor.rel = 'noopener noreferrer';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
+  openUrlInNewTab(webUrl);
+}
+
+/** Открывает t.me / tg:// после получения сессии с сервера. */
+export function openTelegramBot(session: StoredTelegramLinkSession) {
+  const webUrl = getTelegramWebUrl(session);
+  if (!webUrl) {
+    throw new Error('Telegram-бот не настроен на сервере. Проверьте bot_username в pinkdrop.yaml.');
   }
+
+  openTelegramDeepLink(
+    webUrl,
+    buildTelegramAppDeepLink(session.botUsername, session.sessionId)
+  );
 }

@@ -3,8 +3,8 @@ import { api } from '../api/client';
 import { useAppDialog } from '../context/AppDialogContext';
 import {
   clearTelegramAuthSession,
-  openTelegramBot,
-  openTelegramBotPopup,
+  getTelegramAuthWebUrl,
+  openTelegramAuthBot,
   saveTelegramAuthSession,
 } from '../utils/telegramAuth';
 
@@ -13,36 +13,43 @@ export function useTelegramLoginFlow() {
   const [busy, setBusy] = useState(false);
 
   const startTelegramLogin = async () => {
-    const popup = openTelegramBotPopup();
     setBusy(true);
 
     try {
-      const health = await fetch('/api/health').then((response) => response.json()).catch(() => null);
+      const [health, providers] = await Promise.all([
+        fetch('/api/health').then((response) => response.json()).catch(() => null),
+        api.getAuthProviders().catch(() => null),
+      ]);
+
       if (!health?.features?.telegramAuth) {
         throw new Error(
           'Вход через Telegram недоступен. Перезапустите API на сервере и попробуйте снова.'
         );
       }
 
+      if (!providers?.telegram?.enabled || !providers.telegram.botUsername) {
+        throw new Error(
+          'Telegram-бот не настроен. Укажите TELEGRAM_BOT_TOKEN и bot_username в pinkdrop.yaml на сервере.'
+        );
+      }
+
       const result = await api.startTelegramLogin();
-      saveTelegramAuthSession({
+      const session = {
         sessionId: result.sessionId,
         botUrl: result.botUrl,
-        botUsername: result.botUsername,
+        botUsername: result.botUsername || providers.telegram.botUsername,
         expiresAt: result.expiresAt,
-      });
-      openTelegramBot(
-        {
-          sessionId: result.sessionId,
-          botUrl: result.botUrl,
-          botUsername: result.botUsername,
-          expiresAt: result.expiresAt,
-        },
-        popup
-      );
+      };
+
+      const webUrl = getTelegramAuthWebUrl(session);
+      if (!webUrl) {
+        throw new Error('Не удалось собрать ссылку на Telegram-бота. Проверьте настройки бота.');
+      }
+
+      saveTelegramAuthSession({ ...session, botUrl: webUrl });
+      openTelegramAuthBot({ ...session, botUrl: webUrl });
       return true;
     } catch (err) {
-      popup?.close();
       clearTelegramAuthSession();
       await alert({
         title: 'Не удалось открыть Telegram',

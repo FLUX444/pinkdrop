@@ -8991,6 +8991,16 @@ a.checkout-summary__product-name:active {
   margin-top: 0;
 }
 
+.link-telegram-page__open-btn {
+  width: 100%;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 6px;
+}
+
 @media (max-width: 560px) {
   .profile-password__cta-row {
     grid-template-columns: 1fr;

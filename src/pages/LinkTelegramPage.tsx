@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ExternalLink, MessageCircle } from 'lucide-react';
 import { api } from '../api/client';
 import { OtpCodeInput } from '../components/OtpCodeInput';
 import { useAuth } from '../context/AuthContext';
 import { userHasTelegramAccess } from '../utils/bargainLink';
 import {
   clearTelegramLinkSession,
+  getTelegramWebUrl,
   readTelegramLinkSession,
   saveTelegramLinkSession,
   type StoredTelegramLinkSession,
@@ -19,12 +20,20 @@ export function LinkTelegramPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [starting, setStarting] = useState(true);
+  const [linkSession, setLinkSession] = useState<StoredTelegramLinkSession | null>(null);
 
   const beginLinkSession = useCallback(async () => {
     const health = await fetch('/api/health').then((r) => r.json()).catch(() => null);
     if (!health?.features?.telegramLink) {
       throw new Error(
-        'API привязки Telegram недоступен. Закройте все терминалы с npm run dev:server и запустите проект заново из S:\\site.'
+        'API привязки Telegram недоступен. Перезапустите API на сервере и попробуйте снова.'
+      );
+    }
+
+    const providers = await api.getAuthProviders().catch(() => null);
+    if (!providers?.telegram?.enabled || !providers.telegram.botUsername) {
+      throw new Error(
+        'Telegram-бот не настроен. Укажите TELEGRAM_BOT_TOKEN и bot_username в pinkdrop.yaml.'
       );
     }
 
@@ -32,10 +41,18 @@ export function LinkTelegramPage() {
     const session: StoredTelegramLinkSession = {
       sessionId: result.sessionId,
       botUrl: result.botUrl,
-      botUsername: result.botUsername,
+      botUsername: result.botUsername || providers.telegram.botUsername,
       expiresAt: result.expiresAt,
     };
-    saveTelegramLinkSession(session);
+    const botUrl = getTelegramWebUrl(session);
+    if (!botUrl) {
+      throw new Error('Не удалось собрать ссылку на Telegram-бота.');
+    }
+
+    const normalized = { ...session, botUrl };
+    saveTelegramLinkSession(normalized);
+    setLinkSession(normalized);
+    return normalized;
   }, []);
 
   useEffect(() => {
@@ -57,7 +74,9 @@ export function LinkTelegramPage() {
     void (async () => {
       try {
         const cached = readTelegramLinkSession();
-        if (!cached) {
+        if (cached) {
+          if (!cancelled) setLinkSession(cached);
+        } else {
           await beginLinkSession();
         }
       } catch (err) {
@@ -116,14 +135,36 @@ export function LinkTelegramPage() {
           </span>
           <div>
             <span className="mono profile-password__tag">TELEGRAM_LINK</span>
-            <h2>Введите код из бота</h2>
+            <h2>Подключите бота</h2>
           </div>
         </div>
 
         <p className="profile-password__hint">
-          Telegram открылся в новой вкладке. Скопируйте 6-значный код из бота и вставьте его здесь — эта
-          страница останется открытой.
+          Нажмите кнопку ниже — откроется Telegram-бот. Нажмите <strong>Start</strong> в боте, скопируйте
+          6-значный код и вставьте его на этой странице.
         </p>
+
+        {linkSession?.botUrl ? (
+          <a
+            href={linkSession.botUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn--telegram btn--full link-telegram-page__open-btn"
+          >
+            <ExternalLink size={16} aria-hidden />
+            Открыть бота в Telegram
+          </a>
+        ) : (
+          <button
+            type="button"
+            className="btn btn--telegram btn--full link-telegram-page__open-btn"
+            onClick={() => void beginLinkSession().catch((err) => {
+              setError(err instanceof Error ? err.message : 'Не удалось начать привязку');
+            })}
+          >
+            Получить ссылку на бота
+          </button>
+        )}
 
         <form className="link-telegram-page__form auth-panel__code-step" onSubmit={(event) => void handleSubmit(event)}>
           <label className="link-telegram-page__label">
@@ -144,7 +185,7 @@ export function LinkTelegramPage() {
             className="btn btn--primary link-telegram-page__action-btn"
             disabled={submitting || code.length !== 6}
           >
-            {submitting ? 'Проверяем...' : 'Привязать Telegram'}
+            {submitting ? 'Проверяем...' : 'Подтвердить привязку'}
           </button>
         </form>
       </section>
