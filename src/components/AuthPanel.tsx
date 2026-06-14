@@ -4,6 +4,7 @@ import { Eye, EyeOff, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { OtpCodeInput } from './OtpCodeInput';
 import { SocialAuthIcons } from './SocialAuthIcons';
+import type { TelegramAuthUser } from '../utils/telegramOAuth';
 
 interface AuthPanelProps {
   variant?: 'inline' | 'modal';
@@ -286,15 +287,7 @@ export function AuthPanel({
     }
   };
 
-  const handleTelegramAuth = async (user: {
-    id: number;
-    first_name: string;
-    last_name?: string;
-    username?: string;
-    photo_url?: string;
-    auth_date: number;
-    hash: string;
-  }) => {
+  const handleTelegramAuth = async (user: TelegramAuthUser) => {
     setError('');
     setSubmitting(true);
     try {

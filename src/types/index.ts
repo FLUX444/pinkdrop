@@ -259,6 +259,7 @@ export interface AuthProvidersConfig {
   telegram: {
     enabled: boolean;
     botUsername: string | null;
+    botId: string | null;
   };
   smsConfigured: boolean;
   emailCodeConfigured: boolean;

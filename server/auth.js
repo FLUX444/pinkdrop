@@ -702,7 +702,9 @@ export function loginOrRegisterWithPassword(
 
 export function getAuthProvidersPayload() {
   const botUsername = String(config.telegram.botUsername ?? '').trim();
-  const telegramReady = isTelegramEnabled() && Boolean(botUsername);
+  const botToken = String(config.telegram.botToken ?? '').trim();
+  const botId = botToken.includes(':') ? botToken.split(':')[0] : '';
+  const telegramReady = isTelegramEnabled() && Boolean(botUsername) && Boolean(botId);
 
   return {
     phone: false,
@@ -711,6 +713,7 @@ export function getAuthProvidersPayload() {
     telegram: {
       enabled: telegramReady,
       botUsername: telegramReady ? botUsername : null,
+      botId: telegramReady ? botId : null,
     },
     smsConfigured: isSmsEnabled(),
     emailCodeConfigured: isEmailSmtpConfigured(),

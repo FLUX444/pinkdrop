@@ -5,6 +5,7 @@ site:
   frontend_url: "https://pinkdrop.ru"
 
 telegram:
+  bot_id: "8853654522"
   bot_username: "p1nkdrop_bot"
 
   store_channel:
