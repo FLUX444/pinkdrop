@@ -8856,6 +8856,9 @@ a.checkout-summary__product-name:active {
   background: var(--bg-elevated);
   padding: 20px;
   margin-bottom: 16px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .profile-card__user {
@@ -9777,6 +9780,8 @@ a.checkout-summary__product-name:active {
 .profile-address__form {
   display: grid;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
 }
 
 .profile-address__form label {
@@ -9784,20 +9789,27 @@ a.checkout-summary__product-name:active {
   gap: 6px;
   font-size: 0.82rem;
   color: var(--text-muted);
+  min-width: 0;
 }
 
 .profile-address__form input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
+  font: inherit;
 }
 
 .profile-address__row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  width: 100%;
+  min-width: 0;
 }
 
 .profile-address__geo {
@@ -9834,6 +9846,29 @@ a.checkout-summary__product-name:active {
   margin: 10px 0 0;
   color: #ff8a80;
   font-size: 0.84rem;
+}
+
+@media (max-width: 640px) {
+  .profile-address {
+    padding: 16px 14px;
+  }
+
+  .profile-address__form input {
+    padding: 11px 12px;
+    font-size: 16px;
+  }
+
+  .profile-address__row {
+    gap: 8px;
+  }
+
+  .profile-address__actions {
+    flex-direction: column;
+  }
+
+  .profile-address__actions .btn {
+    width: 100%;
+  }
 }
 
 .cart-item__unit em {
