@@ -214,8 +214,8 @@ export function HomePage() {
 
       <main className="landing-page">
         <HeroBanner config={heroConfig} featuredProduct={featuredProduct} />
-        <AboutSection />
         <TrustSection />
+        <AboutSection />
         <ContactsSection />
       </main>
 

@@ -96,8 +96,8 @@ export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
             <Link to="/catalog" className="btn btn--secondary">{config.ctaSecondary}</Link>
           </div>
           <div className="hero__plaques">
-            <DeliveryTimer variant="hero" />
             <PriceDropInfo variant="hero-center" />
+            <DeliveryTimer variant="hero" />
           </div>
         </div>
         <div className="hero__barcode mono" aria-hidden>
