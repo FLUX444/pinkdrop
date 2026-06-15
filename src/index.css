@@ -14,7 +14,7 @@
   --font-hero: 'Brick Bond', Impact, Haettenschweiler, 'Arial Black', 'Bebas Neue', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-body: 'Inter', system-ui, sans-serif;
-  --font-brand: 'Condexa Slanted', var(--font-display);
+  --font-brand: 'Ethnocentric', var(--font-display);
   --radius: 12px;
   --radius-sm: 8px;
   --bottom-nav-stack: calc(78px + env(safe-area-inset-bottom, 0px));
@@ -28,10 +28,10 @@
 }
 
 @font-face {
-  font-family: 'Condexa Slanted';
-  src: url('/fonts/condexa-slanted.ttf') format('truetype');
+  font-family: 'Ethnocentric';
+  src: url('/fonts/ethnocentric-rg-it.ttf') format('truetype');
   font-weight: 400;
-  font-style: normal;
+  font-style: italic;
   font-display: swap;
 }
 
@@ -447,23 +447,29 @@ main,
   text-align: left;
   font-family: var(--font-brand);
   font-weight: 400;
-  font-size: 1.02rem;
-  line-height: 1.05;
-  letter-spacing: 0.04em;
+  font-style: italic;
+  font-size: 1.22rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .header__logo-pink {
   color: var(--accent);
   font-weight: inherit;
+  font-style: inherit;
   text-shadow: 0 0 8px rgba(255, 45, 149, 0.45);
 }
 
 .header__logo-text small {
   display: block;
+  font-family: var(--font-body);
   font-weight: 400;
+  font-style: normal;
   color: var(--text-muted);
   font-size: 0.7rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .header__actions {
@@ -6452,24 +6458,30 @@ a.checkout-summary__product-name:active {
   text-align: left;
   font-family: var(--font-brand);
   font-weight: 400;
-  font-size: 0.98rem;
-  line-height: 1.05;
-  letter-spacing: 0.04em;
+  font-style: italic;
+  font-size: 1.14rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
 .mobile-menu__logo-pink {
   color: var(--accent);
   font-weight: inherit;
+  font-style: inherit;
   text-shadow: 0 0 8px rgba(255, 45, 149, 0.45);
 }
 
 .mobile-menu__logo-text small {
   display: block;
   margin-top: 2px;
+  font-family: var(--font-body);
   font-weight: 500;
+  font-style: normal;
   color: var(--text-muted);
   font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .mobile-menu__close {
