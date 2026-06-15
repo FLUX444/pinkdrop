@@ -66,8 +66,8 @@ export function AboutSection() {
     api.getAbout().then(setAbout).catch(() => setAbout(DEFAULT_ABOUT));
   }, []);
 
-  const leftCards = highlights.slice(0, 2);
-  const rightCards = highlights.slice(2, 4);
+  const introCards = highlights.slice(0, 2);
+  const teamCards = highlights.slice(2, 4);
 
   return (
     <section className="about-section" aria-label="О компании PINKDROP">
@@ -75,7 +75,6 @@ export function AboutSection() {
       <div className="about-section__inner">
         <div className="about-section__stack">
           <div className="about-section__row">
-            <AboutSideCards items={leftCards} />
             <div className="about-section__block">
               <span className="mono about-section__tag">ABOUT_PINKDROP</span>
               <h2>Магазин, который успевает за тобой</h2>
@@ -84,7 +83,7 @@ export function AboutSection() {
                 Смотреть каталог
               </Link>
             </div>
-            <AboutSideCards items={rightCards} />
+            <AboutSideCards items={introCards} />
           </div>
 
           <div className="about-section__row about-section__row--team">
@@ -95,6 +94,7 @@ export function AboutSection() {
                 {renderParagraphs(about.aboutPinkdropTeam, true)}
               </div>
             </div>
+            <AboutSideCards items={teamCards} />
           </div>
         </div>
       </div>

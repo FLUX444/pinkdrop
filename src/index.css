@@ -2887,7 +2887,7 @@ a.hero__product-card {
   }
 
   .about-section__row {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr) minmax(0, 0.9fr);
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
     align-items: start;
     gap: 16px;
   }
@@ -8746,6 +8746,27 @@ a.checkout-summary__product-name:active {
 
 .profile-card__tag {
   color: var(--accent);
+}
+
+.profile-card__session-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+}
+
+.profile-card__role {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profile-card__role::before {
+  content: '·';
+  margin-right: 8px;
+  color: rgba(255, 45, 149, 0.45);
 }
 
 .profile-card__avatar {
@@ -14640,38 +14661,19 @@ a.checkout-summary__product-name:active {
   border-color: #9ca3af;
 }
 
-.about-section__row--team {
-  justify-items: center;
-}
-
-.about-section__row--team .about-section__block {
-  width: 100%;
-  max-width: 760px;
-}
-
-@media (min-width: 820px) {
-  .about-section__row--team {
-    grid-template-columns: 1fr;
-  }
-}
 
 .operator-role-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 45, 149, 0.45);
-  background: rgba(255, 45, 149, 0.12);
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255, 45, 149, 0.1);
   color: var(--accent);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  line-height: 1.4;
-}
-
-.operator-role-badge--profile {
-  margin-top: 4px;
+  line-height: 1.35;
 }
 
 .admin-escalation-bubble__head,
