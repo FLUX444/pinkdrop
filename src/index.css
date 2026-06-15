@@ -14,6 +14,7 @@
   --font-hero: 'Brick Bond', Impact, Haettenschweiler, 'Arial Black', 'Bebas Neue', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-brand: 'Condexa Slanted', var(--font-display);
   --radius: 12px;
   --radius-sm: 8px;
   --bottom-nav-stack: calc(78px + env(safe-area-inset-bottom, 0px));
@@ -24,6 +25,14 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+@font-face {
+  font-family: 'Condexa Slanted';
+  src: url('/fonts/condexa-slanted.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 html {
@@ -436,14 +445,18 @@ main,
 
 .header__logo-text {
   text-align: left;
-  font-weight: 700;
-  font-size: 0.85rem;
-  line-height: 1.2;
+  font-family: var(--font-brand);
+  font-weight: 400;
+  font-size: 1.02rem;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .header__logo-pink {
   color: var(--accent);
-  text-shadow: 0 0 16px var(--accent-glow);
+  font-weight: inherit;
+  text-shadow: 0 0 8px rgba(255, 45, 149, 0.45);
 }
 
 .header__logo-text small {
@@ -6437,14 +6450,18 @@ a.checkout-summary__product-name:active {
 .mobile-menu__logo-text {
   min-width: 0;
   text-align: left;
-  font-weight: 800;
-  font-size: 0.84rem;
-  line-height: 1.15;
+  font-family: var(--font-brand);
+  font-weight: 400;
+  font-size: 0.98rem;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mobile-menu__logo-pink {
   color: var(--accent);
-  text-shadow: 0 0 14px var(--accent-glow);
+  font-weight: inherit;
+  text-shadow: 0 0 8px rgba(255, 45, 149, 0.45);
 }
 
 .mobile-menu__logo-text small {
