@@ -94,7 +94,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
         <div className="mobile-menu__header">
           <div className="mobile-menu__brand">
-            <BrandLogo className="mobile-menu__logo-image" size={44} />
+            <BrandLogo className="mobile-menu__logo-image" size={48} />
             <div className="mobile-menu__logo-text">
               <span>
                 <span className="mobile-menu__logo-pink">PINK</span>DROP

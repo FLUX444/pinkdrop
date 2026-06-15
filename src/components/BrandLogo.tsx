@@ -3,7 +3,7 @@ interface BrandLogoProps {
   size?: number;
 }
 
-export function BrandLogo({ className = '', size = 52 }: BrandLogoProps) {
+export function BrandLogo({ className = '', size = 58 }: BrandLogoProps) {
   return (
     <img
       src="/images/pinkdrop-pd-logo.png"
