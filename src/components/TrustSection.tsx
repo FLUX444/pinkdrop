@@ -23,9 +23,12 @@ const trustItems = [
   },
 ] as const;
 
-export function TrustSection() {
+export function TrustSection({ className = '' }: { className?: string }) {
   return (
-    <section className="trust-section" aria-label="Преимущества магазина">
+    <section
+      className={`trust-section${className ? ` ${className}` : ''}`.trim()}
+      aria-label="Преимущества магазина"
+    >
       <div className="trust-section__header">
         <span className="mono">WHY_TRUST_US</span>
         <h2>Покупать спокойно</h2>

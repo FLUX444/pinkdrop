@@ -213,8 +213,9 @@ export function HomePage() {
       />
 
       <main className="landing-page">
-        <HeroBanner config={heroConfig} featuredProduct={featuredProduct} />
-        <TrustSection />
+        <HeroBanner config={heroConfig} featuredProduct={featuredProduct}>
+          <TrustSection className="trust-section--hero-stack" />
+        </HeroBanner>
         <AboutSection />
         <ContactsSection />
       </main>

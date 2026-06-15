@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ChromeStar } from './ChromeStar';
 import { DeliveryTimer } from './DeliveryTimer';
@@ -10,6 +10,7 @@ import { getProductPath } from '../utils/productUrl';
 interface HeroBannerProps {
   config: HeroConfig;
   featuredProduct: Product | null;
+  children?: ReactNode;
 }
 
 function splitTitleMain(titleMain: string) {
@@ -35,7 +36,7 @@ function renderTitleAccent(text: string) {
   );
 }
 
-export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
+export function HeroBanner({ config, featuredProduct, children }: HeroBannerProps) {
   const [titleSwapped, setTitleSwapped] = useState(false);
   const { prefix, accentLetter } = splitTitleMain(config.titleMain);
   const priceLabel = featuredProduct
@@ -104,6 +105,8 @@ export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
           ||| || ||| | || |||| | |||
         </div>
       </div>
+
+      {children}
 
       <div className="hero__product" aria-label={`Новинка: ${config.productTitle}`}>
         {featuredProduct ? (
