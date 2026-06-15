@@ -75,7 +75,7 @@ export function Header({
         </button>
 
         <Link to="/" className="header__logo" onClick={() => onLogoClick()}>
-          <BrandLogo className="header__logo-image" size={42} />
+          <BrandLogo className="header__logo-image" size={52} />
           <span className="header__logo-text">
             <span className="header__logo-pink">PINK</span>DROP
             <small>Дроп за 3 часа</small>

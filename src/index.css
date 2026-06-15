@@ -400,17 +400,17 @@ main,
 .brand-logo,
 .header__logo-image,
 .mobile-menu__logo-image {
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   flex-shrink: 0;
   display: block;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .mobile-menu__logo-image {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
 }
 
 .header__logo-mark {
