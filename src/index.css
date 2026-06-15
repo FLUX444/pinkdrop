@@ -10953,6 +10953,10 @@ a.checkout-summary__product-name:active {
 }
 
 .admin-nav__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
   padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid var(--border);

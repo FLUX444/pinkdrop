@@ -4,6 +4,7 @@ import { Users } from 'lucide-react';
 import { api } from '../api/client';
 import { AdminLayout } from '../components/AdminLayout';
 import { AdminLoginScreen } from '../components/AdminLoginScreen';
+import { useOperatorAuth } from '../hooks/useOperatorAuth';
 import type { AdminUser } from '../types';
 
 function formatDate(value: string) {
@@ -19,13 +20,9 @@ function formatDate(value: string) {
 }
 
 export function AdminUsersPage() {
-  const [configured, setConfigured] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [password, setPassword] = useState('');
+  const auth = useOperatorAuth({ adminOnly: true });
   const [users, setUsers] = useState<AdminUser[]>([]);
-  const [error, setError] = useState('');
-  const [loginBusy, setLoginBusy] = useState(false);
+  const [pageError, setPageError] = useState('');
   const [busy, setBusy] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -34,24 +31,17 @@ export function AdminUsersPage() {
     try {
       const data = await api.getAdminUsers();
       setUsers(data.users);
+    } catch (err) {
+      setPageError(err instanceof Error ? err.message : 'Не удалось загрузить пользователей');
     } finally {
       setBusy(false);
     }
   };
 
   useEffect(() => {
-    api
-      .getAdminStatus()
-      .then(async (status) => {
-        setConfigured(status.configured);
-        setAuthenticated(status.authenticated);
-        if (status.authenticated) {
-          await loadUsers();
-        }
-      })
-      .catch(() => setConfigured(false))
-      .finally(() => setLoading(false));
-  }, []);
+    if (!auth.authenticated) return;
+    void loadUsers();
+  }, [auth.authenticated]);
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -65,50 +55,36 @@ export function AdminUsersPage() {
     });
   }, [search, users]);
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError('');
-    setLoginBusy(true);
-    try {
-      await api.adminLogin(password);
-      setPassword('');
-      await loadUsers();
-      setAuthenticated(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось войти');
-    } finally {
-      setLoginBusy(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await api.adminLogout();
-    setAuthenticated(false);
-    setUsers([]);
-  };
-
-  if (loading) {
+  if (auth.loading) {
     return <p className="admin-page__loading mono">LOADING...</p>;
   }
 
-  if (!configured) {
-    return <p className="admin-page__loading">Админка не настроена</p>;
+  if (!auth.allowed) {
+    return <p className="admin-page__loading">У вас нет доступа к этому разделу.</p>;
   }
 
-  if (!authenticated) {
+  if (!auth.configured) {
+    return (
+      <p className="admin-page__loading">
+        Админка не настроена. Добавьте `ADMIN_PASSWORD` в `.env` и перезапустите сервер.
+      </p>
+    );
+  }
+
+  if (!auth.authenticated) {
     return (
       <AdminLoginScreen
-        password={password}
-        error={error}
-        busy={loginBusy}
-        onPasswordChange={setPassword}
-        onSubmit={handleLogin}
+        password={auth.password}
+        error={auth.error}
+        busy={auth.loginBusy}
+        onPasswordChange={auth.setPassword}
+        onSubmit={auth.handleLogin}
       />
     );
   }
 
   return (
-    <AdminLayout title="Пользователи" tag="ADMIN_USERS" onLogout={() => void handleLogout()}>
+    <AdminLayout title="Пользователи" tag="ADMIN_USERS" onLogout={() => void auth.handleLogout()}>
       <section className="admin-users">
         <div className="admin-users__toolbar">
           <label className="admin-users__search">
@@ -121,11 +97,11 @@ export function AdminUsersPage() {
             />
           </label>
           <button type="button" className="btn btn--secondary" onClick={() => void loadUsers()} disabled={busy}>
-            Обновить
+            {busy ? 'Обновляем...' : 'Обновить'}
           </button>
         </div>
 
-        {error && <p className="admin-users__error">{error}</p>}
+        {pageError && <p className="admin-users__error">{pageError}</p>}
 
         <div className="admin-users__list">
           {filteredUsers.map((user) => (

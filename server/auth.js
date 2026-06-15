@@ -438,16 +438,29 @@ function findUserByEmail(email) {
   return resolveUserByEmail(email);
 }
 
-function updateUserFromProvider(user, { name, email, phone, avatarUrl }) {
+function updateUserFromProvider(user, { name, email, phone, avatarUrl }, { preserveProfile = false } = {}) {
   const normalizedEmail = email ? normalizeEmail(email) : null;
-  db.prepare(
-    `UPDATE users
-     SET name = COALESCE(?, name),
-         email = COALESCE(?, email),
-         phone = COALESCE(?, phone),
-         avatar_url = COALESCE(?, avatar_url)
-     WHERE id = ?`
-  ).run(name ?? null, normalizedEmail, phone ?? null, avatarUrl ?? null, user.id);
+
+  if (preserveProfile) {
+    db.prepare(
+      `UPDATE users
+       SET name = CASE WHEN name IS NULL OR trim(name) = '' THEN ? ELSE name END,
+           email = COALESCE(?, email),
+           phone = COALESCE(?, phone),
+           avatar_url = CASE WHEN avatar_url IS NULL OR trim(avatar_url) = '' THEN ? ELSE avatar_url END
+       WHERE id = ?`
+    ).run(name ?? null, normalizedEmail, phone ?? null, avatarUrl ?? null, user.id);
+  } else {
+    db.prepare(
+      `UPDATE users
+       SET name = COALESCE(?, name),
+           email = COALESCE(?, email),
+           phone = COALESCE(?, phone),
+           avatar_url = COALESCE(?, avatar_url)
+       WHERE id = ?`
+    ).run(name ?? null, normalizedEmail, phone ?? null, avatarUrl ?? null, user.id);
+  }
+
   return db.prepare('SELECT * FROM users WHERE id = ?').get(user.id);
 }
 
@@ -524,7 +537,11 @@ function loginOrRegisterProvider(
 
   if (existingByProvider || linkedViaEmail) {
     linkProvider(user.id, provider, providerUserId, providerData);
-    user = updateUserFromProvider(user, { name, email: normalizedEmail, phone, avatarUrl });
+    user = updateUserFromProvider(
+      user,
+      { name, email: normalizedEmail, phone, avatarUrl },
+      { preserveProfile: true }
+    );
   }
 
   if (user.email && (existingByProvider || linkedViaEmail)) {

@@ -5,6 +5,7 @@ import { api } from '../api/client';
 import { AdminLayout } from '../components/AdminLayout';
 import { AdminLoginScreen } from '../components/AdminLoginScreen';
 import { ProductImage } from '../components/ProductImage';
+import { useOperatorAuth } from '../hooks/useOperatorAuth';
 import { formatPrice } from '../utils/formatPrice';
 import type { AdminOrderSummary } from '../types';
 
@@ -23,14 +24,9 @@ function formatOrderDate(value: string) {
 export function AdminOrdersPage() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const [configured, setConfigured] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [password, setPassword] = useState('');
+  const auth = useOperatorAuth({ adminOnly: true });
   const [orders, setOrders] = useState<AdminOrderSummary[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrderSummary | null>(null);
-  const [error, setError] = useState('');
-  const [loginBusy, setLoginBusy] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
 
   const loadOrders = async () => {
@@ -39,21 +35,12 @@ export function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    api
-      .getAdminStatus()
-      .then(async (status) => {
-        setConfigured(status.configured);
-        setAuthenticated(status.authenticated);
-        if (status.authenticated) {
-          await loadOrders();
-        }
-      })
-      .catch(() => setConfigured(false))
-      .finally(() => setLoading(false));
-  }, []);
+    if (!auth.authenticated) return;
+    void loadOrders();
+  }, [auth.authenticated]);
 
   useEffect(() => {
-    if (!authenticated || !orderId) {
+    if (!auth.authenticated || !orderId) {
       setSelectedOrder(null);
       return;
     }
@@ -64,36 +51,22 @@ export function AdminOrdersPage() {
       .then((data) => setSelectedOrder(data.order))
       .catch(() => setSelectedOrder(null))
       .finally(() => setDetailLoading(false));
-  }, [authenticated, orderId]);
+  }, [auth.authenticated, orderId]);
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setError('');
-    setLoginBusy(true);
-    try {
-      await api.adminLogin(password);
-      setPassword('');
-      await loadOrders();
-      setAuthenticated(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось войти');
-    } finally {
-      setLoginBusy(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await api.adminLogout();
-    setAuthenticated(false);
-    setOrders([]);
-    setSelectedOrder(null);
-  };
-
-  if (loading) {
+  if (auth.loading) {
     return <div className="admin-page"><p className="mono">LOADING_ORDERS...</p></div>;
   }
 
-  if (!configured) {
+  if (!auth.allowed) {
+    return (
+      <div className="admin-page">
+        <p>У вас нет доступа к этому разделу.</p>
+        <Link to="/">На главную</Link>
+      </div>
+    );
+  }
+
+  if (!auth.configured) {
     return (
       <div className="admin-page">
         <p>Админка не настроена. Добавьте `ADMIN_PASSWORD` в `.env` и перезапустите сервер.</p>
@@ -102,23 +75,20 @@ export function AdminOrdersPage() {
     );
   }
 
-  if (!authenticated) {
+  if (!auth.authenticated) {
     return (
       <AdminLoginScreen
-        error={error}
-        password={password}
-        onPasswordChange={(value) => {
-          setError('');
-          setPassword(value);
-        }}
-        onSubmit={handleLogin}
-        busy={loginBusy}
+        error={auth.error}
+        password={auth.password}
+        onPasswordChange={auth.setPassword}
+        onSubmit={auth.handleLogin}
+        busy={auth.loginBusy}
       />
     );
   }
 
   return (
-    <AdminLayout title="Заказы" tag="ADMIN_ORDERS" onLogout={() => void handleLogout()}>
+    <AdminLayout title="Заказы" tag="ADMIN_ORDERS" onLogout={() => void auth.handleLogout()}>
       <div className="admin-orders">
         <div className="admin-orders__list-panel">
           <div className="admin-orders__list-head">

@@ -1464,7 +1464,7 @@ app.get('/api/admin/status', optionalAuth, (req, res) => {
   }
 
   res.json({
-    configured: role === 'support' ? true : isAdminConfigured(),
+    configured: Boolean(role) || isAdminConfigured(),
     allowed: Boolean(role),
     authenticated,
     role: role ?? null,

@@ -65,7 +65,6 @@ export function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [authMessage, setAuthMessage] = useState('');
-  const [adminConfigured, setAdminConfigured] = useState(false);
   const [adminAllowed, setAdminAllowed] = useState(false);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
   const [adminRole, setAdminRole] = useState<'admin' | 'support' | null>(null);
@@ -209,13 +208,11 @@ export function ProfilePage() {
     api
       .getAdminStatus()
       .then((status) => {
-        setAdminConfigured(status.configured);
         setAdminAllowed(status.allowed);
         setAdminAuthenticated(status.authenticated);
         setAdminRole(status.role ?? null);
       })
       .catch(() => {
-        setAdminConfigured(false);
         setAdminAllowed(false);
         setAdminAuthenticated(false);
       });
@@ -680,7 +677,7 @@ export function ProfilePage() {
         {addressError && <p className="profile-address__error">{addressError}</p>}
       </section>
 
-      {adminConfigured && adminAllowed && (
+      {adminAllowed && (
         <section className="profile-admin">
           <div className="profile-admin__head">
             <span className="profile-admin__icon" aria-hidden>
