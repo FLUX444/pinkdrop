@@ -2758,6 +2758,38 @@ a.hero__product-card {
   gap: 24px;
 }
 
+.about-section__columns {
+  display: grid;
+  gap: 20px;
+}
+
+.about-section__block {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(255, 45, 149, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.about-section__block--team {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 45, 149, 0.12), transparent 42%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.about-section__text {
+  display: grid;
+  gap: 12px;
+}
+
+.about-section__team-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
 .about-section__intro {
   display: grid;
   gap: 14px;
@@ -2768,7 +2800,8 @@ a.hero__product-card {
   font-size: 0.72rem;
 }
 
-.about-section__intro h2 {
+.about-section__intro h2,
+.about-section__block h2 {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 6vw, 2.8rem);
   letter-spacing: 0.03em;
@@ -2778,6 +2811,11 @@ a.hero__product-card {
 .about-section__intro p {
   color: var(--text-muted);
   max-width: 720px;
+}
+
+.about-section__text p {
+  color: var(--text-muted);
+  line-height: 1.55;
 }
 
 .about-section__cta {
@@ -2827,13 +2865,9 @@ a.hero__product-card {
 }
 
 @media (min-width: 820px) {
-  .about-section__inner {
-    grid-template-columns: 1.1fr 1fr;
+  .about-section__columns {
+    grid-template-columns: 1fr 1fr;
     align-items: start;
-  }
-
-  .about-section__grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -15531,5 +15565,59 @@ a.checkout-summary__product-name:active {
 
 .profile-admin__link svg {
   display: block;
+}
+
+.admin-about__grid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .admin-about__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.admin-about__field {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-about__field span.mono {
+  color: var(--accent);
+  font-size: 0.72rem;
+}
+
+.admin-about__field textarea {
+  width: 100%;
+  min-height: 280px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 45, 149, 0.28);
+  background: rgba(10, 10, 10, 0.92);
+  color: var(--text);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.admin-about__hint {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.admin-about__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-about__saved {
+  color: #7dffb0;
+  font-size: 0.86rem;
+}
+
+.admin-escalation-chat__user {
+  margin-bottom: 4px;
 }
 

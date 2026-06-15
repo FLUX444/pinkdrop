@@ -28,6 +28,7 @@ import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminUserEditPage } from './pages/AdminUserEditPage';
 import { AdminSupportPage } from './pages/AdminSupportPage';
 import { AdminContactsPage } from './pages/AdminContactsPage';
+import { AdminAboutPage } from './pages/AdminAboutPage';
 import { AdminSupportTeamPage } from './pages/AdminSupportTeamPage';
 import { AdminEscalationPage } from './pages/AdminEscalationPage';
 import { UserSupportPage } from './pages/UserSupportPage';
@@ -69,6 +70,7 @@ function App() {
           <Route path="/admin/escalations" element={<AdminEscalationPage />} />
           <Route path="/admin/escalations/:threadId" element={<AdminEscalationPage />} />
           <Route path="/admin/contacts" element={<AdminContactsPage />} />
+          <Route path="/admin/about" element={<AdminAboutPage />} />
           <Route path="/admin/support-team" element={<AdminSupportTeamPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/users/:userId" element={<AdminUserEditPage />} />

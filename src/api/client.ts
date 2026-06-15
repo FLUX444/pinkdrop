@@ -13,6 +13,7 @@ import type {
   FavoritesSyncResponse,
   DeliveryZoneCheck,
   ContactsConfig,
+  AboutConfig,
   SupportOperator,
   OperatorRole,
   HeroConfig,
@@ -412,9 +413,16 @@ export const api = {
       body: JSON.stringify({ password }),
     }),
   getContacts: () => request<ContactsConfig>('/contacts'),
+  getAbout: () => request<AboutConfig>('/about'),
   getAdminContacts: () => request<{ contacts: ContactsConfig }>('/admin/contacts'),
   updateAdminContacts: (payload: Partial<ContactsConfig>) =>
     request<{ contacts: ContactsConfig }>('/admin/contacts', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  getAdminAbout: () => request<{ about: AboutConfig }>('/admin/about'),
+  updateAdminAbout: (payload: Partial<AboutConfig>) =>
+    request<{ about: AboutConfig }>('/admin/about', {
       method: 'PATCH',
       body: JSON.stringify(payload),
     }),

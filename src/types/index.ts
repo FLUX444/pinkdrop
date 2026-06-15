@@ -412,6 +412,12 @@ export interface ContactsConfig {
   updatedAt?: string;
 }
 
+export interface AboutConfig {
+  aboutPinkdrop: string;
+  aboutPinkdropTeam: string;
+  updatedAt?: string;
+}
+
 export type OperatorRole = 'admin' | 'support';
 
 export interface EscalationThreadContext {
@@ -432,9 +438,12 @@ export interface EscalationThreadContext {
 
 export interface EscalationThread {
   id: string;
+  chatNumber: string;
   supportUserId: string;
   supportUserName: string | null;
   supportUserEmail: string | null;
+  supportUserPhone: string | null;
+  supportUserAvatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
   lastMessage: string | null;

@@ -641,6 +641,7 @@ function migrateSupportEscalationTables() {
     CREATE TABLE IF NOT EXISTS support_escalation_threads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       support_user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+      chat_number TEXT,
       admin_last_read_at TEXT,
       support_last_read_at TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -663,6 +664,62 @@ function migrateSupportEscalationTables() {
       url TEXT NOT NULL,
       media_type TEXT NOT NULL CHECK (media_type IN ('image', 'video')),
       name TEXT
+    );
+  `);
+}
+
+function migrateEscalationChatNumbers() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS escalation_chat_counter (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      value INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+
+  const columns = db.prepare('PRAGMA table_info(support_escalation_threads)').all();
+  if (!columns.some((column) => column.name === 'chat_number')) {
+    db.exec(`ALTER TABLE support_escalation_threads ADD COLUMN chat_number TEXT`);
+  }
+
+  const counterRow = db.prepare('SELECT value FROM escalation_chat_counter WHERE id = 1').get();
+  if (!counterRow) {
+    const maxRow = db
+      .prepare(
+        `SELECT MAX(CAST(chat_number AS INTEGER)) AS max_num
+         FROM support_escalation_threads
+         WHERE chat_number GLOB '[0-9]*'`
+      )
+      .get();
+    const seed = Number(maxRow?.max_num ?? 0);
+    db.prepare('INSERT INTO escalation_chat_counter (id, value) VALUES (1, ?)').run(seed);
+  }
+
+  const emptyRows = db
+    .prepare(
+      `SELECT id FROM support_escalation_threads
+       WHERE chat_number IS NULL OR trim(chat_number) = ''
+       ORDER BY id ASC`
+    )
+    .all();
+
+  const bump = db.prepare('UPDATE escalation_chat_counter SET value = value + 1 WHERE id = 1');
+  const read = db.prepare('SELECT value FROM escalation_chat_counter WHERE id = 1');
+  const assign = db.prepare('UPDATE support_escalation_threads SET chat_number = ? WHERE id = ?');
+
+  for (const row of emptyRows) {
+    bump.run();
+    const next = read.get();
+    assign.run(String(next?.value ?? row.id), row.id);
+  }
+}
+
+function migrateSiteAboutTable() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS site_about (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      about_pinkdrop TEXT NOT NULL,
+      about_pinkdrop_team TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
 }
@@ -938,12 +995,15 @@ export function initDb() {
   migrateOrderItemDiscountColumns();
   migrateSupportTicketCounter();
   migrateSupportEscalationTables();
+  migrateEscalationChatNumbers();
+  migrateSiteAboutTable();
   seedProducts();
   seedPriceDrops();
   seedGlobalPriceDrop();
   seedHero();
   seedLegalPages();
   seedContacts();
+  seedAbout();
   ensureReviewTablesForAllProducts();
   syncAllProductRatings();
 }
@@ -1659,6 +1719,28 @@ function seedContacts() {
   );
 }
 
+const DEFAULT_ABOUT_PINKDROP = `PINKDROP — это первый в России онлайн-магазин с галанским аукционом и скидочным ИИ ботом. Живые цены, которые падают каждые 2 часа, пока товар кто-то не купит. Подарки девушкам на все женские праздники. Мы собираем одежду, трендовые украшения, аксессуары, товары для дома и бьюти-товары, чтобы ты могла заказать сейчас и получить сегодня — без долгого ожидания и лишней суеты. Доставка за 3 часа.
+
+Оплата при получении, или сразу картой, бонус если опоздали, возврат в течение 7 дней — всё прозрачно и по-человечески. Каталог обновляется регулярно: смотри новинки, лови дропы цен и добавляй в корзину то, что нравится.`;
+
+const DEFAULT_ABOUT_PINKDROP_TEAM = `Наша команда:
+
+Прохман Михаил Алексеевич — основатель, генеральный директор и управляющий партнёр.
+Отвечает за стратегию, маркетинг, ассортимент, рекламу, доставку и общее развитие PINKDROP. Именно Михаил придумал концепцию «Розовой эпидемии» и механику галанского аукциона.
+
+Лачев Кирилл Викторович — технический директор (CTO), сооснователь и главный архитектор.
+Кирилл — тот человек, без которого PINKDROP остался бы просто идеей на салфетке. Он с нуля создал сайт, Telegram-бота, систему голландского аукциона, механику динамических цен и всё то, что делает наш магазин уникальным в масштабах России. Благодаря его гению алгоритмы работают без сбоев, бот торгуется честно, а цены падают точно по таймеру. Кирилл — это мозг и сердце технической части PINKDROP.`;
+
+function seedAbout() {
+  const count = db.prepare('SELECT COUNT(*) AS c FROM site_about').get().c;
+  if (count > 0) return;
+
+  db.prepare(
+    `INSERT INTO site_about (id, about_pinkdrop, about_pinkdrop_team)
+     VALUES (1, ?, ?)`
+  ).run(DEFAULT_ABOUT_PINKDROP, DEFAULT_ABOUT_PINKDROP_TEAM);
+}
+
 export function contactsRowToJson(row) {
   if (!row) return null;
   return {
@@ -1709,6 +1791,40 @@ export function updateContactsConfig(patch) {
   );
 
   return getContactsConfig();
+}
+
+export function aboutRowToJson(row) {
+  if (!row) return null;
+  return {
+    aboutPinkdrop: row.about_pinkdrop,
+    aboutPinkdropTeam: row.about_pinkdrop_team,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function getAboutConfig() {
+  const row = db.prepare('SELECT * FROM site_about WHERE id = 1').get();
+  return aboutRowToJson(row);
+}
+
+export function updateAboutConfig(patch) {
+  const current = db.prepare('SELECT * FROM site_about WHERE id = 1').get();
+  if (!current) throw new Error('About config not found');
+
+  const next = {
+    about_pinkdrop: patch.aboutPinkdrop ?? current.about_pinkdrop,
+    about_pinkdrop_team: patch.aboutPinkdropTeam ?? current.about_pinkdrop_team,
+  };
+
+  db.prepare(
+    `UPDATE site_about SET
+      about_pinkdrop = ?,
+      about_pinkdrop_team = ?,
+      updated_at = datetime('now')
+     WHERE id = 1`
+  ).run(next.about_pinkdrop, next.about_pinkdrop_team);
+
+  return getAboutConfig();
 }
 
 function supportOperatorRowToJson(row) {

@@ -2,13 +2,28 @@ import db from './db.js';
 import { createAdminNotification } from './stockAlerts.js';
 import { getSupportThreadSnapshot } from './supportChat.js';
 
+function generateEscalationChatNumber() {
+  const next = db.transaction(() => {
+    db.prepare('UPDATE escalation_chat_counter SET value = value + 1 WHERE id = 1').run();
+    const row = db.prepare('SELECT value FROM escalation_chat_counter WHERE id = 1').get();
+    return String(row?.value ?? Date.now());
+  });
+  return next();
+}
+
 function rowToEscalationThread(row) {
   if (!row) return null;
   return {
     id: String(row.id),
+    chatNumber:
+      row.chat_number && String(row.chat_number).trim()
+        ? String(row.chat_number).trim()
+        : String(row.id),
     supportUserId: String(row.support_user_id),
     supportUserName: row.support_user_name ?? null,
     supportUserEmail: row.support_user_email ?? null,
+    supportUserPhone: row.support_user_phone ?? null,
+    supportUserAvatarUrl: row.support_user_avatar_url ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     lastMessage: row.last_message ?? null,
@@ -76,6 +91,8 @@ function getEscalationThreadRow(threadId) {
       `SELECT t.*,
               u.name AS support_user_name,
               u.email AS support_user_email,
+              u.phone AS support_user_phone,
+              u.avatar_url AS support_user_avatar_url,
               (
                 SELECT body FROM support_escalation_messages
                 WHERE thread_id = t.id
@@ -111,9 +128,13 @@ export function getOrCreateEscalationThread(supportUserId) {
     .get(supportUserId);
 
   if (!row) {
+    const chatNumber = generateEscalationChatNumber();
     const result = db
-      .prepare(`INSERT INTO support_escalation_threads (support_user_id) VALUES (?)`)
-      .run(supportUserId);
+      .prepare(
+        `INSERT INTO support_escalation_threads (support_user_id, chat_number)
+         VALUES (?, ?)`
+      )
+      .run(supportUserId, chatNumber);
     row = { id: result.lastInsertRowid };
   }
 
@@ -126,6 +147,8 @@ export function listEscalationThreadsForAdmin() {
       `SELECT t.*,
               u.name AS support_user_name,
               u.email AS support_user_email,
+              u.phone AS support_user_phone,
+              u.avatar_url AS support_user_avatar_url,
               (
                 SELECT body FROM support_escalation_messages
                 WHERE thread_id = t.id
@@ -278,10 +301,11 @@ export function addEscalationMessage({
   ).run(threadId);
 
   if (senderRole === 'support') {
+    const thread = getEscalationThreadRow(threadId);
     createAdminNotification({
       type: 'support_escalation',
       title: 'Сообщение от саппорта',
-      message: `${senderUser.name || senderUser.email || 'Саппорт'}: ${text.slice(0, 120) || 'вложение'}`,
+      message: `${senderUser.name || senderUser.email || 'Саппорт'} · чат #${thread?.chat_number ?? threadId}: ${text.slice(0, 120) || 'вложение'}`,
     });
   }
 

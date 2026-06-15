@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, User } from 'lucide-react';
+import { AvatarWithPresence } from '../components/AvatarWithPresence';
 import { AdminLayout } from '../components/AdminLayout';
 import { AdminLoginScreen } from '../components/AdminLoginScreen';
 import { ReviewMediaGrid } from '../components/ReviewMediaGrid';
@@ -19,6 +20,21 @@ function formatDate(value: string | null) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function getSupportLabel(thread: EscalationThread) {
+  return thread.supportUserName || thread.supportUserEmail || thread.supportUserPhone || 'Саппорт';
+}
+
+function getSupportMetaLine(thread: EscalationThread) {
+  if (thread.supportUserName && thread.supportUserEmail) return thread.supportUserEmail;
+  if (thread.supportUserName && thread.supportUserPhone) return thread.supportUserPhone;
+  if (thread.supportUserEmail && thread.supportUserPhone) return thread.supportUserPhone;
+  return null;
+}
+
+function getSupportInitial(thread: EscalationThread) {
+  return getSupportLabel(thread).trim().charAt(0).toUpperCase() || '?';
 }
 
 function EscalationContextCard({ context }: { context: EscalationThreadContext }) {
@@ -108,6 +124,7 @@ export function AdminEscalationPage() {
 
   const isSupport = auth.role === 'support';
   const activeThreadId = threadId ?? (isSupport ? threads[0]?.id : undefined);
+  const unreadCount = threads.reduce((sum, thread) => sum + thread.unreadForAdmin, 0);
 
   const loadThreads = useCallback(async () => {
     const data = await api.getEscalationThreads();
@@ -173,6 +190,9 @@ export function AdminEscalationPage() {
       setDraft('');
       setFiles([]);
       setAttachedTicketId('');
+      if (!activeThread) {
+        await loadThread(activeThreadId);
+      }
     } catch (err) {
       setPageError(err instanceof Error ? err.message : 'Не удалось отправить сообщение');
     } finally {
@@ -231,28 +251,67 @@ export function AdminEscalationPage() {
             <Link to="/admin/escalations" className="admin-support-chat__back">
               <ArrowLeft size={18} />
               Все чаты саппорта
+              {unreadCount > 0 && <span className="admin-support-chat__badge">{unreadCount}</span>}
             </Link>
           )}
 
-          <header className="admin-escalation-chat__head">
-            <strong>
-              {isSupport
-                ? 'Администратор'
-                : activeThread.supportUserName || activeThread.supportUserEmail || 'Саппорт'}
-            </strong>
-            {!isSupport && activeThread.supportUserEmail && (
-              <span className="mono">{activeThread.supportUserEmail}</span>
+          <header className="admin-support-chat__user admin-escalation-chat__user">
+            {!isSupport ? (
+              <AvatarWithPresence userId={activeThread.supportUserId} size={48}>
+                {activeThread.supportUserAvatarUrl ? (
+                  <img
+                    src={activeThread.supportUserAvatarUrl}
+                    alt=""
+                    className="admin-support-chat__user-avatar"
+                  />
+                ) : (
+                  <span
+                    className="admin-support-chat__user-avatar admin-support-chat__user-avatar--fallback"
+                    aria-hidden
+                  >
+                    {getSupportInitial(activeThread)}
+                  </span>
+                )}
+              </AvatarWithPresence>
+            ) : (
+              <span
+                className="admin-support-chat__user-avatar admin-support-chat__user-avatar--fallback"
+                aria-hidden
+              >
+                A
+              </span>
             )}
+            <div>
+              <strong>{isSupport ? 'Администратор' : getSupportLabel(activeThread)}</strong>
+              <span className="mono">Чат #{activeThread.chatNumber}</span>
+              {!isSupport && getSupportMetaLine(activeThread) && (
+                <span>{getSupportMetaLine(activeThread)}</span>
+              )}
+              {!isSupport && activeThread.supportUserPhone && !getSupportMetaLine(activeThread) && (
+                <span>{activeThread.supportUserPhone}</span>
+              )}
+              {!isSupport && activeThread.supportUserEmail && !activeThread.supportUserName && (
+                <span>{activeThread.supportUserEmail}</span>
+              )}
+            </div>
           </header>
 
           <div className="admin-escalation-chat__messages">
-            {messages.map((message) => (
-              <EscalationMessageBubble
-                key={message.id}
-                message={message}
-                viewerRole={auth.role === 'support' ? 'support' : 'admin'}
-              />
-            ))}
+            {messages.length === 0 ? (
+              <p className="admin-support-inbox__empty">
+                {isSupport
+                  ? 'Напишите администратору — можно прикрепить обращение клиента и файлы.'
+                  : 'Сообщений пока нет.'}
+              </p>
+            ) : (
+              messages.map((message) => (
+                <EscalationMessageBubble
+                  key={message.id}
+                  message={message}
+                  viewerRole={auth.role === 'support' ? 'support' : 'admin'}
+                />
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
 
@@ -291,6 +350,20 @@ export function AdminEscalationPage() {
     );
   }
 
+  if (isSupport && threads.length === 0) {
+    return (
+      <AdminLayout
+        title="Связь с администратором"
+        tag="ESCALATION_CHAT"
+        role={auth.role}
+      >
+        <div className="admin-escalation-chat">
+          <p className="admin-support-inbox__empty">Открываем чат...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout
       title="Чаты саппорта"
@@ -299,8 +372,14 @@ export function AdminEscalationPage() {
       onLogout={auth.role === 'admin' ? () => void auth.handleLogout() : undefined}
     >
       <div className="admin-escalation-inbox">
+        {unreadCount > 0 && (
+          <p className="admin-support-inbox__summary">
+            Непрочитанных сообщений: <strong>{unreadCount}</strong>
+          </p>
+        )}
+
         {threads.length === 0 ? (
-          <p className="admin-support-inbox__empty">Пока нет сообщений от саппорта.</p>
+          <p className="admin-support-inbox__empty">Пока нет чатов с саппортом.</p>
         ) : (
           <ul className="admin-support-inbox__list">
             {threads.map((thread) => (
@@ -309,17 +388,27 @@ export function AdminEscalationPage() {
                   to={`/admin/escalations/${thread.id}`}
                   className={`admin-support-inbox__item${thread.unreadForAdmin > 0 ? ' is-unread' : ''}`}
                 >
-                  <span className="admin-support-inbox__avatar admin-support-inbox__avatar--fallback" aria-hidden>
-                    {(thread.supportUserName || thread.supportUserEmail || 'S').trim().charAt(0).toUpperCase()}
-                  </span>
+                  <AvatarWithPresence userId={thread.supportUserId} size={44}>
+                    {thread.supportUserAvatarUrl ? (
+                      <img
+                        src={thread.supportUserAvatarUrl}
+                        alt=""
+                        className="admin-support-inbox__avatar"
+                      />
+                    ) : (
+                      <span className="admin-support-inbox__avatar admin-support-inbox__avatar--fallback" aria-hidden>
+                        {getSupportInitial(thread)}
+                      </span>
+                    )}
+                  </AvatarWithPresence>
                   <div className="admin-support-inbox__body">
                     <div className="admin-support-inbox__row">
-                      <strong>{thread.supportUserName || thread.supportUserEmail || 'Саппорт'}</strong>
+                      <strong>{getSupportLabel(thread)}</strong>
                       {thread.unreadForAdmin > 0 && (
                         <span className="admin-support-inbox__badge">{thread.unreadForAdmin}</span>
                       )}
                     </div>
-                    <span className="mono">#{thread.id}</span>
+                    <span className="mono">Чат #{thread.chatNumber}</span>
                     {thread.lastMessage && <p>{thread.lastMessage}</p>}
                     {thread.lastMessageAt && <time>{formatDate(thread.lastMessageAt)}</time>}
                   </div>

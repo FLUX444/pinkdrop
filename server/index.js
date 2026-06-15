@@ -26,6 +26,8 @@ import db, {
   getHeroConfig,
   getContactsConfig,
   updateContactsConfig,
+  getAboutConfig,
+  updateAboutConfig,
   listSupportOperators,
   createSupportOperator,
   deleteSupportOperator,
@@ -696,6 +698,10 @@ app.get('/api/products', (_req, res) => {
 
 app.get('/api/contacts', (_req, res) => {
   res.json(getContactsConfig());
+});
+
+app.get('/api/about', (_req, res) => {
+  res.json(getAboutConfig());
 });
 
 app.get('/api/hero', (_req, res) => {
@@ -1975,6 +1981,19 @@ app.patch('/api/admin/contacts', adminMiddleware, (req, res) => {
     res.json({ contacts });
   } catch (error) {
     res.status(400).json({ error: error.message || 'Failed to update contacts' });
+  }
+});
+
+app.get('/api/admin/about', adminMiddleware, (_req, res) => {
+  res.json({ about: getAboutConfig() });
+});
+
+app.patch('/api/admin/about', adminMiddleware, (req, res) => {
+  try {
+    const about = updateAboutConfig(req.body ?? {});
+    res.json({ about });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to update about section' });
   }
 });
 

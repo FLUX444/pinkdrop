@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageCircle,
   MessageSquare,
+  FileText,
   Navigation,
   Phone,
   Plus,
@@ -725,6 +726,10 @@ export function ProfilePage() {
                     <Link to="/admin/contacts" className="profile-admin__link">
                       <Phone size={18} />
                       <span>Контакты</span>
+                    </Link>
+                    <Link to="/admin/about" className="profile-admin__link">
+                      <FileText size={18} />
+                      <span>О компании</span>
                     </Link>
                     <Link to="/admin/support-team" className="profile-admin__link">
                       <Headphones size={18} />

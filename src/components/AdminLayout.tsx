@@ -21,6 +21,7 @@ const ADMIN_NAV = [
   { to: '/admin/products/new', label: 'Добавить товар' },
   { to: '/admin/hero', label: 'Главная' },
   { to: '/admin/contacts', label: 'Контакты' },
+  { to: '/admin/about', label: 'О компании' },
   { to: '/admin/legal', label: 'Документы' },
   { to: '/admin/database', label: 'База данных' },
   { to: '/admin/monitor', label: 'Мониторинг' },

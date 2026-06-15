@@ -1,5 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock3, MapPin, Sparkles, Truck } from 'lucide-react';
+import { api } from '../api/client';
+import { DEFAULT_ABOUT } from '../data/about';
+import type { AboutConfig } from '../types';
 
 const highlights = [
   {
@@ -24,27 +28,39 @@ const highlights = [
   },
 ] as const;
 
+function renderParagraphs(text: string) {
+  return text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph) => <p key={paragraph.slice(0, 48)}>{paragraph}</p>);
+}
+
 export function AboutSection() {
+  const [about, setAbout] = useState<AboutConfig>(DEFAULT_ABOUT);
+
+  useEffect(() => {
+    api.getAbout().then(setAbout).catch(() => setAbout(DEFAULT_ABOUT));
+  }, []);
+
   return (
     <section className="about-section" aria-label="О компании PINKDROP">
       <div className="about-section__glow" aria-hidden />
       <div className="about-section__inner">
-        <div className="about-section__intro">
-          <span className="mono about-section__tag">ABOUT_PINKDROP</span>
-          <h2>Магазин, который успевает за тобой</h2>
-          <p>
-            PINKDROP — это онлайн-витрина с доставкой за три часа. Мы собираем трендовые украшения,
-            аксессуары и бьюти-товары, чтобы ты могла заказать сейчас и получить сегодня — без
-            долгого ожидания и лишней суеты.
-          </p>
-          <p>
-            Оплата при получении, бонус если опоздали, возврат в течение 7 дней — всё прозрачно и
-            по-человечески. Каталог обновляется регулярно: смотри новинки, лови дропы цен и
-            добавляй в корзину то, что нравится.
-          </p>
-          <Link to="/catalog" className="btn btn--primary about-section__cta">
-            Смотреть каталог
-          </Link>
+        <div className="about-section__columns">
+          <div className="about-section__block">
+            <span className="mono about-section__tag">ABOUT_PINKDROP</span>
+            <h2>Магазин, который успевает за тобой</h2>
+            <div className="about-section__text">{renderParagraphs(about.aboutPinkdrop)}</div>
+            <Link to="/catalog" className="btn btn--primary about-section__cta">
+              Смотреть каталог
+            </Link>
+          </div>
+
+          <div className="about-section__block about-section__block--team">
+            <span className="mono about-section__tag">ABOUT_PINKDROP_TEAM</span>
+            <div className="about-section__text">{renderParagraphs(about.aboutPinkdropTeam)}</div>
+          </div>
         </div>
 
         <div className="about-section__grid">
