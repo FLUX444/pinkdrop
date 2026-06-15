@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import { config, isEmailSmtpConfigured } from './config.js';
 
 const CODE_TTL_MINUTES = 5;
-const DEFAULT_FROM = 'PINKDROP <noreply@pinkdrop.ru>';
+const DEFAULT_FROM = 'noreply@pinkdrop.ru';
 
 let cachedTransporter = null;
 let transporterReady = false;
@@ -11,6 +11,11 @@ function resolveFromAddress() {
   const configured = config.email.from.trim();
   if (configured) return configured;
   return DEFAULT_FROM;
+}
+
+function resolveEmailLogoUrl() {
+  const base = (config.publicFrontendUrl || config.frontendUrl || 'https://pinkdrop.ru').replace(/\/$/, '');
+  return `${base}/images/pinkdrop-email-logo.png`;
 }
 
 function resolveReplyTo() {
@@ -132,6 +137,7 @@ function accountUrl(path, accountEmail) {
 
 function buildEmailLayout({ title, introLines, detailLines = [], actions = [], footerLines = [] }) {
   const siteUrl = config.frontendUrl;
+  const logoUrl = resolveEmailLogoUrl();
   const introHtml = introLines
     .map((line) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#52525b;">${line}</p>`)
     .join('');
@@ -185,7 +191,9 @@ function buildEmailLayout({ title, introLines, detailLines = [], actions = [], f
   </head>
   <body style="margin:0;padding:24px;background:#f4f4f5;font-family:Segoe UI,Arial,sans-serif;color:#18181b;">
     <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:32px;">
-      <p style="margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:0.12em;color:#ff2d95;">PINKDROP</p>
+      <div style="margin:0 0 18px;">
+        <img src="${logoUrl}" alt="PinkDrop" width="132" style="display:block;width:132px;max-width:132px;height:auto;border:0;outline:none;text-decoration:none;" />
+      </div>
       <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;color:#18181b;">${escapeHtml(title)}</h1>
       ${introHtml}
       ${detailsHtml}

@@ -100,7 +100,7 @@ export const config = {
     smtpPort: Number(process.env.SMTP_PORT) || 587,
     smtpUser: process.env.SMTP_USER || '',
     smtpPass: String(process.env.SMTP_PASS ?? '').replace(/\s+/g, ''),
-    from: process.env.EMAIL_FROM || 'PINKDROP <noreply@pinkdrop.ru>',
+    from: process.env.EMAIL_FROM || 'noreply@pinkdrop.ru',
     replyTo: process.env.EMAIL_REPLY_TO || '',
     resendApiKey: process.env.RESEND_API_KEY || '',
     devExposeCode: process.env.EMAIL_DEV_EXPOSE_CODE === 'true',
