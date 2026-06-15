@@ -1,6 +1,7 @@
 import type { OperatorRole } from '../types';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { AdminUnreadBadge, useAdminNotificationUnread } from '../hooks/useAdminNotificationUnread';
 
 interface AdminLayoutProps {
   title: string;
@@ -36,6 +37,7 @@ const SUPPORT_NAV = [
 export function AdminLayout({ title, tag, role = 'admin', onLogout, children }: AdminLayoutProps) {
   const location = useLocation();
   const nav = role === 'support' ? SUPPORT_NAV : ADMIN_NAV;
+  const notificationUnread = useAdminNotificationUnread(role === 'admin');
 
   return (
     <div className="admin-page">
@@ -58,12 +60,17 @@ export function AdminLayout({ title, tag, role = 'admin', onLogout, children }: 
             key={item.to}
             to={item.to}
             className={`admin-nav__link${
+              item.to === '/admin/notifications' ? ' admin-nav__link--notifications' : ''
+            }${
               location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
                 ? ' is-active'
                 : ''
             }`}
           >
             {item.label}
+            {item.to === '/admin/notifications' && (
+              <AdminUnreadBadge count={notificationUnread} className="admin-nav__badge" />
+            )}
           </Link>
         ))}
       </nav>

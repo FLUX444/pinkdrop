@@ -41,6 +41,7 @@ import {
   getAccountFromSearchParams,
 } from '../utils/accountSession';
 import { useCredentialsEntry } from '../hooks/useCredentialsEntry';
+import { AdminUnreadBadge, useAdminNotificationUnread } from '../hooks/useAdminNotificationUnread';
 import { useTelegramLinkFlow } from '../hooks/useTelegramLinkFlow';
 import { useFavorites } from '../context/FavoritesContext';
 import { userHasTelegramAccess } from '../utils/bargainLink';
@@ -93,6 +94,9 @@ export function ProfilePage() {
   const [accountSwitching, setAccountSwitching] = useState(false);
   const { isEntering, error: entryError } = useCredentialsEntry();
   const { items: favoriteItems } = useFavorites();
+  const adminNotificationUnread = useAdminNotificationUnread(
+    adminAuthenticated && adminRole === 'admin'
+  );
 
   const needsAccountSwitch = Boolean(
     signinRequested && accountEmail && user && !accountEmailsMatch(user.email, accountEmail)
@@ -726,7 +730,14 @@ export function ProfilePage() {
                       <MessageCircle size={18} />
                       <span>Поддержка</span>
                     </Link>
-                    <Link to="/admin/notifications" className="profile-admin__link">
+                    <Link
+                      to="/admin/notifications"
+                      className="profile-admin__link profile-admin__link--notifications"
+                    >
+                      <AdminUnreadBadge
+                        count={adminNotificationUnread}
+                        className="profile-admin__link-badge"
+                      />
                       <Bell size={18} />
                       <span>Уведомления</span>
                     </Link>
