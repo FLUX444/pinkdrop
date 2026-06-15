@@ -31,7 +31,7 @@ function resolveFromAddress() {
 
 function resolveEmailLogoUrl() {
   const base = (config.publicFrontendUrl || config.frontendUrl || 'https://pinkdrop.ru').replace(/\/$/, '');
-  return `${base}/images/pinkdrop-pd-logo.png`;
+  return `${base}/favicon-192.png`;
 }
 
 function resolveReplyTo() {

@@ -6,7 +6,7 @@ interface BrandLogoProps {
 export function BrandLogo({ className = '', size = 58 }: BrandLogoProps) {
   return (
     <img
-      src="/images/pinkdrop-pd-logo.png"
+      src="/favicon-192.png"
       alt="PinkDrop"
       className={`brand-logo${className ? ` ${className}` : ''}`}
       width={size}
