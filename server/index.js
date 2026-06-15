@@ -252,6 +252,23 @@ clearExpiredOAuthStates();
 
 const app = express();
 
+const faviconStaticFiles = [
+  'favicon.ico',
+  'favicon-48.png',
+  'favicon-96.png',
+  'favicon-192.png',
+  'apple-touch-icon.png',
+  'site.webmanifest',
+];
+
+for (const fileName of faviconStaticFiles) {
+  app.get(`/${fileName}`, (req, res, next) => {
+    const filePath = join(publicRoot, fileName);
+    if (!existsSync(filePath)) return next();
+    res.sendFile(filePath, { maxAge: '7d' });
+  });
+}
+
 applySecurityMiddleware(app);
 app.use(
   '/uploads',

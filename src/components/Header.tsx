@@ -6,7 +6,6 @@ import type { CatalogFilters, Product } from '../types';
 import type { SearchSuggestion } from '../utils/productSearch';
 import { countActiveFilterChips, type FilterChipItem } from '../utils/catalogLogic';
 import { ActiveFilterChips } from './ActiveFilterChips';
-import { BrandLogo } from './BrandLogo';
 import { SearchBar } from './SearchBar';
 
 interface HeaderProps {
@@ -75,7 +74,7 @@ export function Header({
         </button>
 
         <Link to="/" className="header__logo" onClick={() => onLogoClick()}>
-          <BrandLogo className="header__logo-image" size={40} />
+          <span className="header__logo-mark">PD</span>
           <span className="header__logo-text">
             <span className="header__logo-pink">PINK</span>DROP
             <small>Дроп за 3 часа</small>
