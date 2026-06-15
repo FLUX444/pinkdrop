@@ -1,0 +1,21 @@
+{
+  "name": "PINKDROP",
+  "short_name": "PINKDROP",
+  "description": "Доставка за 3 часа в Красноярске",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050506",
+  "theme_color": "#ff2d95",
+  "icons": [
+    {
+      "src": "/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
