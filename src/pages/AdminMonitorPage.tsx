@@ -330,35 +330,14 @@ export function AdminMonitorPage() {
 
         <section className={`admin-monitor__bot admin-monitor__bot--${botStatus?.status ?? 'offline'}`}>
           <div className="admin-monitor__bot-head">
-            <div className="admin-monitor__logs-head">
-              <Bot size={18} />
-              <h2>Telegram-бот</h2>
-            </div>
+            <div className="admin-monitor__bot-head-row">
+              <div className="admin-monitor__logs-head">
+                <Bot size={18} />
+                <h2>Telegram-бот</h2>
+              </div>
 
-            {botStatus ? (
-              <>
-                <div className="admin-monitor__bot-status">
-                  <strong>{botStatusLabel(botStatus.status)}</strong>
-                  <div className="admin-monitor__metrics">
-                    {botStatus.lastHeartbeat?.at && (
-                      <span>Последний сигнал: {formatDate(botStatus.lastHeartbeat.at)}</span>
-                    )}
-                    {botStatus.heartbeatAgeSec != null && (
-                      <span>Давно: {botStatus.heartbeatAgeSec} сек · лимит {botStatus.staleAfterSec} сек</span>
-                    )}
-                    {botStatus.lastHeartbeat?.uptimeSec != null && (
-                      <span>Uptime бота: {formatUptime(botStatus.lastHeartbeat.uptimeSec)}</span>
-                    )}
-                    {botStatus.lastHeartbeat && (
-                      <span>
-                        API: {botStatus.lastHeartbeat.apiOk ? 'OK' : 'FAIL'} · перезапусков{' '}
-                        {botStatus.lastHeartbeat.restarts ?? 0} · ошибок {botStatus.lastHeartbeat.errors ?? 0}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="admin-monitor__sessions-toolbar admin-monitor__bot-actions">
+              {botStatus && (
+                <div className="admin-monitor__bot-actions">
                   <button
                     type="button"
                     className="btn btn--secondary"
@@ -368,7 +347,30 @@ export function AdminMonitorPage() {
                     {botBusy ? 'Отправляем...' : 'Сигнал самопочинки'}
                   </button>
                 </div>
-              </>
+              )}
+            </div>
+
+            {botStatus ? (
+              <div className="admin-monitor__bot-status">
+                <strong>{botStatusLabel(botStatus.status)}</strong>
+                <div className="admin-monitor__metrics admin-monitor__metrics--bot">
+                  {botStatus.lastHeartbeat?.at && (
+                    <span>Последний сигнал: {formatDate(botStatus.lastHeartbeat.at)}</span>
+                  )}
+                  {botStatus.heartbeatAgeSec != null && (
+                    <span>Давно: {botStatus.heartbeatAgeSec} сек · лимит {botStatus.staleAfterSec} сек</span>
+                  )}
+                  {botStatus.lastHeartbeat?.uptimeSec != null && (
+                    <span>Uptime бота: {formatUptime(botStatus.lastHeartbeat.uptimeSec)}</span>
+                  )}
+                  {botStatus.lastHeartbeat && (
+                    <span>
+                      API: {botStatus.lastHeartbeat.apiOk ? 'OK' : 'FAIL'} · перезапусков{' '}
+                      {botStatus.lastHeartbeat.restarts ?? 0} · ошибок {botStatus.lastHeartbeat.errors ?? 0}
+                    </span>
+                  )}
+                </div>
+              </div>
             ) : (
               <p className="admin-monitor__empty admin-monitor__bot-empty">
                 Статус бота пока не получен. На VPS:{' '}
