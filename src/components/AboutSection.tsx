@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock3, MapPin, Sparkles, Truck } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { api } from '../api/client';
 import { DEFAULT_ABOUT } from '../data/about';
 import type { AboutConfig } from '../types';
@@ -28,12 +29,34 @@ const highlights = [
   },
 ] as const;
 
-function renderParagraphs(text: string) {
-  return text
+function renderParagraphs(text: string, skipTeamHeading = false) {
+  const paragraphs = text
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
-    .map((paragraph) => <p key={paragraph.slice(0, 48)}>{paragraph}</p>);
+    .filter(Boolean);
+
+  const filtered =
+    skipTeamHeading && paragraphs[0] && /^наша команда/i.test(paragraphs[0])
+      ? paragraphs.slice(1)
+      : paragraphs;
+
+  return filtered.map((paragraph) => <p key={paragraph.slice(0, 48)}>{paragraph}</p>);
+}
+
+function AboutSideCards({ items }: { items: Array<{ icon: LucideIcon; title: string; text: string }> }) {
+  return (
+    <div className="about-section__side">
+      {items.map((item) => (
+        <article key={item.title} className="about-card">
+          <span className="about-card__icon" aria-hidden>
+            <item.icon size={22} />
+          </span>
+          <h3>{item.title}</h3>
+          <p>{item.text}</p>
+        </article>
+      ))}
+    </div>
+  );
 }
 
 export function AboutSection() {
@@ -43,36 +66,38 @@ export function AboutSection() {
     api.getAbout().then(setAbout).catch(() => setAbout(DEFAULT_ABOUT));
   }, []);
 
+  const leftCards = highlights.slice(0, 2);
+  const rightCards = highlights.slice(2, 4);
+
   return (
     <section className="about-section" aria-label="О компании PINKDROP">
       <div className="about-section__glow" aria-hidden />
       <div className="about-section__inner">
-        <div className="about-section__columns">
-          <div className="about-section__block">
-            <span className="mono about-section__tag">ABOUT_PINKDROP</span>
-            <h2>Магазин, который успевает за тобой</h2>
-            <div className="about-section__text">{renderParagraphs(about.aboutPinkdrop)}</div>
-            <Link to="/catalog" className="btn btn--primary about-section__cta">
-              Смотреть каталог
-            </Link>
+        <div className="about-section__stack">
+          <div className="about-section__row">
+            <AboutSideCards items={leftCards} />
+            <div className="about-section__block">
+              <span className="mono about-section__tag">ABOUT_PINKDROP</span>
+              <h2>Магазин, который успевает за тобой</h2>
+              <div className="about-section__text">{renderParagraphs(about.aboutPinkdrop)}</div>
+              <Link to="/catalog" className="btn btn--primary about-section__cta">
+                Смотреть каталог
+              </Link>
+            </div>
+            <AboutSideCards items={rightCards} />
           </div>
 
-          <div className="about-section__block about-section__block--team">
-            <span className="mono about-section__tag">ABOUT_PINKDROP_TEAM</span>
-            <div className="about-section__text">{renderParagraphs(about.aboutPinkdropTeam)}</div>
+          <div className="about-section__row">
+            <AboutSideCards items={leftCards} />
+            <div className="about-section__block about-section__block--team">
+              <span className="mono about-section__tag">ABOUT_PINKDROP_TEAM</span>
+              <h2>О нашей команде</h2>
+              <div className="about-section__text">
+                {renderParagraphs(about.aboutPinkdropTeam, true)}
+              </div>
+            </div>
+            <AboutSideCards items={rightCards} />
           </div>
-        </div>
-
-        <div className="about-section__grid">
-          {highlights.map((item) => (
-            <article key={item.title} className="about-card">
-              <span className="about-card__icon" aria-hidden>
-                <item.icon size={22} />
-              </span>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </article>
-          ))}
         </div>
       </div>
     </section>

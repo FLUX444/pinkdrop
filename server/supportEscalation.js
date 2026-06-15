@@ -1,6 +1,113 @@
 import db from './db.js';
 import { createAdminNotification } from './stockAlerts.js';
 import { getSupportThreadSnapshot } from './supportChat.js';
+import { getAdminOperatorUserIds } from './adminAccess.js';
+import { config, isTelegramEnabled } from './config.js';
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getAdminNotificationChatIds() {
+  const chatIds = new Set();
+  if (config.telegram.adminChatId) chatIds.add(config.telegram.adminChatId);
+  for (const id of config.admin.allowedTelegramIds) {
+    if (id) chatIds.add(id);
+  }
+  return [...chatIds];
+}
+
+async function sendTelegramToChat(chatId, text) {
+  if (!isTelegramEnabled() || !chatId) return false;
+
+  const response = await fetch(`https://api.telegram.org/bot${config.telegram.botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    }),
+  });
+
+  return response.ok;
+}
+
+function getUserTelegramMeta(userId) {
+  const row = db
+    .prepare(
+      `SELECT provider_user_id, provider_data
+       FROM auth_providers
+       WHERE user_id = ? AND provider = 'telegram'
+       LIMIT 1`
+    )
+    .get(userId);
+
+  if (!row) return { telegramId: null, telegramUsername: null };
+
+  let username = null;
+  if (row.provider_data) {
+    try {
+      const data = JSON.parse(row.provider_data);
+      if (data.username) username = `@${String(data.username).replace(/^@/, '')}`;
+    } catch {
+      // ignore malformed provider payload
+    }
+  }
+
+  return {
+    telegramId: row.provider_user_id ? String(row.provider_user_id) : null,
+    telegramUsername: username,
+  };
+}
+
+function getAdminPeerForThread(threadId) {
+  const lastAdmin = db
+    .prepare(
+      `SELECT u.id, u.name, u.email, u.avatar_url
+       FROM support_escalation_messages m
+       JOIN users u ON u.id = m.sender_user_id
+       WHERE m.thread_id = ? AND m.sender_role = 'admin'
+       ORDER BY datetime(m.created_at) DESC, m.id DESC
+       LIMIT 1`
+    )
+    .get(threadId);
+
+  if (lastAdmin) return lastAdmin;
+
+  const adminIds = getAdminOperatorUserIds();
+  if (adminIds.length === 0) return null;
+  return db.prepare('SELECT id, name, email, avatar_url FROM users WHERE id = ?').get(adminIds[0]);
+}
+
+function enrichThreadWithPeers(row) {
+  const thread = rowToEscalationThread(row);
+  if (!thread) return null;
+
+  const adminPeer = getAdminPeerForThread(row.id);
+  const telegram = getUserTelegramMeta(row.support_user_id);
+
+  return {
+    ...thread,
+    adminPeer: adminPeer
+      ? {
+          userId: String(adminPeer.id),
+          name: adminPeer.name ?? adminPeer.email ?? 'Администратор',
+          avatarUrl: adminPeer.avatar_url ?? null,
+        }
+      : {
+          userId: '0',
+          name: 'Администратор',
+          avatarUrl: null,
+        },
+    supportUserTelegramId: telegram.telegramId,
+    supportUserTelegramUsername: telegram.telegramUsername,
+  };
+}
 
 function generateEscalationChatNumber() {
   const next = db.transaction(() => {
@@ -138,7 +245,7 @@ export function getOrCreateEscalationThread(supportUserId) {
     row = { id: result.lastInsertRowid };
   }
 
-  return rowToEscalationThread(getEscalationThreadRow(row.id));
+  return enrichThreadWithPeers(getEscalationThreadRow(row.id));
 }
 
 export function listEscalationThreadsForAdmin() {
@@ -173,7 +280,7 @@ export function listEscalationThreadsForAdmin() {
     )
     .all();
 
-  return rows.map(rowToEscalationThread);
+  return rows.map((row) => enrichThreadWithPeers(row)).filter(Boolean);
 }
 
 export function getEscalationThreadForViewer(threadId, viewer) {
@@ -194,11 +301,28 @@ export function getEscalationThreadForViewer(threadId, viewer) {
     ).run(threadId);
   }
 
-  return rowToEscalationThread(row);
+  return enrichThreadWithPeers(row);
 }
 
 export function getEscalationMessages(threadId, viewer) {
-  const thread = getEscalationThreadForViewer(threadId, viewer);
+  const row = getEscalationThreadRow(threadId);
+  if (!row) return null;
+
+  if (viewer.role === 'support' && String(row.support_user_id) !== String(viewer.user.id)) {
+    return null;
+  }
+
+  if (viewer.role === 'admin') {
+    db.prepare(
+      `UPDATE support_escalation_threads SET admin_last_read_at = datetime('now') WHERE id = ?`
+    ).run(threadId);
+  } else {
+    db.prepare(
+      `UPDATE support_escalation_threads SET support_last_read_at = datetime('now') WHERE id = ?`
+    ).run(threadId);
+  }
+
+  const thread = enrichThreadWithPeers(row);
   if (!thread) return null;
 
   const rows = db
@@ -249,6 +373,33 @@ export function saveEscalationMedia(messageId, files, urlBase) {
     const url = `${urlBase}/${file.filename}`;
     insert.run(messageId, url, mediaType, file.originalname ?? null);
   }
+}
+
+async function notifyAdminsAboutEscalation({ senderUser, thread, body }) {
+  const supportLabel = senderUser.name || senderUser.email || 'Саппорт';
+  const chatNumber = thread?.chat_number ?? thread?.id ?? '—';
+
+  createAdminNotification({
+    type: 'support_escalation',
+    title: 'Сообщение от саппорта',
+    message: `${supportLabel} · чат #${chatNumber}: ${body.slice(0, 120) || 'вложение'}`,
+  });
+
+  const escalationUrl = `${config.frontendUrl}/admin/escalations/${thread.id}`;
+  const telegramText = [
+    '<b>PINKDROP // SUPPORT ESCALATION</b>',
+    '',
+    `Чат саппорта: <b>#${escapeHtml(chatNumber)}</b>`,
+    `От: <b>${escapeHtml(supportLabel)}</b>`,
+    '',
+    escapeHtml(body),
+    '',
+    `<a href="${escalationUrl}">Открыть чат</a>`,
+  ].join('\n');
+
+  await Promise.all(
+    getAdminNotificationChatIds().map((chatId) => sendTelegramToChat(chatId, telegramText))
+  );
 }
 
 export function addEscalationMessage({
@@ -302,10 +453,10 @@ export function addEscalationMessage({
 
   if (senderRole === 'support') {
     const thread = getEscalationThreadRow(threadId);
-    createAdminNotification({
-      type: 'support_escalation',
-      title: 'Сообщение от саппорта',
-      message: `${senderUser.name || senderUser.email || 'Саппорт'} · чат #${thread?.chat_number ?? threadId}: ${text.slice(0, 120) || 'вложение'}`,
+    void notifyAdminsAboutEscalation({
+      senderUser,
+      thread,
+      body: text || '📎 Вложение',
     });
   }
 

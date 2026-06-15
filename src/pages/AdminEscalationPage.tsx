@@ -6,6 +6,7 @@ import { AdminLayout } from '../components/AdminLayout';
 import { AdminLoginScreen } from '../components/AdminLoginScreen';
 import { ReviewMediaGrid } from '../components/ReviewMediaGrid';
 import { SupportChatComposer } from '../components/SupportChatComposer';
+import { EscalationTicketPicker } from '../components/EscalationTicketPicker';
 import { api } from '../api/client';
 import { useOperatorAuth } from '../hooks/useOperatorAuth';
 import type { EscalationMessage, EscalationThread, EscalationThreadContext, SupportThread } from '../types';
@@ -24,13 +25,6 @@ function formatDate(value: string | null) {
 
 function getSupportLabel(thread: EscalationThread) {
   return thread.supportUserName || thread.supportUserEmail || thread.supportUserPhone || 'Саппорт';
-}
-
-function getSupportMetaLine(thread: EscalationThread) {
-  if (thread.supportUserName && thread.supportUserEmail) return thread.supportUserEmail;
-  if (thread.supportUserName && thread.supportUserPhone) return thread.supportUserPhone;
-  if (thread.supportUserEmail && thread.supportUserPhone) return thread.supportUserPhone;
-  return null;
 }
 
 function getSupportInitial(thread: EscalationThread) {
@@ -104,6 +98,11 @@ function EscalationMessageBubble({
       <time dateTime={message.createdAt}>{formatDate(message.createdAt)}</time>
     </div>
   );
+}
+
+function getAdminInitial(thread: EscalationThread) {
+  const name = thread.adminPeer?.name || 'Администратор';
+  return name.trim().charAt(0).toUpperCase() || 'A';
 }
 
 export function AdminEscalationPage() {
@@ -274,25 +273,47 @@ export function AdminEscalationPage() {
                 )}
               </AvatarWithPresence>
             ) : (
-              <span
-                className="admin-support-chat__user-avatar admin-support-chat__user-avatar--fallback"
-                aria-hidden
+              <AvatarWithPresence
+                userId={activeThread.adminPeer?.userId !== '0' ? activeThread.adminPeer?.userId : null}
+                size={48}
               >
-                A
-              </span>
+                {activeThread.adminPeer?.avatarUrl ? (
+                  <img
+                    src={activeThread.adminPeer.avatarUrl}
+                    alt=""
+                    className="admin-support-chat__user-avatar"
+                  />
+                ) : (
+                  <span
+                    className="admin-support-chat__user-avatar admin-support-chat__user-avatar--fallback"
+                    aria-hidden
+                  >
+                    {getAdminInitial(activeThread)}
+                  </span>
+                )}
+              </AvatarWithPresence>
             )}
             <div>
-              <strong>{isSupport ? 'Администратор' : getSupportLabel(activeThread)}</strong>
+              <strong>
+                {isSupport
+                  ? activeThread.adminPeer?.name || 'Администратор'
+                  : getSupportLabel(activeThread)}
+              </strong>
               <span className="mono">Чат #{activeThread.chatNumber}</span>
-              {!isSupport && getSupportMetaLine(activeThread) && (
-                <span>{getSupportMetaLine(activeThread)}</span>
-              )}
-              {!isSupport && activeThread.supportUserPhone && !getSupportMetaLine(activeThread) && (
-                <span>{activeThread.supportUserPhone}</span>
-              )}
-              {!isSupport && activeThread.supportUserEmail && !activeThread.supportUserName && (
+              {!isSupport && activeThread.supportUserEmail && (
                 <span>{activeThread.supportUserEmail}</span>
               )}
+              {!isSupport && activeThread.supportUserPhone && (
+                <span>{activeThread.supportUserPhone}</span>
+              )}
+              {!isSupport && activeThread.supportUserTelegramUsername && (
+                <span>Telegram: {activeThread.supportUserTelegramUsername}</span>
+              )}
+              {!isSupport &&
+                !activeThread.supportUserTelegramUsername &&
+                activeThread.supportUserTelegramId && (
+                  <span>Telegram ID: {activeThread.supportUserTelegramId}</span>
+                )}
             </div>
           </header>
 
@@ -316,22 +337,11 @@ export function AdminEscalationPage() {
           </div>
 
           {isSupport && customerThreads.length > 0 && (
-            <label className="admin-escalation-chat__attach">
-              Прикрепить обращение клиента
-              <select
-                value={attachedTicketId}
-                onChange={(event) => setAttachedTicketId(event.target.value)}
-              >
-                <option value="">Без прикрепления</option>
-                {customerThreads.map((thread) => (
-                  <option key={thread.id} value={thread.id}>
-                    #{thread.ticketNumber} · {thread.userName || thread.userEmail || thread.userPhone || 'Клиент'}
-                    {thread.orderId ? ` · заказ ${thread.orderId}` : ''}
-                    {thread.productName ? ` · ${thread.productName}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <EscalationTicketPicker
+              threads={customerThreads}
+              value={attachedTicketId}
+              onChange={setAttachedTicketId}
+            />
           )}
 
           <SupportChatComposer

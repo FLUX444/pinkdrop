@@ -436,6 +436,12 @@ export interface EscalationThreadContext {
   productImage: string | null;
 }
 
+export interface EscalationPeer {
+  userId: string;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
 export interface EscalationThread {
   id: string;
   chatNumber: string;
@@ -444,6 +450,9 @@ export interface EscalationThread {
   supportUserEmail: string | null;
   supportUserPhone: string | null;
   supportUserAvatarUrl: string | null;
+  supportUserTelegramId?: string | null;
+  supportUserTelegramUsername?: string | null;
+  adminPeer?: EscalationPeer | null;
   createdAt: string;
   updatedAt: string;
   lastMessage: string | null;

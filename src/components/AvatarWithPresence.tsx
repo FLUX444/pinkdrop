@@ -25,7 +25,10 @@ export function AvatarWithPresence({
   const dotSize = Math.max(10, Math.round(size * 0.28));
 
   return (
-    <span className={`avatar-with-presence ${className}`.trim()}>
+    <span
+      className={`avatar-with-presence ${className}`.trim()}
+      style={{ width: size, height: size }}
+    >
       {children}
       {userId && (
         <span
