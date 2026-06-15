@@ -87,6 +87,7 @@ export function AboutSection() {
           </div>
 
           <div className="about-section__row about-section__row--team">
+            <AboutSideCards items={teamCards} />
             <div className="about-section__block about-section__block--team">
               <span className="mono about-section__tag">ABOUT_PINKDROP_TEAM</span>
               <h2>О нашей команде</h2>
@@ -94,7 +95,6 @@ export function AboutSection() {
                 {renderParagraphs(about.aboutPinkdropTeam, true)}
               </div>
             </div>
-            <AboutSideCards items={teamCards} />
           </div>
         </div>
       </div>

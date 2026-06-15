@@ -2891,6 +2891,10 @@ a.hero__product-card {
     align-items: start;
     gap: 16px;
   }
+
+  .about-section__row--team {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -15776,6 +15780,14 @@ a.checkout-summary__product-name:active {
 @media (max-width: 819px) {
   .about-section__row {
     grid-template-columns: 1fr;
+  }
+
+  .about-section__row--team .about-section__block {
+    order: 1;
+  }
+
+  .about-section__row--team .about-section__side {
+    order: 2;
   }
 
   .about-section__side {
