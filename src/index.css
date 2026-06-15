@@ -8297,6 +8297,7 @@ a.checkout-summary__product-name:active {
 .product-card .product-art__illustration,
 .product-card .product-art__text,
 .product-card .product-art__top,
+.product-card .product-art__footer,
 .product-card__side-label,
 .product-card__more {
   display: none !important;
@@ -8340,12 +8341,6 @@ a.checkout-summary__product-name:active {
   top: -8%;
   width: 82%;
   opacity: 0.9;
-}
-
-.product-card .product-art__footer {
-  right: 10px;
-  bottom: 96px;
-  z-index: 2;
 }
 
 .product-card .product-art__corner {
