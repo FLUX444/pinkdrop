@@ -29,6 +29,51 @@ const highlights = [
   },
 ] as const;
 
+const SPARKLE_POINTS = [
+  { top: '8%', left: '6%', size: 5, delay: 0 },
+  { top: '14%', left: '22%', size: 4, delay: 0.8 },
+  { top: '6%', left: '48%', size: 6, delay: 1.4 },
+  { top: '18%', left: '72%', size: 4, delay: 0.3 },
+  { top: '10%', left: '90%', size: 5, delay: 2.1 },
+  { top: '42%', left: '4%', size: 4, delay: 1.1 },
+  { top: '58%', left: '18%', size: 5, delay: 2.6 },
+  { top: '72%', left: '44%', size: 4, delay: 0.6 },
+  { top: '48%', left: '86%', size: 6, delay: 1.9 },
+  { top: '82%', left: '68%', size: 5, delay: 1.2 },
+  { top: '88%', left: '28%', size: 4, delay: 2.4 },
+  { top: '76%', left: '92%', size: 4, delay: 0.4 },
+] as const;
+
+function AboutSparkles() {
+  return (
+    <div className="about-section__sparkles" aria-hidden>
+      {SPARKLE_POINTS.map((point) => (
+        <span
+          key={`${point.top}-${point.left}`}
+          className="about-section__sparkle"
+          style={{
+            top: point.top,
+            left: point.left,
+            width: point.size,
+            height: point.size,
+            animationDelay: `${point.delay}s`,
+          }}
+        />
+      ))}
+      {SPARKLE_POINTS.slice(0, 6).map((point, index) => (
+        <span
+          key={`cross-${index}`}
+          className="about-section__sparkle about-section__sparkle--cross"
+          style={{
+            top: point.top,
+            left: point.left,
+            animationDelay: `${point.delay + 1.2}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 function renderParagraphs(text: string, skipTeamHeading = false) {
   const paragraphs = text
     .split(/\n{2,}/)
@@ -71,6 +116,7 @@ export function AboutSection() {
 
   return (
     <section className="about-section" aria-label="О компании PINKDROP">
+      <AboutSparkles />
       <div className="about-section__glow" aria-hidden />
       <div className="about-section__inner">
         <div className="about-section__stack">
