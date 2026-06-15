@@ -254,6 +254,7 @@ const app = express();
 
 const faviconStaticFiles = [
   'favicon.ico',
+  'favicon-32.png',
   'favicon-48.png',
   'favicon-96.png',
   'favicon-192.png',
