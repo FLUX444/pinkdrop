@@ -8015,13 +8015,13 @@ a.checkout-summary__product-name:active {
 @media (min-width: 1024px) {
   .product-grid,
   .product-grid--comfortable {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     max-width: 1200px;
     margin: 0 auto;
   }
 
   .product-grid--compact {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     max-width: 1200px;
     margin: 0 auto;
   }
@@ -8451,9 +8451,36 @@ a.checkout-summary__product-name:active {
 }
 
 @media (min-width: 820px) {
+  .product-grid,
+  .product-grid--comfortable,
+  .product-grid--compact {
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .product-card__image-wrap {
-    height: clamp(132px, 11vw, 168px);
-    max-height: 168px;
+    position: relative;
+    inset: auto;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 150px;
+    height: clamp(150px, 12vw, 190px);
+    max-height: 190px;
+  }
+
+  .product-card .product-art {
+    min-height: 100%;
+    height: 100%;
   }
 
   .product-card .product-art__cutout,
@@ -8464,11 +8491,80 @@ a.checkout-summary__product-name:active {
   .product-card .product-art--lashes-diy .product-art__cutout {
     left: 50%;
     top: 50%;
+    width: 78%;
+    height: 76%;
     transform: translate(-50%, -50%);
   }
 
+  .product-card__body {
+    position: relative;
+    inset: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px 14px;
+    pointer-events: auto;
+    border-top: 1px solid rgba(255, 45, 149, 0.14);
+  }
+
+  .product-card__meta-row {
+    margin-bottom: 6px;
+    font-size: 0.62rem;
+  }
+
   .product-card__name {
-    font-size: clamp(0.98rem, 1.1vw, 1.18rem);
+    max-width: 100%;
+    min-height: 0;
+    margin-bottom: 8px;
+    font-size: clamp(1rem, 0.95vw, 1.14rem);
+    line-height: 1.08;
+    letter-spacing: 0.02em;
+    text-shadow: none;
+  }
+
+  .product-card__name span,
+  .product-card__name strong {
+    display: block;
+    line-height: 1.08;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .product-card__rating,
+  .product-card__desc {
+    display: none;
+  }
+
+  .product-card__prices {
+    min-height: 0;
+    margin-bottom: 10px;
+  }
+
+  .product-card__price {
+    font-size: 1.08rem;
+  }
+
+  .product-card__actions {
+    gap: 8px;
+    margin-top: auto;
+  }
+
+  .product-card__quick-add {
+    min-height: 38px;
+    margin-top: 0;
+    font-size: 0.84rem;
+  }
+
+  .favorite-btn--catalog {
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
   }
 }
 
@@ -14952,23 +15048,21 @@ a.checkout-summary__product-name:active {
   margin-inline: 0;
 }
 
+@media (min-width: 820px) {
+  .favorites-page__grid,
+  .favorites-page__grid.favorites-page__grid--wide,
+  .favorites-page__grid.favorites-page__grid--wide.product-grid--compact {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+}
+
 @media (min-width: 640px) {
   .favorites-page__grid.favorites-page__grid--wide {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
-  }
-}
-
-@media (min-width: 900px) {
-  .favorites-page__grid.favorites-page__grid--wide {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .favorites-page__grid.favorites-page__grid--wide {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
