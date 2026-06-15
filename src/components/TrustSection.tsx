@@ -34,7 +34,7 @@ export function TrustSection() {
         {trustItems.map((item) => (
           <article key={item.title} className="trust-card">
             <span className="trust-card__icon">
-              <Y2KIcon name={item.icon} size={24} />
+              <Y2KIcon name={item.icon} size={28} />
             </span>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
