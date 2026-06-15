@@ -31,6 +31,7 @@ import { AdminContactsPage } from './pages/AdminContactsPage';
 import { AdminAboutPage } from './pages/AdminAboutPage';
 import { AdminSupportTeamPage } from './pages/AdminSupportTeamPage';
 import { AdminEscalationPage } from './pages/AdminEscalationPage';
+import { AdminNotificationsPage } from './pages/AdminNotificationsPage';
 import { UserSupportPage } from './pages/UserSupportPage';
 import { SupportChatWidget } from './components/SupportChatWidget';
 import { SeoManager } from './components/SeoManager';
@@ -65,6 +66,7 @@ function App() {
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:orderId" element={<AdminOrdersPage />} />
           <Route path="/admin/monitor" element={<AdminMonitorPage />} />
+          <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
           <Route path="/admin/support" element={<AdminSupportPage />} />
           <Route path="/admin/support/:threadId" element={<AdminSupportPage />} />
           <Route path="/admin/escalations" element={<AdminEscalationPage />} />

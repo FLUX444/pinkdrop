@@ -20,10 +20,10 @@ import {
   ShoppingBag,
   SlidersHorizontal,
   Activity,
+  Bell,
   Heart,
 } from 'lucide-react';
 import { api } from '../api/client';
-import { AdminNotifications } from '../components/AdminNotifications';
 import { AuthPanel, formatProviderList } from '../components/AuthPanel';
 import { ProfileAvatarEditor } from '../components/ProfileAvatarEditor';
 import { ProfileOrderCard } from '../components/ProfileOrderCard';
@@ -700,7 +700,6 @@ export function ProfilePage() {
 
           {adminAuthenticated ? (
             <>
-              {adminRole !== 'support' && <AdminNotifications />}
               <div className="profile-admin__grid">
                 {adminRole === 'support' ? (
                   <>
@@ -726,6 +725,10 @@ export function ProfilePage() {
                     <Link to="/admin/support" className="profile-admin__link">
                       <MessageCircle size={18} />
                       <span>Поддержка</span>
+                    </Link>
+                    <Link to="/admin/notifications" className="profile-admin__link">
+                      <Bell size={18} />
+                      <span>Уведомления</span>
                     </Link>
                     <Link to="/admin/contacts" className="profile-admin__link">
                       <Phone size={18} />

@@ -49,7 +49,7 @@ function AboutSideCards({ items }: { items: Array<{ icon: LucideIcon; title: str
       {items.map((item) => (
         <article key={item.title} className="about-card">
           <span className="about-card__icon" aria-hidden>
-            <item.icon size={22} />
+            <item.icon size={26} />
           </span>
           <h3>{item.title}</h3>
           <p>{item.text}</p>

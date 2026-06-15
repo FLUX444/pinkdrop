@@ -14,7 +14,11 @@ function formatNotificationDate(value: string) {
   });
 }
 
-export function AdminNotifications() {
+interface AdminNotificationsProps {
+  variant?: 'embedded' | 'page';
+}
+
+export function AdminNotifications({ variant = 'embedded' }: AdminNotificationsProps) {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -43,18 +47,31 @@ export function AdminNotifications() {
     });
   };
 
-  if (loading) return null;
-  if (notifications.length === 0) return null;
+  if (loading) {
+    return variant === 'page' ? (
+      <p className="admin-page__loading mono">Загрузка уведомлений...</p>
+    ) : null;
+  }
+
+  if (notifications.length === 0) {
+    return variant === 'page' ? (
+      <p className="admin-notifications-page__empty">Новых уведомлений нет</p>
+    ) : null;
+  }
 
   return (
-    <section className="profile-admin-notifications">
+    <section
+      className={`profile-admin-notifications${
+        variant === 'page' ? ' profile-admin-notifications--page' : ''
+      }`}
+    >
       <div className="profile-admin-notifications__head">
         <span className="profile-admin-notifications__icon" aria-hidden>
           <Bell size={18} />
         </span>
         <div>
           <span className="mono profile-admin-notifications__tag">ADMIN_ALERTS</span>
-          <h3>Уведомления</h3>
+          <h3>{variant === 'page' ? 'Все уведомления' : 'Уведомления'}</h3>
         </div>
         {unreadCount > 0 && (
           <span className="profile-admin-notifications__badge">{unreadCount}</span>

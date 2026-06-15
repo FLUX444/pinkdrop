@@ -16,6 +16,7 @@ const ADMIN_NAV = [
   { to: '/admin/promo-codes', label: 'Промокоды' },
   { to: '/admin/users', label: 'Пользователи' },
   { to: '/admin/support', label: 'Поддержка' },
+  { to: '/admin/notifications', label: 'Уведомления' },
   { to: '/admin/escalations', label: 'Саппорт-чат' },
   { to: '/admin/support-team', label: 'Саппорт' },
   { to: '/admin/products/new', label: 'Добавить товар' },
