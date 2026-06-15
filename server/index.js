@@ -24,6 +24,11 @@ import db, {
   getAllProductsRaw,
   getDatabaseDump,
   getHeroConfig,
+  getContactsConfig,
+  updateContactsConfig,
+  listSupportOperators,
+  createSupportOperator,
+  deleteSupportOperator,
   getLegalPage,
   getAllLegalPages,
   getPendingReviewPrompts,
@@ -63,6 +68,7 @@ import { getOrderStatus } from './orderDelivery.js';
 import { isEncryptionConfigured } from './crypto.js';
 import {
   adminMiddleware,
+  operatorMiddleware,
   getAdminSession,
   isAdminConfigured,
   listAdminSessions,
@@ -72,7 +78,7 @@ import {
   revokeAllAdminSessions,
   setAdminSessionCookie,
 } from './admin.js';
-import { isUserAdminOperator } from './adminAccess.js';
+import { getUserOperatorRole } from './adminAccess.js';
 import {
   enrichProduct,
   enrichProducts,
@@ -679,6 +685,10 @@ app.get('/sitemap.xml', (_req, res) => {
 
 app.get('/api/products', (_req, res) => {
   res.json(enrichProducts(getAllProductsRaw()));
+});
+
+app.get('/api/contacts', (_req, res) => {
+  res.json(getContactsConfig());
 });
 
 app.get('/api/hero', (_req, res) => {
@@ -1425,17 +1435,20 @@ app.post('/api/support/messages', authMiddleware, (req, res) => {
 });
 
 app.get('/api/admin/status', optionalAuth, (req, res) => {
-  const allowed = req.user ? isUserAdminOperator(req.user) : false;
+  const role = req.user ? getUserOperatorRole(req.user) : null;
+  const session = getAdminSession(req.cookies.pinkdrop_admin_session);
   res.json({
     configured: isAdminConfigured(),
-    allowed,
-    authenticated: allowed && Boolean(getAdminSession(req.cookies.pinkdrop_admin_session)),
+    allowed: Boolean(role),
+    authenticated: Boolean(role && session),
+    role: role && session ? role : null,
   });
 });
 
 app.post('/api/admin/login', adminLoginLimiter, authMiddleware, (req, res) => {
-  if (!isUserAdminOperator(req.user)) {
-    return res.status(403).json({ error: 'У вас нет доступа к админ-панели' });
+  const role = getUserOperatorRole(req.user);
+  if (!role) {
+    return res.status(403).json({ error: 'У вас нет доступа к панели оператора' });
   }
 
   try {
@@ -1454,7 +1467,7 @@ app.post('/api/admin/login', adminLoginLimiter, authMiddleware, (req, res) => {
       ipAddress,
       loggedAt: new Date().toISOString(),
     });
-    res.json({ ok: true });
+    res.json({ ok: true, role });
   } catch (error) {
     res.status(401).json({ error: error.message || 'Admin login failed' });
   }
@@ -1480,14 +1493,14 @@ app.get('/api/admin/notifications', adminMiddleware, (_req, res) => {
   });
 });
 
-app.get('/api/admin/support/threads', adminMiddleware, (_req, res) => {
+app.get('/api/admin/support/threads', operatorMiddleware, (_req, res) => {
   res.json({
     threads: listSupportThreadsForAdmin(),
     unreadCount: getUnreadSupportCountForAdmin(),
   });
 });
 
-app.get('/api/admin/support/threads/:id', adminMiddleware, optionalAuth, (req, res) => {
+app.get('/api/admin/support/threads/:id', operatorMiddleware, optionalAuth, (req, res) => {
   try {
     const adminUser = req.user ?? { id: 0, name: 'Администратор' };
     res.json(getSupportThreadForAdmin(req.params.id, adminUser));
@@ -1496,7 +1509,7 @@ app.get('/api/admin/support/threads/:id', adminMiddleware, optionalAuth, (req, r
   }
 });
 
-app.post('/api/admin/support/threads/:id/close', adminMiddleware, (req, res) => {
+app.post('/api/admin/support/threads/:id/close', operatorMiddleware, (req, res) => {
   try {
     res.json({ thread: closeAdminSupportThread(req.params.id) });
   } catch (error) {
@@ -1504,7 +1517,7 @@ app.post('/api/admin/support/threads/:id/close', adminMiddleware, (req, res) => 
   }
 });
 
-app.post('/api/admin/support/threads/:id/reopen', adminMiddleware, (req, res) => {
+app.post('/api/admin/support/threads/:id/reopen', operatorMiddleware, (req, res) => {
   try {
     res.json({ thread: reopenAdminSupportThread(req.params.id) });
   } catch (error) {
@@ -1512,7 +1525,7 @@ app.post('/api/admin/support/threads/:id/reopen', adminMiddleware, (req, res) =>
   }
 });
 
-app.post('/api/admin/support/threads/:id/typing', adminMiddleware, (req, res) => {
+app.post('/api/admin/support/threads/:id/typing', operatorMiddleware, (req, res) => {
   try {
     const thread = db.prepare('SELECT id FROM support_threads WHERE id = ?').get(req.params.id);
     if (!thread) return res.status(404).json({ error: 'Чат не найден' });
@@ -1523,7 +1536,7 @@ app.post('/api/admin/support/threads/:id/typing', adminMiddleware, (req, res) =>
   }
 });
 
-app.post('/api/admin/support/threads/:id/messages', adminMiddleware, optionalAuth, (req, res) => {
+app.post('/api/admin/support/threads/:id/messages', operatorMiddleware, optionalAuth, (req, res) => {
   req.body = { ...req.body, threadId: req.params.id };
   uploadSupportMedia(req, res, (uploadError) => {
     if (uploadError) {
@@ -1876,6 +1889,42 @@ app.delete('/api/admin/promo-codes/:id', adminMiddleware, (req, res) => {
   } catch (error) {
     res.status(400).json({ error: error.message || 'Не удалось удалить промокод' });
   }
+});
+
+app.get('/api/admin/contacts', adminMiddleware, (_req, res) => {
+  res.json({ contacts: getContactsConfig() });
+});
+
+app.patch('/api/admin/contacts', adminMiddleware, (req, res) => {
+  try {
+    const contacts = updateContactsConfig(req.body ?? {});
+    res.json({ contacts });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to update contacts' });
+  }
+});
+
+app.get('/api/admin/support-operators', adminMiddleware, (_req, res) => {
+  res.json({ operators: listSupportOperators() });
+});
+
+app.post('/api/admin/support-operators', adminMiddleware, (req, res) => {
+  try {
+    const operator = createSupportOperator({
+      email: req.body?.email,
+      telegramId: req.body?.telegramId,
+      label: req.body?.label,
+    });
+    res.json({ operator });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to create support operator' });
+  }
+});
+
+app.delete('/api/admin/support-operators/:id', adminMiddleware, (req, res) => {
+  const deleted = deleteSupportOperator(Number(req.params.id));
+  if (!deleted) return res.status(404).json({ error: 'Operator not found' });
+  res.json({ ok: true, operators: listSupportOperators() });
 });
 
 app.get('/api/admin/hero', adminMiddleware, (_req, res) => {

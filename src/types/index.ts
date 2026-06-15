@@ -401,6 +401,27 @@ export interface LegalPageContent {
   updatedAt?: string;
 }
 
+export interface ContactsConfig {
+  phoneDisplay: string;
+  phoneHref: string;
+  telegramUsername: string;
+  telegramUrl: string;
+  deliveryZone: string;
+  scheduleLine1: string;
+  scheduleLine2: string;
+  updatedAt?: string;
+}
+
+export type OperatorRole = 'admin' | 'support';
+
+export interface SupportOperator {
+  id: number;
+  email: string | null;
+  telegramId: string | null;
+  label: string | null;
+  createdAt: string;
+}
+
 export type PaymentMethod = 'cash' | 'card' | 'test';
 
 export interface SavedDeliveryAddress {

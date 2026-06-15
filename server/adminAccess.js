@@ -70,6 +70,30 @@ export function isUserAdminOperator(user) {
   return false;
 }
 
+export function isUserSupportOperator(user) {
+  if (!user?.id) return false;
+
+  const rows = db.prepare('SELECT email, telegram_id FROM support_operators').all();
+  if (rows.length === 0) return false;
+
+  const userEmails = getUserEmails(user);
+  const telegramId = getUserTelegramId(user.id);
+
+  for (const row of rows) {
+    const operatorEmail = normalizeEmail(row.email);
+    if (operatorEmail && userEmails.has(operatorEmail)) return true;
+    if (row.telegram_id && telegramId && String(row.telegram_id) === telegramId) return true;
+  }
+
+  return false;
+}
+
+export function getUserOperatorRole(user) {
+  if (isUserAdminOperator(user)) return 'admin';
+  if (isUserSupportOperator(user)) return 'support';
+  return null;
+}
+
 export function getAdminOperatorUserIds() {
   const users = db.prepare('SELECT * FROM users').all();
   return users.filter(isUserAdminOperator).map((user) => user.id);

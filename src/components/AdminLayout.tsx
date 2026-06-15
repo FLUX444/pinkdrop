@@ -1,28 +1,35 @@
+import type { OperatorRole } from '../types';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 interface AdminLayoutProps {
   title: string;
   tag: string;
+  role?: OperatorRole | null;
   onLogout?: () => void;
   children: React.ReactNode;
 }
 
-const NAV = [
+const ADMIN_NAV = [
   { to: '/admin', label: 'Цены' },
   { to: '/admin/orders', label: 'Заказы' },
   { to: '/admin/promo-codes', label: 'Промокоды' },
   { to: '/admin/users', label: 'Пользователи' },
   { to: '/admin/support', label: 'Поддержка' },
+  { to: '/admin/support-team', label: 'Саппорт' },
   { to: '/admin/products/new', label: 'Добавить товар' },
   { to: '/admin/hero', label: 'Главная' },
+  { to: '/admin/contacts', label: 'Контакты' },
   { to: '/admin/legal', label: 'Документы' },
   { to: '/admin/database', label: 'База данных' },
   { to: '/admin/monitor', label: 'Мониторинг' },
 ];
 
-export function AdminLayout({ title, tag, onLogout, children }: AdminLayoutProps) {
+const SUPPORT_NAV = [{ to: '/admin/support', label: 'Поддержка' }];
+
+export function AdminLayout({ title, tag, role = 'admin', onLogout, children }: AdminLayoutProps) {
   const location = useLocation();
+  const nav = role === 'support' ? SUPPORT_NAV : ADMIN_NAV;
 
   return (
     <div className="admin-page">
@@ -40,7 +47,7 @@ export function AdminLayout({ title, tag, onLogout, children }: AdminLayoutProps
       </div>
 
       <nav className="admin-nav">
-        {NAV.map((item) => (
+        {nav.map((item) => (
           <Link
             key={item.to}
             to={item.to}

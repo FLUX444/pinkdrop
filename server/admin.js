@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import db from './db.js';
 import { config } from './config.js';
+import { getUserOperatorRole } from './adminAccess.js';
 
 const ADMIN_SESSION_DAYS = 7;
 
@@ -93,10 +94,43 @@ export function setAdminSessionCookie(res, token, expiresAt) {
 }
 
 export function adminMiddleware(req, res, next) {
+  return adminOnlyMiddleware(req, res, next);
+}
+
+export function operatorMiddleware(req, res, next) {
   const session = getAdminSession(req.cookies.pinkdrop_admin_session);
   if (!session) {
     return res.status(401).json({ error: 'Admin unauthorized' });
   }
+
+  if (!session.user_id) {
+    logoutAdmin(session.id);
+    return res.status(403).json({ error: 'Session expired, sign in again' });
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
+  if (!user) {
+    logoutAdmin(session.id);
+    return res.status(403).json({ error: 'User not found' });
+  }
+
+  const role = getUserOperatorRole(user);
+  if (!role) {
+    logoutAdmin(session.id);
+    return res.status(403).json({ error: 'Access revoked' });
+  }
+
   req.adminSession = session;
+  req.operatorRole = role;
+  req.operatorUser = user;
   next();
+}
+
+export function adminOnlyMiddleware(req, res, next) {
+  operatorMiddleware(req, res, () => {
+    if (req.operatorRole !== 'admin') {
+      return res.status(403).json({ error: 'Admin only' });
+    }
+    next();
+  });
 }

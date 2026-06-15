@@ -12,6 +12,9 @@ import type {
   CartSyncResponse,
   FavoritesSyncResponse,
   DeliveryZoneCheck,
+  ContactsConfig,
+  SupportOperator,
+  OperatorRole,
   HeroConfig,
   LegalPageContent,
   Product,
@@ -355,7 +358,9 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getAdminStatus: () =>
-    request<{ configured: boolean; allowed: boolean; authenticated: boolean }>('/admin/status'),
+    request<{ configured: boolean; allowed: boolean; authenticated: boolean; role: OperatorRole | null }>(
+      '/admin/status'
+    ),
   getAdminNotifications: () =>
     request<{ notifications: AdminNotification[]; unreadCount: number }>('/admin/notifications'),
   markAdminNotificationRead: (id: string) =>
@@ -396,10 +401,33 @@ export const api = {
   getAdminOrder: (orderId: string) =>
     request<{ order: AdminOrderSummary }>(`/admin/orders/${orderId}`),
   adminLogin: (password: string) =>
-    request<{ ok: boolean }>('/admin/login', {
+    request<{ ok: boolean; role?: OperatorRole }>('/admin/login', {
       method: 'POST',
       body: JSON.stringify({ password }),
     }),
+  getContacts: () => request<ContactsConfig>('/contacts'),
+  getAdminContacts: () => request<{ contacts: ContactsConfig }>('/admin/contacts'),
+  updateAdminContacts: (payload: Partial<ContactsConfig>) =>
+    request<{ contacts: ContactsConfig }>('/admin/contacts', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+  getAdminSupportOperators: () =>
+    request<{ operators: SupportOperator[] }>('/admin/support-operators'),
+  createAdminSupportOperator: (payload: {
+    email?: string;
+    telegramId?: string;
+    label?: string;
+  }) =>
+    request<{ operator: SupportOperator }>('/admin/support-operators', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  deleteAdminSupportOperator: (id: number) =>
+    request<{ ok: boolean; operators: SupportOperator[] }>(
+      `/admin/support-operators/${id}`,
+      { method: 'DELETE' }
+    ),
   adminLogout: () => request<{ ok: boolean }>('/admin/logout', { method: 'POST' }),
   getAdminProducts: () => request<{ products: Product[] }>('/admin/products'),
   getAdminProduct: (category: string, id: string) =>

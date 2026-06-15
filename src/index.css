@@ -8015,16 +8015,16 @@ a.checkout-summary__product-name:active {
 @media (min-width: 1024px) {
   .product-grid,
   .product-grid--comfortable {
-    grid-template-columns: repeat(auto-fill, minmax(168px, 188px));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 250px));
     justify-content: center;
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
   }
 
   .product-grid--compact {
-    grid-template-columns: repeat(auto-fill, minmax(168px, 188px));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 250px));
     justify-content: center;
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
   }
 }
@@ -8218,10 +8218,10 @@ a.checkout-summary__product-name:active {
   .product-grid,
   .product-grid--comfortable,
   .product-grid--compact {
-    grid-template-columns: repeat(auto-fill, minmax(168px, 188px));
+    grid-template-columns: repeat(auto-fill, minmax(210px, 230px));
     justify-content: center;
-    gap: 14px;
-    max-width: 1200px;
+    gap: 16px;
+    max-width: 1280px;
     margin-inline: auto;
   }
 
@@ -10052,13 +10052,13 @@ a.checkout-summary__product-name:active {
 
 @media (min-width: 820px) {
   .product-card__image-wrap {
-    min-height: 188px;
-    height: 188px;
-    max-height: 188px;
+    min-height: 220px;
+    height: 220px;
+    max-height: 220px;
   }
 
   .product-card__name {
-    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    font-size: clamp(0.96rem, 1.25vw, 1.12rem);
   }
 }
 
@@ -14770,10 +14770,10 @@ a.checkout-summary__product-name:active {
   .favorites-page__grid,
   .favorites-page__grid.favorites-page__grid--wide,
   .favorites-page__grid.favorites-page__grid--wide.product-grid--compact {
-    grid-template-columns: repeat(auto-fill, minmax(168px, 188px));
+    grid-template-columns: repeat(auto-fill, minmax(210px, 230px));
     justify-content: center;
-    gap: 14px;
-    max-width: 1200px;
+    gap: 16px;
+    max-width: 1280px;
     margin-inline: auto;
   }
 }
@@ -15159,14 +15159,230 @@ a.checkout-summary__product-name:active {
 @media (min-width: 820px) {
   .product-grid .product-card__image-wrap,
   .favorites-page__grid .product-card__image-wrap {
-    min-height: 188px;
-    height: 188px;
-    max-height: 188px;
+    min-height: 220px;
+    height: 220px;
+    max-height: 220px;
   }
 
   .product-grid .product-card__name,
   .favorites-page__grid .product-card__name {
-    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    font-size: clamp(0.96rem, 1.25vw, 1.12rem);
+  }
+}
+
+/* Contact cards — pink icon chips + clickable actions */
+.contact-card--action {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
+.contact-card__icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 45, 149, 0.55);
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 45, 149, 0.34), rgba(10, 10, 10, 0.92) 72%);
+  box-shadow:
+    0 0 0 1px rgba(255, 45, 149, 0.12),
+    0 0 18px rgba(255, 45, 149, 0.22);
+}
+
+.contact-card__icon {
+  color: var(--accent);
+  filter: drop-shadow(0 0 8px rgba(255, 45, 149, 0.55));
+}
+
+.contact-card__value {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  text-shadow: 0 0 12px rgba(255, 45, 149, 0.28);
+}
+
+.contact-card--action:hover .contact-card__icon-wrap {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px rgba(255, 45, 149, 0.28),
+    0 0 24px rgba(255, 45, 149, 0.42);
+}
+
+.phone-contact-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.phone-contact-modal__panel {
+  position: relative;
+  width: min(100%, 360px);
+  padding: 22px 20px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 45, 149, 0.55);
+  background:
+    radial-gradient(circle at 80% 0%, rgba(255, 45, 149, 0.22), transparent 42%),
+    linear-gradient(160deg, #121016 0%, #070707 100%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.phone-contact-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 45, 149, 0.45);
+  border-radius: 10px;
+  background: rgba(255, 45, 149, 0.08);
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.phone-contact-modal__tag {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.phone-contact-modal__panel h2 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}
+
+.phone-contact-modal__number {
+  margin: 0 0 16px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(255, 45, 149, 0.45);
+}
+
+.phone-contact-modal__copy {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.phone-contact-modal__tel {
+  display: block;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  opacity: 0.72;
+}
+
+.admin-contacts,
+.admin-support-team {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-contacts__grid,
+.admin-support-team__form {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-contacts__grid label,
+.admin-support-team__form label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.admin-contacts__grid input,
+.admin-contacts__grid textarea,
+.admin-support-team__form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.admin-contacts__wide {
+  grid-column: 1 / -1;
+}
+
+.admin-contacts__saved {
+  color: #7dffa8;
+  font-size: 0.86rem;
+}
+
+.admin-support-team__list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-support-team__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 45, 149, 0.28);
+  background: rgba(255, 45, 149, 0.05);
+}
+
+.admin-support-team__card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-support-team__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 45, 149, 0.45);
+  color: var(--accent);
+  background: rgba(255, 45, 149, 0.1);
+}
+
+.admin-support-team__meta {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.admin-support-team__delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-support-team__empty {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 720px) {
+  .admin-contacts__grid,
+  .admin-support-team__form {
+    grid-template-columns: 1fr;
   }
 }
 

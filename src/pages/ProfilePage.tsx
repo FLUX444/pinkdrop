@@ -12,6 +12,7 @@ import {
   MapPin,
   MessageCircle,
   Navigation,
+  Phone,
   Plus,
   ShieldCheck,
   ShoppingBag,
@@ -65,6 +66,7 @@ export function ProfilePage() {
   const [adminConfigured, setAdminConfigured] = useState(false);
   const [adminAllowed, setAdminAllowed] = useState(false);
   const [adminAuthenticated, setAdminAuthenticated] = useState(false);
+  const [adminRole, setAdminRole] = useState<'admin' | 'support' | null>(null);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [adminError, setAdminError] = useState('');
@@ -208,6 +210,7 @@ export function ProfilePage() {
         setAdminConfigured(status.configured);
         setAdminAllowed(status.allowed);
         setAdminAuthenticated(status.authenticated);
+        setAdminRole(status.role ?? null);
       })
       .catch(() => {
         setAdminConfigured(false);
@@ -280,7 +283,9 @@ export function ProfilePage() {
 
     try {
       await api.adminLogin(adminPassword);
-      setAdminAuthenticated(true);
+      const status = await api.getAdminStatus();
+      setAdminAuthenticated(status.authenticated);
+      setAdminRole(status.role ?? null);
       setAdminPassword('');
     } catch (err) {
       setAdminError(err instanceof Error ? err.message : 'Не удалось открыть админ-функции');
@@ -687,36 +692,53 @@ export function ProfilePage() {
 
           {adminAuthenticated ? (
             <>
-              <AdminNotifications />
+              {adminRole !== 'support' && <AdminNotifications />}
               <div className="profile-admin__grid">
-                <Link to="/admin/orders" className="profile-admin__link">
-                  <ShoppingBag size={18} />
-                  <span>Заказы</span>
-                </Link>
-                <Link to="/admin" className="profile-admin__link">
-                  <SlidersHorizontal size={18} />
-                  <span>Цены</span>
-                </Link>
-                <Link to="/admin/support" className="profile-admin__link">
-                  <MessageCircle size={18} />
-                  <span>Поддержка</span>
-                </Link>
-                <Link to="/admin/products/new" className="profile-admin__link">
-                  <Plus size={18} />
-                  <span>Добавить товар</span>
-                </Link>
-                <Link to="/admin/hero" className="profile-admin__link">
-                  <ImagePlus size={18} />
-                  <span>Главная</span>
-                </Link>
-                <Link to="/admin/database" className="profile-admin__link">
-                  <Database size={18} />
-                  <span>База данных</span>
-                </Link>
-                <Link to="/admin/monitor" className="profile-admin__link">
-                  <Activity size={18} />
-                  <span>Мониторинг</span>
-                </Link>
+                {adminRole === 'support' ? (
+                  <Link to="/admin/support" className="profile-admin__link">
+                    <MessageCircle size={18} />
+                    <span>Поддержка</span>
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/admin/orders" className="profile-admin__link">
+                      <ShoppingBag size={18} />
+                      <span>Заказы</span>
+                    </Link>
+                    <Link to="/admin" className="profile-admin__link">
+                      <SlidersHorizontal size={18} />
+                      <span>Цены</span>
+                    </Link>
+                    <Link to="/admin/support" className="profile-admin__link">
+                      <MessageCircle size={18} />
+                      <span>Поддержка</span>
+                    </Link>
+                    <Link to="/admin/contacts" className="profile-admin__link">
+                      <Phone size={18} />
+                      <span>Контакты</span>
+                    </Link>
+                    <Link to="/admin/support-team" className="profile-admin__link">
+                      <Headphones size={18} />
+                      <span>Саппорт</span>
+                    </Link>
+                    <Link to="/admin/products/new" className="profile-admin__link">
+                      <Plus size={18} />
+                      <span>Добавить товар</span>
+                    </Link>
+                    <Link to="/admin/hero" className="profile-admin__link">
+                      <ImagePlus size={18} />
+                      <span>Главная</span>
+                    </Link>
+                    <Link to="/admin/database" className="profile-admin__link">
+                      <Database size={18} />
+                      <span>База данных</span>
+                    </Link>
+                    <Link to="/admin/monitor" className="profile-admin__link">
+                      <Activity size={18} />
+                      <span>Мониторинг</span>
+                    </Link>
+                  </>
+                )}
               </div>
               <button type="button" className="profile-admin__logout" onClick={() => void handleAdminLogout()}>
                 Закрыть админ-доступ

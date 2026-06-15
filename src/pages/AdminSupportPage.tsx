@@ -52,6 +52,7 @@ export function AdminSupportPage() {
 
   const [configured, setConfigured] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [operatorRole, setOperatorRole] = useState<'admin' | 'support' | null>(null);
   const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState('');
   const [loginBusy, setLoginBusy] = useState(false);
@@ -104,6 +105,7 @@ export function AdminSupportPage() {
       .then(async (status) => {
         setConfigured(status.configured);
         setAuthenticated(status.authenticated);
+        setOperatorRole(status.role ?? null);
         if (status.authenticated) {
           await loadThreads();
           if (threadId) {
@@ -143,9 +145,11 @@ export function AdminSupportPage() {
     setError('');
     setLoginBusy(true);
     try {
-      await api.adminLogin(password);
+      const result = await api.adminLogin(password);
       setPassword('');
-      setAuthenticated(true);
+      const status = await api.getAdminStatus();
+      setAuthenticated(status.authenticated);
+      setOperatorRole(status.role ?? result.role ?? null);
       await loadThreads();
       if (threadId) await loadThread(threadId);
     } catch (err) {
@@ -249,7 +253,7 @@ export function AdminSupportPage() {
 
   if (threadId && !activeThread && !error) {
     return (
-      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" onLogout={() => void handleLogout()}>
+      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" role={operatorRole} onLogout={() => void handleLogout()}>
         <p className="admin-support-inbox__empty">Загрузка чата...</p>
       </AdminLayout>
     );
@@ -259,7 +263,7 @@ export function AdminSupportPage() {
     const isThreadClosed = activeThread.status === 'closed';
 
     return (
-      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" onLogout={() => void handleLogout()}>
+      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" role={operatorRole} onLogout={() => void handleLogout()}>
         <div className="admin-support-chat">
           <Link to="/admin/support" className="admin-support-chat__back">
             <ArrowLeft size={18} />
@@ -352,7 +356,7 @@ export function AdminSupportPage() {
   }
 
   return (
-    <AdminLayout title="Поддержка" tag="SUPPORT_INBOX" onLogout={() => void handleLogout()}>
+    <AdminLayout title="Поддержка" tag="SUPPORT_INBOX" role={operatorRole} onLogout={() => void handleLogout()}>
       <div className="admin-support-inbox">
         {unreadCount > 0 && (
           <p className="admin-support-inbox__summary">

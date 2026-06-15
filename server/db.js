@@ -806,6 +806,26 @@ export function initDb() {
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS site_contacts (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      phone_display TEXT NOT NULL DEFAULT '+7 (391) 222-33-44',
+      phone_href TEXT NOT NULL DEFAULT '+73912223344',
+      telegram_username TEXT NOT NULL DEFAULT 'krasnoyarsk_shop_bot',
+      telegram_url TEXT NOT NULL DEFAULT 'https://t.me/krasnoyarsk_shop_bot',
+      delivery_zone TEXT NOT NULL DEFAULT 'Красноярск и пригород до 25 км от центра',
+      schedule_line1 TEXT NOT NULL DEFAULT 'Ежедневно 10:00 — 21:00',
+      schedule_line2 TEXT NOT NULL DEFAULT 'Приём заказов до 18:00',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS support_operators (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT,
+      telegram_id TEXT,
+      label TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS admin_notifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL,
@@ -891,6 +911,7 @@ export function initDb() {
   seedGlobalPriceDrop();
   seedHero();
   seedLegalPages();
+  seedContacts();
   ensureReviewTablesForAllProducts();
   syncAllProductRatings();
 }
@@ -1584,6 +1605,118 @@ function seedHero() {
     'Новинка · доставка сегодня',
     'NEW_DROP'
   );
+}
+
+function seedContacts() {
+  const count = db.prepare('SELECT COUNT(*) AS c FROM site_contacts').get().c;
+  if (count > 0) return;
+
+  db.prepare(
+    `INSERT INTO site_contacts (
+      id, phone_display, phone_href, telegram_username, telegram_url,
+      delivery_zone, schedule_line1, schedule_line2
+    ) VALUES (1, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    '+7 (391) 222-33-44',
+    '+73912223344',
+    'krasnoyarsk_shop_bot',
+    'https://t.me/krasnoyarsk_shop_bot',
+    'Красноярск и пригород до 25 км от центра',
+    'Ежедневно 10:00 — 21:00',
+    'Приём заказов до 18:00'
+  );
+}
+
+export function contactsRowToJson(row) {
+  if (!row) return null;
+  return {
+    phoneDisplay: row.phone_display,
+    phoneHref: row.phone_href,
+    telegramUsername: row.telegram_username,
+    telegramUrl: row.telegram_url,
+    deliveryZone: row.delivery_zone,
+    scheduleLine1: row.schedule_line1,
+    scheduleLine2: row.schedule_line2,
+    updatedAt: row.updated_at,
+  };
+}
+
+export function getContactsConfig() {
+  const row = db.prepare('SELECT * FROM site_contacts WHERE id = 1').get();
+  return contactsRowToJson(row);
+}
+
+export function updateContactsConfig(patch) {
+  const current = db.prepare('SELECT * FROM site_contacts WHERE id = 1').get();
+  if (!current) throw new Error('Contacts config not found');
+
+  const next = {
+    phone_display: patch.phoneDisplay ?? current.phone_display,
+    phone_href: patch.phoneHref ?? current.phone_href,
+    telegram_username: patch.telegramUsername ?? current.telegram_username,
+    telegram_url: patch.telegramUrl ?? current.telegram_url,
+    delivery_zone: patch.deliveryZone ?? current.delivery_zone,
+    schedule_line1: patch.scheduleLine1 ?? current.schedule_line1,
+    schedule_line2: patch.scheduleLine2 ?? current.schedule_line2,
+  };
+
+  db.prepare(
+    `UPDATE site_contacts SET
+      phone_display = ?, phone_href = ?, telegram_username = ?, telegram_url = ?,
+      delivery_zone = ?, schedule_line1 = ?, schedule_line2 = ?,
+      updated_at = datetime('now')
+     WHERE id = 1`
+  ).run(
+    next.phone_display,
+    next.phone_href,
+    next.telegram_username,
+    next.telegram_url,
+    next.delivery_zone,
+    next.schedule_line1,
+    next.schedule_line2
+  );
+
+  return getContactsConfig();
+}
+
+function supportOperatorRowToJson(row) {
+  return {
+    id: row.id,
+    email: row.email ?? null,
+    telegramId: row.telegram_id ?? null,
+    label: row.label ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+export function listSupportOperators() {
+  return db
+    .prepare('SELECT * FROM support_operators ORDER BY datetime(created_at) DESC, id DESC')
+    .all()
+    .map(supportOperatorRowToJson);
+}
+
+export function createSupportOperator({ email = null, telegramId = null, label = null } = {}) {
+  const normalizedEmail = email ? String(email).trim().toLowerCase() : null;
+  const normalizedTelegramId = telegramId ? String(telegramId).trim() : null;
+  if (!normalizedEmail && !normalizedTelegramId) {
+    throw new Error('Укажите email или Telegram ID');
+  }
+
+  const result = db
+    .prepare(
+      `INSERT INTO support_operators (email, telegram_id, label)
+       VALUES (?, ?, ?)`
+    )
+    .run(normalizedEmail, normalizedTelegramId, label ? String(label).trim() : null);
+
+  const row = db.prepare('SELECT * FROM support_operators WHERE id = ?').get(result.lastInsertRowid);
+  return supportOperatorRowToJson(row);
+}
+
+export function deleteSupportOperator(id) {
+  const result = db.prepare('DELETE FROM support_operators WHERE id = ?').run(id);
+  return result.changes > 0;
 }
 
 export function heroRowToJson(row) {
