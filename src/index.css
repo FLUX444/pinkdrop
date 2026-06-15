@@ -411,9 +411,8 @@ main,
   border-radius: 0;
   box-shadow: none;
   filter:
-    drop-shadow(0 0 4px rgba(255, 45, 149, 1))
-    drop-shadow(0 0 10px rgba(255, 45, 149, 0.85))
-    drop-shadow(0 0 20px rgba(255, 45, 149, 0.55));
+    drop-shadow(0 0 2px rgba(255, 45, 149, 0.55))
+    drop-shadow(0 0 6px rgba(255, 45, 149, 0.28));
 }
 
 .mobile-menu__logo-image {
