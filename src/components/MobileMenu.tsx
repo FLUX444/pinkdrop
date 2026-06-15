@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { useEffect } from 'react';
 import { ChevronRight, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { BrandLogo } from './BrandLogo';
 import { Y2KIcon } from './Y2KIcon';
 import { DEFAULT_CATALOG_FILTERS } from '../utils/catalogLogic';
 import type { CatalogNavigationState } from '../utils/catalogNavigation';
@@ -93,7 +94,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
         <div className="mobile-menu__header">
           <div className="mobile-menu__brand">
-            <span className="mobile-menu__logo-mark">PD</span>
+            <BrandLogo className="mobile-menu__logo-image" size={38} />
             <div className="mobile-menu__logo-text">
               <span>
                 <span className="mobile-menu__logo-pink">PINK</span>DROP
