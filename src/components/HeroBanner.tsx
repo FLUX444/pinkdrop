@@ -95,14 +95,15 @@ export function HeroBanner({ config, featuredProduct }: HeroBannerProps) {
             <Link to="/catalog" className="btn btn--primary">{config.ctaPrimary}</Link>
             <Link to="/catalog" className="btn btn--secondary">{config.ctaSecondary}</Link>
           </div>
-          <DeliveryTimer variant="hero" />
+          <div className="hero__plaques">
+            <DeliveryTimer variant="hero" />
+            <PriceDropInfo variant="hero-center" />
+          </div>
         </div>
         <div className="hero__barcode mono" aria-hidden>
           ||| || ||| | || |||| | |||
         </div>
       </div>
-
-      <PriceDropInfo variant="hero-center" />
 
       <div className="hero__product" aria-label={`Новинка: ${config.productTitle}`}>
         {featuredProduct ? (
