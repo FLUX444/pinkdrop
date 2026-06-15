@@ -4,6 +4,22 @@ import { config, isEmailSmtpConfigured } from './config.js';
 const CODE_TTL_MINUTES = 5;
 const DEFAULT_FROM = 'noreply@pinkdrop.ru';
 
+const EMAIL_THEME = {
+  pageBg: '#050506',
+  cardBg: '#0d0d10',
+  cardBorder: 'rgba(255, 45, 149, 0.34)',
+  pink: '#ff2d95',
+  pinkSoft: '#ff8ec4',
+  text: '#ffd8eb',
+  muted: '#c9a3b8',
+  detailBg: 'rgba(255, 45, 149, 0.08)',
+  detailBorder: 'rgba(255, 45, 149, 0.24)',
+  buttonBg: '#ff2d95',
+  buttonText: '#ffffff',
+  logoFrameBg: '#121216',
+  logoFrameBorder: 'rgba(255, 45, 149, 0.42)',
+};
+
 let cachedTransporter = null;
 let transporterReady = false;
 
@@ -135,18 +151,35 @@ function accountUrl(path, accountEmail) {
   return profileUrl(`${path}${separator}account=${encodeURIComponent(normalized)}`);
 }
 
+function buildEmailLogoBlock() {
+  const logoUrl = resolveEmailLogoUrl();
+  return `<div style="margin:0 0 20px;">
+    <div style="display:inline-block;padding:8px 10px;border:1px solid ${EMAIL_THEME.logoFrameBorder};border-radius:14px;background:${EMAIL_THEME.logoFrameBg};box-shadow:0 0 22px rgba(255,45,149,0.14);">
+      <img src="${logoUrl}" alt="PinkDrop" width="52" style="display:block;width:52px;max-width:52px;height:auto;border:0;outline:none;text-decoration:none;" />
+    </div>
+  </div>`;
+}
+
+function buildVerificationCodeHtml(code) {
+  const safeCode = escapeHtml(code);
+  return `<span style="display:block;margin-top:18px;font-size:32px;font-weight:700;letter-spacing:0.2em;font-family:Consolas,monospace;color:${EMAIL_THEME.pink};text-shadow:0 0 18px rgba(255,45,149,0.35);">${safeCode}</span>`;
+}
+
+function buildMutedNoteHtml(text) {
+  return `<span style="font-size:13px;color:${EMAIL_THEME.muted};">${text}</span>`;
+}
+
 function buildEmailLayout({ title, introLines, detailLines = [], actions = [], footerLines = [] }) {
   const siteUrl = config.frontendUrl;
-  const logoUrl = resolveEmailLogoUrl();
   const introHtml = introLines
-    .map((line) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#52525b;">${line}</p>`)
+    .map((line) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:${EMAIL_THEME.text};">${line}</p>`)
     .join('');
   const detailsHtml = detailLines.length
-    ? `<div style="margin:0 0 20px;padding:14px 16px;border:1px solid #ececef;border-radius:10px;background:#fafafa;">
+    ? `<div style="margin:0 0 20px;padding:14px 16px;border:1px solid ${EMAIL_THEME.detailBorder};border-radius:12px;background:${EMAIL_THEME.detailBg};">
         ${detailLines
           .map(
             (line) =>
-              `<p style="margin:0 0 8px;font-size:14px;line-height:1.55;color:#3f3f46;">${line}</p>`
+              `<p style="margin:0 0 8px;font-size:14px;line-height:1.55;color:${EMAIL_THEME.text};">${line}</p>`
           )
           .join('')}
       </div>`
@@ -160,8 +193,8 @@ function buildEmailLayout({ title, introLines, detailLines = [], actions = [], f
               <td align="left" style="padding:${topPadding} 0 0 0;">
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:separate;">
                   <tr>
-                    <td align="center" bgcolor="#ff2d95" style="border-radius:10px;background-color:#ff2d95;">
-                      <a href="${action.href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 24px;border:2px solid #ff2d95;border-radius:10px;background-color:#ff2d95;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;line-height:1.4;mso-padding-alt:0;">${escapeHtml(action.label)}</a>
+                    <td align="center" bgcolor="${EMAIL_THEME.buttonBg}" style="border-radius:10px;background-color:${EMAIL_THEME.buttonBg};box-shadow:0 0 18px rgba(255,45,149,0.28);">
+                      <a href="${action.href}" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:13px 22px;border:1px solid ${EMAIL_THEME.buttonBg};border-radius:10px;background-color:${EMAIL_THEME.buttonBg};color:${EMAIL_THEME.buttonText};font-size:14px;font-weight:700;text-decoration:none;line-height:1.4;mso-padding-alt:0;">${escapeHtml(action.label)}</a>
                     </td>
                   </tr>
                 </table>
@@ -175,11 +208,11 @@ function buildEmailLayout({ title, introLines, detailLines = [], actions = [], f
     .filter((action) => action.secondary)
     .map(
       (action) =>
-        `<a href="${action.href}" style="color:#ff2d95;text-decoration:none;font-weight:600;">${escapeHtml(action.label)}</a>`
+        `<a href="${action.href}" style="color:${EMAIL_THEME.pink};text-decoration:none;font-weight:600;">${escapeHtml(action.label)}</a>`
     )
     .join(' &nbsp;·&nbsp; ');
   const footerHtml = footerLines
-    .map((line) => `<p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#71717a;">${line}</p>`)
+    .map((line) => `<p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:${EMAIL_THEME.muted};">${line}</p>`)
     .join('');
 
   return `<!DOCTYPE html>
@@ -187,20 +220,20 @@ function buildEmailLayout({ title, introLines, detailLines = [], actions = [], f
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="supported-color-schemes" content="dark" />
     <title>${escapeHtml(title)} — PINKDROP</title>
   </head>
-  <body style="margin:0;padding:24px;background:#f4f4f5;font-family:Segoe UI,Arial,sans-serif;color:#18181b;">
-    <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e4e4e7;border-radius:12px;padding:32px;">
-      <div style="margin:0 0 18px;">
-        <img src="${logoUrl}" alt="PinkDrop" width="132" style="display:block;width:132px;max-width:132px;height:auto;border:0;outline:none;text-decoration:none;" />
-      </div>
-      <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;color:#18181b;">${escapeHtml(title)}</h1>
+  <body style="margin:0;padding:24px;background:${EMAIL_THEME.pageBg};font-family:Segoe UI,Arial,sans-serif;color:${EMAIL_THEME.text};">
+    <div style="max-width:520px;margin:0 auto;background:${EMAIL_THEME.cardBg};border:1px solid ${EMAIL_THEME.cardBorder};border-radius:16px;padding:28px 24px;box-shadow:0 0 40px rgba(255,45,149,0.08);">
+      ${buildEmailLogoBlock()}
+      <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;color:${EMAIL_THEME.pink};text-shadow:0 0 16px rgba(255,45,149,0.2);">${escapeHtml(title)}</h1>
       ${introHtml}
       ${detailsHtml}
       ${actionsHtml ? `<div style="margin:0 0 20px;">${actionsHtml}</div>` : ''}
       ${footerHtml}
-      <p style="margin:0;font-size:13px;line-height:1.6;color:#71717a;">
-        <a href="${siteUrl}" style="color:#ff2d95;text-decoration:none;font-weight:600;">${siteUrl}</a>
+      <p style="margin:0;font-size:13px;line-height:1.6;color:${EMAIL_THEME.muted};">
+        <a href="${siteUrl}" style="color:${EMAIL_THEME.pink};text-decoration:none;font-weight:600;">${siteUrl}</a>
         ${secondaryActionsHtml ? `&nbsp;·&nbsp; ${secondaryActionsHtml}` : ''}
       </p>
     </div>
@@ -209,15 +242,14 @@ function buildEmailLayout({ title, introLines, detailLines = [], actions = [], f
 }
 
 function buildVerificationEmailHtml(code, recipientEmail) {
-  const safeCode = escapeHtml(code);
   const safeRecipient = escapeHtml(recipientEmail);
 
   return buildEmailLayout({
     title: 'Код подтверждения',
     introLines: [
-      `Введите этот код на сайте PINKDROP для адреса <strong>${safeRecipient}</strong>.`,
-      `<span style="display:block;margin-top:18px;font-size:34px;font-weight:700;letter-spacing:0.18em;font-family:Consolas,monospace;color:#18181b;">${safeCode}</span>`,
-      `<span style="font-size:13px;color:#71717a;">Код действует ${CODE_TTL_MINUTES} минут.</span>`,
+      `Введите этот код на сайте PINKDROP для адреса <strong style="color:${EMAIL_THEME.pinkSoft};">${safeRecipient}</strong>.`,
+      buildVerificationCodeHtml(code),
+      buildMutedNoteHtml(`Код действует ${CODE_TTL_MINUTES} минут.`),
     ],
     footerLines: ['Если вы не запрашивали код, просто проигнорируйте это письмо.'],
   });
@@ -239,13 +271,13 @@ function buildVerificationText(code, recipientEmail, title) {
 function buildSecurityMetaLines(meta = {}) {
   const lines = [];
   if (meta.eventTime) {
-    lines.push(`<strong>Дата и время:</strong> ${escapeHtml(meta.eventTime)}`);
+    lines.push(`<strong style="color:${EMAIL_THEME.pinkSoft};">Дата и время:</strong> ${escapeHtml(meta.eventTime)}`);
   }
   if (meta.ipAddress) {
-    lines.push(`<strong>IP-адрес:</strong> ${escapeHtml(meta.ipAddress)}`);
+    lines.push(`<strong style="color:${EMAIL_THEME.pinkSoft};">IP-адрес:</strong> ${escapeHtml(meta.ipAddress)}`);
   }
   if (meta.method) {
-    lines.push(`<strong>Способ входа:</strong> ${escapeHtml(meta.method)}`);
+    lines.push(`<strong style="color:${EMAIL_THEME.pinkSoft};">Способ входа:</strong> ${escapeHtml(meta.method)}`);
   }
   return lines;
 }
@@ -254,7 +286,7 @@ function buildSecuritySupportFooter(supportSecurityUrl) {
   if (!supportSecurityUrl) {
     return 'Если это были не вы, обратитесь в поддержку.';
   }
-  return `Если это были не вы, <a href="${supportSecurityUrl}" style="color:#ff2d95;text-decoration:none;font-weight:600;">обратитесь в поддержку</a>.`;
+  return `Если это были не вы, <a href="${supportSecurityUrl}" style="color:${EMAIL_THEME.pink};text-decoration:none;font-weight:600;">обратитесь в поддержку</a>.`;
 }
 
 function buildPasswordChangedEmail(recipientEmail, meta = {}) {
@@ -466,14 +498,13 @@ export async function verifyEmailTransport() {
 export async function sendPasswordResetEmail(to, code) {
   const subject = `${code} — код восстановления PINKDROP`;
   const text = buildVerificationText(code, to, 'Восстановление пароля PINKDROP');
-  const safeCode = escapeHtml(code);
   const safeRecipient = escapeHtml(to);
   const html = buildEmailLayout({
     title: 'Восстановление пароля',
     introLines: [
-      `Введите этот код на сайте PINKDROP для адреса <strong>${safeRecipient}</strong>.`,
-      `<span style="display:block;margin-top:18px;font-size:34px;font-weight:700;letter-spacing:0.18em;font-family:Consolas,monospace;color:#18181b;">${safeCode}</span>`,
-      `<span style="font-size:13px;color:#71717a;">Код действует ${CODE_TTL_MINUTES} минут.</span>`,
+      `Введите этот код на сайте PINKDROP для адреса <strong style="color:${EMAIL_THEME.pinkSoft};">${safeRecipient}</strong>.`,
+      buildVerificationCodeHtml(code),
+      buildMutedNoteHtml(`Код действует ${CODE_TTL_MINUTES} минут.`),
     ],
     footerLines: ['Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.'],
   });
@@ -484,14 +515,13 @@ export async function sendPasswordResetEmail(to, code) {
 export async function sendChangeEmailEmail(to, code) {
   const subject = `${code} — смена почты PINKDROP`;
   const text = buildVerificationText(code, to, 'Смена почты в личном кабинете PINKDROP');
-  const safeCode = escapeHtml(code);
   const safeRecipient = escapeHtml(to);
   const html = buildEmailLayout({
     title: 'Смена почты',
     introLines: [
-      `Вы запросили смену почты для аккаунта <strong>${safeRecipient}</strong>.`,
-      `<span style="display:block;margin-top:18px;font-size:34px;font-weight:700;letter-spacing:0.18em;font-family:Consolas,monospace;color:#18181b;">${safeCode}</span>`,
-      `<span style="font-size:13px;color:#71717a;">Код действует ${CODE_TTL_MINUTES} минут.</span>`,
+      `Вы запросили смену почты для аккаунта <strong style="color:${EMAIL_THEME.pinkSoft};">${safeRecipient}</strong>.`,
+      buildVerificationCodeHtml(code),
+      buildMutedNoteHtml(`Код действует ${CODE_TTL_MINUTES} минут.`),
     ],
     footerLines: ['Если вы не запрашивали смену почты, просто проигнорируйте это письмо.'],
   });
@@ -502,14 +532,13 @@ export async function sendChangeEmailEmail(to, code) {
 export async function sendChangePasswordEmail(to, code) {
   const subject = `${code} — смена пароля PINKDROP`;
   const text = buildVerificationText(code, to, 'Смена пароля в личном кабинете PINKDROP');
-  const safeCode = escapeHtml(code);
   const safeRecipient = escapeHtml(to);
   const html = buildEmailLayout({
     title: 'Смена пароля',
     introLines: [
-      `Вы запросили смену пароля для аккаунта <strong>${safeRecipient}</strong>.`,
-      `<span style="display:block;margin-top:18px;font-size:34px;font-weight:700;letter-spacing:0.18em;font-family:Consolas,monospace;color:#18181b;">${safeCode}</span>`,
-      `<span style="font-size:13px;color:#71717a;">Код действует ${CODE_TTL_MINUTES} минут.</span>`,
+      `Вы запросили смену пароля для аккаунта <strong style="color:${EMAIL_THEME.pinkSoft};">${safeRecipient}</strong>.`,
+      buildVerificationCodeHtml(code),
+      buildMutedNoteHtml(`Код действует ${CODE_TTL_MINUTES} минут.`),
     ],
     footerLines: ['Если вы не запрашивали смену пароля, просто проигнорируйте это письмо.'],
   });
@@ -520,15 +549,14 @@ export async function sendChangePasswordEmail(to, code) {
 export async function sendAdminNewEmailVerificationEmail(to, code) {
   const subject = `${code} — подтверждение новой почты PINKDROP`;
   const text = buildVerificationText(code, to, 'Подтверждение новой почты аккаунта PINKDROP');
-  const safeCode = escapeHtml(code);
   const safeRecipient = escapeHtml(to);
   const html = buildEmailLayout({
     title: 'Подтверждение новой почты',
     introLines: [
-      `Администратор PINKDROP меняет почту аккаунта на адрес <strong>${safeRecipient}</strong>.`,
-      `Введите этот код в админ-панели для подтверждения смены почты.`,
-      `<span style="display:block;margin-top:18px;font-size:34px;font-weight:700;letter-spacing:0.18em;font-family:Consolas,monospace;color:#18181b;">${safeCode}</span>`,
-      `<span style="font-size:13px;color:#71717a;">Код действует ${CODE_TTL_MINUTES} минут.</span>`,
+      `Администратор PINKDROP меняет почту аккаунта на адрес <strong style="color:${EMAIL_THEME.pinkSoft};">${safeRecipient}</strong>.`,
+      'Введите этот код в админ-панели для подтверждения смены почты.',
+      buildVerificationCodeHtml(code),
+      buildMutedNoteHtml(`Код действует ${CODE_TTL_MINUTES} минут.`),
     ],
     footerLines: ['Если вы не обращались в поддержку, проигнорируйте это письмо.'],
   });
@@ -560,8 +588,10 @@ function buildAdminTemporaryCredentialsEmail(recipientEmail, meta = {}) {
     : accountUrl('/profile/change-email', loginEmail);
 
   const credentialLines = [
-    `<strong>Email для входа:</strong> ${safeLoginEmail}`,
-    safePassword ? `<strong>Временный пароль:</strong> <span style="font-family:Consolas,monospace;">${safePassword}</span>` : null,
+    `<strong style="color:${EMAIL_THEME.pinkSoft};">Email для входа:</strong> ${safeLoginEmail}`,
+    safePassword
+      ? `<strong style="color:${EMAIL_THEME.pinkSoft};">Временный пароль:</strong> <span style="font-family:Consolas,monospace;color:${EMAIL_THEME.pink};">${safePassword}</span>`
+      : null,
   ].filter(Boolean);
 
   const html = buildEmailLayout({
