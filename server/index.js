@@ -81,7 +81,7 @@ import {
   revokeAllAdminSessions,
   setAdminSessionCookie,
 } from './admin.js';
-import { getUserOperatorRole } from './adminAccess.js';
+import { getUserOperatorRole, isUserSupportOperator } from './adminAccess.js';
 import {
   enrichProduct,
   enrichProducts,
@@ -1450,7 +1450,7 @@ app.post('/api/support/messages', authMiddleware, (req, res) => {
 app.get('/api/admin/status', optionalAuth, (req, res) => {
   const role = req.user ? getUserOperatorRole(req.user) : null;
   const session = getAdminSession(req.cookies.pinkdrop_admin_session);
-  const hasAdminSession = Boolean(session?.user_id);
+  const hasAdminSession = Boolean(session);
 
   let authenticated = false;
   let effectiveRole = null;
@@ -1458,7 +1458,7 @@ app.get('/api/admin/status', optionalAuth, (req, res) => {
   if (role === 'admin' && hasAdminSession) {
     authenticated = true;
     effectiveRole = 'admin';
-  } else if (role === 'support' && req.user) {
+  } else if (isUserSupportOperator(req.user) && req.user) {
     authenticated = true;
     effectiveRole = 'support';
   }
@@ -1467,7 +1467,7 @@ app.get('/api/admin/status', optionalAuth, (req, res) => {
     configured: Boolean(role) || isAdminConfigured(),
     allowed: Boolean(role),
     authenticated,
-    role: role ?? null,
+    role: effectiveRole ?? role ?? null,
     requiresPassword: role === 'admin',
   });
 });

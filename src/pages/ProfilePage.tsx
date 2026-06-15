@@ -452,6 +452,11 @@ export function ProfilePage() {
 
           <div className="profile-card__user-meta">
             <span className="profile-card__tag mono">USER_SESSION</span>
+            {user.operatorRole && (
+              <span className="operator-role-badge operator-role-badge--profile">
+                {user.operatorRole === 'admin' ? 'Администратор' : 'Поддержка'}
+              </span>
+            )}
             {user.phone && <p className="profile-card__phone">{user.phone}</p>}
             {user.email && <p className="profile-card__email">{user.email}</p>}
             {userHasTelegramAccess(user) && (

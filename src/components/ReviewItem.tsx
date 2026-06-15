@@ -1,4 +1,5 @@
 import type { Review } from '../types';
+import { operatorRoleLabel } from '../types';
 import { ReviewAuthorAvatar } from './ReviewAuthorAvatar';
 import { ReviewMediaGrid } from './ReviewMediaGrid';
 
@@ -20,6 +21,9 @@ export function ReviewItem({ review }: ReviewItemProps) {
       <div className="review-item__body">
         <div className="review-item__header">
           <strong>{review.author}</strong>
+          {review.authorOperatorRole && (
+            <span className="operator-role-badge">{operatorRoleLabel(review.authorOperatorRole)}</span>
+          )}
           <span className="review-item__date">{dateLabel}</span>
           <span className="review-item__stars" aria-label={`Оценка ${review.rating} из 5`}>
             {'★'.repeat(review.rating)}

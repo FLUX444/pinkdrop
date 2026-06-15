@@ -9,6 +9,7 @@ import {
   isTelegramEnabled,
   isVkEnabled,
 } from './config.js';
+import { getUserOperatorRole } from './adminAccess.js';
 import {
   sendAccountLoginNotificationEmail,
   sendEmailChangedNotificationEmail,
@@ -187,6 +188,7 @@ export function userToJson(user) {
     hasPassword: Boolean(user.password_hash),
     createdAt: user.created_at,
     purchasedProductIds: purchases,
+    operatorRole: getUserOperatorRole(user) ?? undefined,
   };
 }
 

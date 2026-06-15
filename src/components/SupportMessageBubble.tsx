@@ -1,5 +1,6 @@
 import { Check, CheckCheck, User } from 'lucide-react';
 import type { SupportMessage } from '../types';
+import { operatorRoleLabel } from '../types';
 import { AvatarWithPresence } from './AvatarWithPresence';
 import { ReviewMediaGrid } from './ReviewMediaGrid';
 
@@ -22,6 +23,10 @@ function formatMessageTime(value: string) {
 export function SupportMessageBubble({ message, userLabel }: SupportMessageBubbleProps) {
   const author =
     message.senderRole === 'user' && userLabel ? userLabel : message.authorName;
+  const roleBadge =
+    message.senderRole === 'admin' && message.authorOperatorRole
+      ? operatorRoleLabel(message.authorOperatorRole)
+      : null;
   const media = message.media ?? [];
   const showBody = message.body && !(media.length > 0 && message.body === '📎 Вложение');
 
@@ -38,6 +43,7 @@ export function SupportMessageBubble({ message, userLabel }: SupportMessageBubbl
           )}
         </AvatarWithPresence>
         <span className="support-chat-bubble__author">{author}</span>
+        {roleBadge && <span className="operator-role-badge">{roleBadge}</span>}
       </div>
       {showBody && <p>{message.body}</p>}
       {media.length > 0 && (

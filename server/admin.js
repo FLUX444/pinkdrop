@@ -100,17 +100,25 @@ export function adminMiddleware(req, res, next) {
 export function operatorMiddleware(req, res, next) {
   const session = getAdminSession(req.cookies.pinkdrop_admin_session);
 
-  if (session?.user_id) {
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
-    if (user) {
-      const role = getUserOperatorRole(user);
-      if (role) {
+  if (session) {
+    const sessionUser = session.user_id
+      ? db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id)
+      : null;
+
+    if (sessionUser) {
+      const role = getUserOperatorRole(sessionUser);
+      if (role === 'admin') {
         req.adminSession = session;
-        req.operatorRole = role;
-        req.operatorUser = user;
+        req.operatorRole = 'admin';
+        req.operatorUser = sessionUser;
         return next();
       }
       logoutAdmin(session.id);
+    } else {
+      req.adminSession = session;
+      req.operatorRole = 'admin';
+      req.operatorUser = req.user ?? null;
+      return next();
     }
   }
 

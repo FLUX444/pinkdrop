@@ -150,12 +150,16 @@ function rowToEscalationMessage(row) {
       context = null;
     }
   }
+  const senderLabel =
+    row.sender_name || row.sender_email || (row.sender_role === 'admin' ? 'Администратор' : 'Саппорт');
   return {
     id: String(row.id),
     threadId: String(row.thread_id),
     senderUserId: String(row.sender_user_id),
     senderRole: row.sender_role,
     senderName: row.sender_name ?? null,
+    senderEmail: row.sender_email ?? null,
+    senderLabel,
     body: row.body,
     context,
     createdAt: row.created_at,
@@ -327,7 +331,7 @@ export function getEscalationMessages(threadId, viewer) {
 
   const rows = db
     .prepare(
-      `SELECT m.*, u.name AS sender_name
+      `SELECT m.*, u.name AS sender_name, u.email AS sender_email
        FROM support_escalation_messages m
        LEFT JOIN users u ON u.id = m.sender_user_id
        WHERE m.thread_id = ?
@@ -462,7 +466,7 @@ export function addEscalationMessage({
 
   const row = db
     .prepare(
-      `SELECT m.*, u.name AS sender_name
+      `SELECT m.*, u.name AS sender_name, u.email AS sender_email
        FROM support_escalation_messages m
        LEFT JOIN users u ON u.id = m.sender_user_id
        WHERE m.id = ?`

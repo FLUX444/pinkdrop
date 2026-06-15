@@ -4,6 +4,7 @@ import { mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { DEFAULT_LEGAL_PAGES, legalRowToJson, sanitizeLegalHtml } from './legalPages.js';
+import { getUserOperatorRole } from './adminAccess.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(__dirname, 'data');
@@ -1403,12 +1404,15 @@ function getUserAvatarUrl(userId) {
 
 function reviewRowToJson(row) {
   const anonymous = Boolean(row.anonymous);
+  const user = anonymous ? null : db.prepare('SELECT * FROM users WHERE id = ?').get(row.user_id);
+  const operatorRole = user ? getUserOperatorRole(user) ?? null : null;
   return {
     id: String(row.id),
     userId: String(row.user_id),
     author: anonymous ? 'Аноним' : getReviewAuthorName(row.user_id) || row.author_name || 'Покупатель',
     anonymous,
     authorAvatarUrl: anonymous ? null : getUserAvatarUrl(row.user_id),
+    authorOperatorRole: operatorRole ?? undefined,
     rating: row.rating,
     text: row.text,
     media: JSON.parse(row.media || '[]'),

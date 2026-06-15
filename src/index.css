@@ -14640,6 +14640,51 @@ a.checkout-summary__product-name:active {
   border-color: #9ca3af;
 }
 
+.about-section__row--team {
+  justify-items: center;
+}
+
+.about-section__row--team .about-section__block {
+  width: 100%;
+  max-width: 760px;
+}
+
+@media (min-width: 820px) {
+  .about-section__row--team {
+    grid-template-columns: 1fr;
+  }
+}
+
+.operator-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 45, 149, 0.45);
+  background: rgba(255, 45, 149, 0.12);
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.operator-role-badge--profile {
+  margin-top: 4px;
+}
+
+.admin-escalation-bubble__head,
+.support-chat-bubble__head {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.review-item__header {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .profile-avatar-editor__presence {
   display: inline-flex;
 }

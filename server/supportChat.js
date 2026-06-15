@@ -13,6 +13,7 @@ import {
   getSecurityIncidentPrefill,
   getSecurityIncidentToken,
 } from './securityIncident.js';
+import { getUserOperatorRole } from './adminAccess.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -337,6 +338,30 @@ function getMessageReadStatus(messageRow, thread, viewerRole) {
   return readAt >= messageTime ? 'read' : 'sent';
 }
 
+function getOperatorAuthorMeta(adminUserId, thread) {
+  const userId = adminUserId ?? thread?.joined_admin_user_id ?? null;
+  if (!userId) {
+    return { authorName: 'Поддержка', authorOperatorRole: 'support' };
+  }
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  if (!user) {
+    return { authorName: thread?.joined_admin_name || 'Поддержка', authorOperatorRole: 'support' };
+  }
+
+  const operatorRole = getUserOperatorRole(user);
+  const authorName =
+    user.name ||
+    user.email ||
+    user.phone ||
+    (operatorRole === 'admin' ? 'Администратор' : 'Поддержка');
+
+  return {
+    authorName,
+    authorOperatorRole: operatorRole === 'admin' ? 'admin' : 'support',
+  };
+}
+
 function rowToMessage(row, thread, media = [], viewerRole = 'user') {
   const base = {
     id: String(row.id),
@@ -361,7 +386,7 @@ function rowToMessage(row, thread, media = [], viewerRole = 'user') {
     };
   }
 
-  const showAdminName = Boolean(thread?.joined_admin_user_id);
+  const operatorMeta = getOperatorAuthorMeta(row.admin_user_id, thread);
   return {
     ...base,
     authorUserId: row.admin_user_id
@@ -369,7 +394,8 @@ function rowToMessage(row, thread, media = [], viewerRole = 'user') {
       : thread?.joined_admin_user_id
         ? String(thread.joined_admin_user_id)
         : null,
-    authorName: showAdminName ? thread.joined_admin_name || 'Администратор' : 'Поддержка',
+    authorName: operatorMeta.authorName,
+    authorOperatorRole: operatorMeta.authorOperatorRole,
     authorAvatarUrl:
       row.admin_avatar_url ?? thread?.joined_admin_avatar ?? thread?.admin_avatar_url ?? null,
   };

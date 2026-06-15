@@ -11,6 +11,7 @@ export interface Review {
   media?: ReviewMedia[];
   anonymous?: boolean;
   authorAvatarUrl?: string | null;
+  authorOperatorRole?: OperatorRole;
 }
 
 export interface ReviewMedia {
@@ -295,6 +296,7 @@ export interface User {
   hasPassword?: boolean;
   createdAt?: string;
   purchasedProductIds: string[];
+  operatorRole?: OperatorRole;
 }
 
 export interface AdminUser {
@@ -420,6 +422,12 @@ export interface AboutConfig {
 
 export type OperatorRole = 'admin' | 'support';
 
+export function operatorRoleLabel(role?: OperatorRole | null) {
+  if (role === 'admin') return 'Администратор';
+  if (role === 'support') return 'Поддержка';
+  return null;
+}
+
 export interface EscalationThreadContext {
   customerThreadId: string;
   ticketNumber: string;
@@ -467,6 +475,8 @@ export interface EscalationMessage {
   senderUserId: string;
   senderRole: 'support' | 'admin';
   senderName: string | null;
+  senderEmail?: string | null;
+  senderLabel?: string;
   body: string;
   context: EscalationThreadContext | null;
   createdAt: string;
@@ -584,6 +594,7 @@ export interface SupportMessage {
   createdAt: string;
   senderRole: 'user' | 'admin';
   authorName: string;
+  authorOperatorRole?: OperatorRole;
   authorUserId?: string | null;
   authorAvatarUrl: string | null;
   readStatus?: 'sent' | 'read';

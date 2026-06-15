@@ -10,6 +10,7 @@ import { EscalationTicketPicker } from '../components/EscalationTicketPicker';
 import { api } from '../api/client';
 import { useOperatorAuth } from '../hooks/useOperatorAuth';
 import type { EscalationMessage, EscalationThread, EscalationThreadContext, SupportThread } from '../types';
+import { operatorRoleLabel } from '../types';
 
 function formatDate(value: string | null) {
   if (!value) return '';
@@ -69,7 +70,12 @@ function EscalationMessageBubble({
   const isOwn =
     (viewerRole === 'support' && message.senderRole === 'support') ||
     (viewerRole === 'admin' && message.senderRole === 'admin');
-  const author = message.senderName || (message.senderRole === 'admin' ? 'Администратор' : 'Саппорт');
+  const author =
+    message.senderLabel ||
+    message.senderName ||
+    message.senderEmail ||
+    (message.senderRole === 'admin' ? 'Администратор' : 'Саппорт');
+  const roleBadge = operatorRoleLabel(message.senderRole);
   const media = message.media ?? [];
   const showBody = message.body && !(media.length > 0 && message.body === '📎 Вложение');
 
@@ -80,6 +86,7 @@ function EscalationMessageBubble({
           {author.trim().charAt(0).toUpperCase() || <User size={14} />}
         </span>
         <span className="admin-escalation-bubble__author">{author}</span>
+        {roleBadge && <span className="operator-role-badge">{roleBadge}</span>}
       </div>
       {message.context && <EscalationContextCard context={message.context} />}
       {showBody && <p>{message.body}</p>}

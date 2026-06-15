@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { User } from '../types';
 import { AvatarCropModal } from './AvatarCropModal';
-import { AvatarWithPresence } from './AvatarWithPresence';
 
 function TelegramCameraIcon() {
   return (
@@ -112,31 +111,29 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
 
   return (
     <div className="profile-avatar-editor">
-      <AvatarWithPresence userId={user.id} size={96} className="profile-avatar-editor__presence">
-        <button
-          type="button"
-          className="profile-avatar-editor__trigger"
-          onClick={handlePick}
-          disabled={busy}
-          aria-label="Изменить фото профиля"
-        >
-          {displayAvatar ? (
-            <img
-              src={displayAvatar}
-              alt=""
-              className="profile-avatar-editor__image"
-              onError={() => setError('Не удалось загрузить фото профиля')}
-            />
-          ) : (
-            <span className="profile-avatar-editor__placeholder" aria-hidden>
-              {getDisplayLabel(user).charAt(0).toUpperCase()}
-            </span>
-          )}
-          <span className="profile-avatar-editor__camera" aria-hidden>
-            {busy ? <Loader2 size={16} className="profile-avatar-editor__spin" /> : <TelegramCameraIcon />}
+      <button
+        type="button"
+        className="profile-avatar-editor__trigger"
+        onClick={handlePick}
+        disabled={busy}
+        aria-label="Изменить фото профиля"
+      >
+        {displayAvatar ? (
+          <img
+            src={displayAvatar}
+            alt=""
+            className="profile-avatar-editor__image"
+            onError={() => setError('Не удалось загрузить фото профиля')}
+          />
+        ) : (
+          <span className="profile-avatar-editor__placeholder" aria-hidden>
+            {getDisplayLabel(user).charAt(0).toUpperCase()}
           </span>
-        </button>
-      </AvatarWithPresence>
+        )}
+        <span className="profile-avatar-editor__camera" aria-hidden>
+          {busy ? <Loader2 size={16} className="profile-avatar-editor__spin" /> : <TelegramCameraIcon />}
+        </span>
+      </button>
 
       <input
         ref={inputRef}
