@@ -11,6 +11,7 @@ import {
   Headphones,
   MapPin,
   MessageCircle,
+  MessageSquare,
   Navigation,
   Phone,
   Plus,
@@ -685,8 +686,10 @@ export function ProfilePage() {
               <ShieldCheck size={20} />
             </span>
             <div>
-              <span className="mono profile-admin__tag">ADMIN_TOOLS</span>
-              <h2>Админ-функции</h2>
+              <span className="mono profile-admin__tag">
+                {adminRole === 'support' ? 'SUPPORT_OPS' : 'ADMIN_TOOLS'}
+              </span>
+              <h2>{adminRole === 'support' ? 'Обращения' : 'Админ-функции'}</h2>
             </div>
           </div>
 
@@ -695,10 +698,16 @@ export function ProfilePage() {
               {adminRole !== 'support' && <AdminNotifications />}
               <div className="profile-admin__grid">
                 {adminRole === 'support' ? (
-                  <Link to="/admin/support" className="profile-admin__link">
-                    <MessageCircle size={18} />
-                    <span>Поддержка</span>
-                  </Link>
+                  <>
+                    <Link to="/admin/support" className="profile-admin__link">
+                      <MessageCircle size={18} />
+                      <span>Поддержка</span>
+                    </Link>
+                    <Link to="/admin/escalations" className="profile-admin__link">
+                      <MessageSquare size={18} />
+                      <span>Связь с админом</span>
+                    </Link>
+                  </>
                 ) : (
                   <>
                     <Link to="/admin/orders" className="profile-admin__link">
@@ -740,10 +749,23 @@ export function ProfilePage() {
                   </>
                 )}
               </div>
-              <button type="button" className="profile-admin__logout" onClick={() => void handleAdminLogout()}>
-                Закрыть админ-доступ
-              </button>
+              {adminRole !== 'support' && (
+                <button type="button" className="profile-admin__logout" onClick={() => void handleAdminLogout()}>
+                  Закрыть админ-доступ
+                </button>
+              )}
             </>
+          ) : adminRole === 'support' ? (
+            <div className="profile-admin__grid">
+              <Link to="/admin/support" className="profile-admin__link">
+                <MessageCircle size={18} />
+                <span>Поддержка</span>
+              </Link>
+              <Link to="/admin/escalations" className="profile-admin__link">
+                <MessageSquare size={18} />
+                <span>Связь с админом</span>
+              </Link>
+            </div>
           ) : (
             <form className="profile-admin__login" onSubmit={handleAdminLogin}>
               <label>

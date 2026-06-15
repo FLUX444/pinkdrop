@@ -69,6 +69,8 @@ export function AdminSupportPage() {
   const [reopening, setReopening] = useState(false);
   const [typing, setTyping] = useState<SupportTypingState>({ isTyping: false, role: null });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const showLogout = operatorRole !== 'support';
+  const handleLayoutLogout = showLogout ? () => void handleLogout() : undefined;
 
   useEffect(() => {
     if (!threadId) {
@@ -240,6 +242,14 @@ export function AdminSupportPage() {
   }
 
   if (!authenticated) {
+    if (operatorRole === 'support') {
+      return (
+        <div className="admin-page admin-page--gate">
+          <p className="admin-page__error">Войдите в аккаунт на сайте, чтобы открыть обращения.</p>
+        </div>
+      );
+    }
+
     return (
       <AdminLoginScreen
         error={error}
@@ -253,7 +263,7 @@ export function AdminSupportPage() {
 
   if (threadId && !activeThread && !error) {
     return (
-      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" role={operatorRole} onLogout={() => void handleLogout()}>
+      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" role={operatorRole} onLogout={handleLayoutLogout}>
         <p className="admin-support-inbox__empty">Загрузка чата...</p>
       </AdminLayout>
     );
@@ -263,7 +273,7 @@ export function AdminSupportPage() {
     const isThreadClosed = activeThread.status === 'closed';
 
     return (
-      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" role={operatorRole} onLogout={() => void handleLogout()}>
+      <AdminLayout title="Чат поддержки" tag="SUPPORT_CHAT" role={operatorRole} onLogout={handleLayoutLogout}>
         <div className="admin-support-chat">
           <Link to="/admin/support" className="admin-support-chat__back">
             <ArrowLeft size={18} />
@@ -356,7 +366,7 @@ export function AdminSupportPage() {
   }
 
   return (
-    <AdminLayout title="Поддержка" tag="SUPPORT_INBOX" role={operatorRole} onLogout={() => void handleLogout()}>
+    <AdminLayout title="Поддержка" tag="SUPPORT_INBOX" role={operatorRole} onLogout={handleLayoutLogout}>
       <div className="admin-support-inbox">
         {unreadCount > 0 && (
           <p className="admin-support-inbox__summary">

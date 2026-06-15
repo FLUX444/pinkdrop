@@ -414,6 +414,47 @@ export interface ContactsConfig {
 
 export type OperatorRole = 'admin' | 'support';
 
+export interface EscalationThreadContext {
+  customerThreadId: string;
+  ticketNumber: string;
+  orderId: string | null;
+  threadKind: string;
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+  userPhone: string | null;
+  productId: string | null;
+  productCategory: string | null;
+  productName: string | null;
+  productPrice: number | null;
+  productImage: string | null;
+}
+
+export interface EscalationThread {
+  id: string;
+  supportUserId: string;
+  supportUserName: string | null;
+  supportUserEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unreadForAdmin: number;
+  unreadForSupport: number;
+}
+
+export interface EscalationMessage {
+  id: string;
+  threadId: string;
+  senderUserId: string;
+  senderRole: 'support' | 'admin';
+  senderName: string | null;
+  body: string;
+  context: EscalationThreadContext | null;
+  createdAt: string;
+  media?: SupportMessageMedia[];
+}
+
 export interface SupportOperator {
   id: number;
   email: string | null;

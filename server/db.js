@@ -636,6 +636,37 @@ function migrateSupportTicketCounter() {
   }
 }
 
+function migrateSupportEscalationTables() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS support_escalation_threads (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      support_user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+      admin_last_read_at TEXT,
+      support_last_read_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS support_escalation_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      thread_id INTEGER NOT NULL REFERENCES support_escalation_threads(id) ON DELETE CASCADE,
+      sender_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      sender_role TEXT NOT NULL CHECK (sender_role IN ('support', 'admin')),
+      body TEXT NOT NULL DEFAULT '',
+      context_snapshot TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS support_escalation_media (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      message_id INTEGER NOT NULL REFERENCES support_escalation_messages(id) ON DELETE CASCADE,
+      url TEXT NOT NULL,
+      media_type TEXT NOT NULL CHECK (media_type IN ('image', 'video')),
+      name TEXT
+    );
+  `);
+}
+
 export function initDb() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -906,6 +937,7 @@ export function initDb() {
   migrateTelegramAuthTables();
   migrateOrderItemDiscountColumns();
   migrateSupportTicketCounter();
+  migrateSupportEscalationTables();
   seedProducts();
   seedPriceDrops();
   seedGlobalPriceDrop();

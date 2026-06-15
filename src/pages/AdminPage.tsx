@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { api } from '../api/client';
 import { useAppDialog } from '../context/AppDialogContext';
@@ -10,6 +10,7 @@ import type { Product } from '../types';
 
 export function AdminPage() {
   const { confirm } = useAppDialog();
+  const navigate = useNavigate();
   const [configured, setConfigured] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,10 @@ export function AdminPage() {
       .getAdminStatus()
       .then(async (status) => {
         setConfigured(status.configured);
+        if (status.role === 'support' && status.allowed) {
+          navigate('/admin/support', { replace: true });
+          return;
+        }
         setAuthenticated(status.authenticated);
         if (status.authenticated) {
           await loadProducts();

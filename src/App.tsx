@@ -29,6 +29,7 @@ import { AdminUserEditPage } from './pages/AdminUserEditPage';
 import { AdminSupportPage } from './pages/AdminSupportPage';
 import { AdminContactsPage } from './pages/AdminContactsPage';
 import { AdminSupportTeamPage } from './pages/AdminSupportTeamPage';
+import { AdminEscalationPage } from './pages/AdminEscalationPage';
 import { UserSupportPage } from './pages/UserSupportPage';
 import { SupportChatWidget } from './components/SupportChatWidget';
 import { SeoManager } from './components/SeoManager';
@@ -65,6 +66,8 @@ function App() {
           <Route path="/admin/monitor" element={<AdminMonitorPage />} />
           <Route path="/admin/support" element={<AdminSupportPage />} />
           <Route path="/admin/support/:threadId" element={<AdminSupportPage />} />
+          <Route path="/admin/escalations" element={<AdminEscalationPage />} />
+          <Route path="/admin/escalations/:threadId" element={<AdminEscalationPage />} />
           <Route path="/admin/contacts" element={<AdminContactsPage />} />
           <Route path="/admin/support-team" element={<AdminSupportTeamPage />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />

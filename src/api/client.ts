@@ -26,6 +26,8 @@ import type {
   SupportPublicConfig,
   SupportThread,
   SupportTypingState,
+  EscalationThread,
+  EscalationMessage,
   User,
   UserOrder,
   AdminUser,
@@ -358,9 +360,13 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   getAdminStatus: () =>
-    request<{ configured: boolean; allowed: boolean; authenticated: boolean; role: OperatorRole | null }>(
-      '/admin/status'
-    ),
+    request<{
+      configured: boolean;
+      allowed: boolean;
+      authenticated: boolean;
+      role: OperatorRole | null;
+      requiresPassword?: boolean;
+    }>('/admin/status'),
   getAdminNotifications: () =>
     request<{ notifications: AdminNotification[]; unreadCount: number }>('/admin/notifications'),
   markAdminNotificationRead: (id: string) =>
@@ -640,6 +646,32 @@ export const api = {
     files.forEach((file) => formData.append('media', file));
     return request<{ thread: SupportThread; message: SupportMessage }>(
       `/admin/support/threads/${id}/messages`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+  },
+  getEscalationThreads: () =>
+    request<{ threads: EscalationThread[] }>('/admin/escalations/threads'),
+  getEscalationThread: (id: string) =>
+    request<{ thread: EscalationThread; messages: EscalationMessage[] }>(
+      `/admin/escalations/threads/${id}`
+    ),
+  sendEscalationMessage: (
+    threadId: string,
+    body: string,
+    files: File[] = [],
+    customerThreadId?: string | null
+  ) => {
+    const formData = new FormData();
+    const trimmed = body.trim();
+    if (trimmed) formData.append('body', trimmed);
+    formData.append('threadId', threadId);
+    if (customerThreadId) formData.append('customerThreadId', customerThreadId);
+    files.forEach((file) => formData.append('media', file));
+    return request<{ message: EscalationMessage }>(
+      `/admin/escalations/threads/${threadId}/messages`,
       {
         method: 'POST',
         body: formData,

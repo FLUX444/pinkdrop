@@ -10,10 +10,12 @@ const uploadsDir = join(publicRoot, 'images', 'products');
 const reviewUploadsRoot = join(publicRoot, 'uploads', 'reviews');
 const avatarUploadsDir = join(publicRoot, 'uploads', 'avatars');
 const supportUploadsRoot = join(publicRoot, 'uploads', 'support');
+const escalationUploadsRoot = join(publicRoot, 'uploads', 'escalation');
 mkdirSync(uploadsDir, { recursive: true });
 mkdirSync(reviewUploadsRoot, { recursive: true });
 mkdirSync(avatarUploadsDir, { recursive: true });
 mkdirSync(supportUploadsRoot, { recursive: true });
+mkdirSync(escalationUploadsRoot, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
@@ -114,6 +116,29 @@ const supportStorage = multer.diskStorage({
 
 export const uploadSupportMedia = multer({
   storage: supportStorage,
+  fileFilter: reviewFileFilter,
+  limits: { fileSize: 25 * 1024 * 1024, files: 5 },
+}).array('media', 5);
+
+const escalationStorage = multer.diskStorage({
+  destination: (req, _file, cb) => {
+    const threadId = safeSegment(req.body?.threadId || req.params?.id || 'general');
+    const dir = join(escalationUploadsRoot, threadId);
+    req.escalationMediaUrlBase = `/uploads/escalation/${threadId}`;
+    mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = extname(file.originalname).toLowerCase() || '.bin';
+    const safeExt = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.mp4', '.webm', '.mov'].includes(ext)
+      ? ext
+      : '.bin';
+    cb(null, `escalation-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${safeExt}`);
+  },
+});
+
+export const uploadEscalationMedia = multer({
+  storage: escalationStorage,
   fileFilter: reviewFileFilter,
   limits: { fileSize: 25 * 1024 * 1024, files: 5 },
 }).array('media', 5);

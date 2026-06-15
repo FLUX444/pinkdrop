@@ -691,6 +691,12 @@ export async function createProductSupportThread(user, payload) {
   return { thread: rowToThread(threadMeta) };
 }
 
+export function getSupportThreadSnapshot(threadId) {
+  const thread = getThreadRowById(threadId);
+  if (!thread) return null;
+  return rowToThread(thread);
+}
+
 export function listSupportThreadsForAdmin() {
   const rows = db
     .prepare(

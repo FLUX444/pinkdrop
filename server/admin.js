@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import db from './db.js';
 import { config } from './config.js';
-import { getUserOperatorRole } from './adminAccess.js';
+import { isUserSupportOperator, getUserOperatorRole } from './adminAccess.js';
 
 const ADMIN_SESSION_DAYS = 7;
 
@@ -99,31 +99,28 @@ export function adminMiddleware(req, res, next) {
 
 export function operatorMiddleware(req, res, next) {
   const session = getAdminSession(req.cookies.pinkdrop_admin_session);
-  if (!session) {
-    return res.status(401).json({ error: 'Admin unauthorized' });
+
+  if (session?.user_id) {
+    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
+    if (user) {
+      const role = getUserOperatorRole(user);
+      if (role) {
+        req.adminSession = session;
+        req.operatorRole = role;
+        req.operatorUser = user;
+        return next();
+      }
+      logoutAdmin(session.id);
+    }
   }
 
-  if (!session.user_id) {
-    logoutAdmin(session.id);
-    return res.status(403).json({ error: 'Session expired, sign in again' });
+  if (req.user && isUserSupportOperator(req.user)) {
+    req.operatorRole = 'support';
+    req.operatorUser = req.user;
+    return next();
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(session.user_id);
-  if (!user) {
-    logoutAdmin(session.id);
-    return res.status(403).json({ error: 'User not found' });
-  }
-
-  const role = getUserOperatorRole(user);
-  if (!role) {
-    logoutAdmin(session.id);
-    return res.status(403).json({ error: 'Access revoked' });
-  }
-
-  req.adminSession = session;
-  req.operatorRole = role;
-  req.operatorUser = user;
-  next();
+  return res.status(401).json({ error: 'Unauthorized' });
 }
 
 export function adminOnlyMiddleware(req, res, next) {

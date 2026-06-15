@@ -56,6 +56,7 @@ import {
   uploadProductImages,
   uploadReviewMedia,
   uploadSupportMedia,
+  uploadEscalationMedia,
   uploadUserAvatar,
   publicRoot,
 } from './upload.js';
@@ -143,6 +144,12 @@ import {
   getSecurityIncidentSupportPayload,
   submitSecurityIncidentSupport,
 } from './supportChat.js';
+import {
+  addEscalationMessage,
+  getEscalationMessages,
+  getOrCreateEscalationThread,
+  listEscalationThreadsForAdmin,
+} from './supportEscalation.js';
 import { listAdminUsers, getAdminUser, sendAdminUserEmailCode, updateAdminUser, resendAdminUserCredentials } from './adminUsers.js';
 import { redeemAdminCredentialsEntry, sanitizeCredentialsEntryNext } from './adminCredentialsToken.js';
 import { purgeSiteOperationalData } from './adminDatabaseCleanup.js';
@@ -1437,11 +1444,25 @@ app.post('/api/support/messages', authMiddleware, (req, res) => {
 app.get('/api/admin/status', optionalAuth, (req, res) => {
   const role = req.user ? getUserOperatorRole(req.user) : null;
   const session = getAdminSession(req.cookies.pinkdrop_admin_session);
+  const hasAdminSession = Boolean(session?.user_id);
+
+  let authenticated = false;
+  let effectiveRole = null;
+
+  if (role === 'admin' && hasAdminSession) {
+    authenticated = true;
+    effectiveRole = 'admin';
+  } else if (role === 'support' && req.user) {
+    authenticated = true;
+    effectiveRole = 'support';
+  }
+
   res.json({
-    configured: isAdminConfigured(),
+    configured: role === 'support' ? true : isAdminConfigured(),
     allowed: Boolean(role),
-    authenticated: Boolean(role && session),
-    role: role && session ? role : null,
+    authenticated,
+    role: role ?? null,
+    requiresPassword: role === 'admin',
   });
 });
 
@@ -1449,6 +1470,10 @@ app.post('/api/admin/login', adminLoginLimiter, authMiddleware, (req, res) => {
   const role = getUserOperatorRole(req.user);
   if (!role) {
     return res.status(403).json({ error: 'У вас нет доступа к панели оператора' });
+  }
+
+  if (role === 'support') {
+    return res.json({ ok: true, role: 'support' });
   }
 
   try {
@@ -1493,23 +1518,23 @@ app.get('/api/admin/notifications', adminMiddleware, (_req, res) => {
   });
 });
 
-app.get('/api/admin/support/threads', operatorMiddleware, (_req, res) => {
+app.get('/api/admin/support/threads', optionalAuth, operatorMiddleware, (_req, res) => {
   res.json({
     threads: listSupportThreadsForAdmin(),
     unreadCount: getUnreadSupportCountForAdmin(),
   });
 });
 
-app.get('/api/admin/support/threads/:id', operatorMiddleware, optionalAuth, (req, res) => {
+app.get('/api/admin/support/threads/:id', optionalAuth, operatorMiddleware, (req, res) => {
   try {
-    const adminUser = req.user ?? { id: 0, name: 'Администратор' };
+    const adminUser = req.operatorUser ?? { id: 0, name: 'Администратор' };
     res.json(getSupportThreadForAdmin(req.params.id, adminUser));
   } catch (error) {
     res.status(404).json({ error: error.message || 'Support thread not found' });
   }
 });
 
-app.post('/api/admin/support/threads/:id/close', operatorMiddleware, (req, res) => {
+app.post('/api/admin/support/threads/:id/close', optionalAuth, operatorMiddleware, (req, res) => {
   try {
     res.json({ thread: closeAdminSupportThread(req.params.id) });
   } catch (error) {
@@ -1517,7 +1542,7 @@ app.post('/api/admin/support/threads/:id/close', operatorMiddleware, (req, res) 
   }
 });
 
-app.post('/api/admin/support/threads/:id/reopen', operatorMiddleware, (req, res) => {
+app.post('/api/admin/support/threads/:id/reopen', optionalAuth, operatorMiddleware, (req, res) => {
   try {
     res.json({ thread: reopenAdminSupportThread(req.params.id) });
   } catch (error) {
@@ -1525,7 +1550,7 @@ app.post('/api/admin/support/threads/:id/reopen', operatorMiddleware, (req, res)
   }
 });
 
-app.post('/api/admin/support/threads/:id/typing', operatorMiddleware, (req, res) => {
+app.post('/api/admin/support/threads/:id/typing', optionalAuth, operatorMiddleware, (req, res) => {
   try {
     const thread = db.prepare('SELECT id FROM support_threads WHERE id = ?').get(req.params.id);
     if (!thread) return res.status(404).json({ error: 'Чат не найден' });
@@ -1536,14 +1561,14 @@ app.post('/api/admin/support/threads/:id/typing', operatorMiddleware, (req, res)
   }
 });
 
-app.post('/api/admin/support/threads/:id/messages', operatorMiddleware, optionalAuth, (req, res) => {
+app.post('/api/admin/support/threads/:id/messages', optionalAuth, operatorMiddleware, (req, res) => {
   req.body = { ...req.body, threadId: req.params.id };
   uploadSupportMedia(req, res, (uploadError) => {
     if (uploadError) {
       return res.status(400).json({ error: uploadError.message || 'Upload failed' });
     }
     try {
-      const adminUser = req.user ?? { id: 0, name: 'Администратор' };
+      const adminUser = req.operatorUser ?? { id: 0, name: 'Администратор' };
       res.json(
         addAdminSupportMessage(
           req.params.id,
@@ -1555,6 +1580,55 @@ app.post('/api/admin/support/threads/:id/messages', operatorMiddleware, optional
       );
     } catch (error) {
       res.status(400).json({ error: error.message || 'Failed to send support reply' });
+    }
+  });
+});
+
+app.get('/api/admin/escalations/threads', optionalAuth, operatorMiddleware, (req, res) => {
+  if (req.operatorRole === 'admin') {
+    return res.json({ threads: listEscalationThreadsForAdmin() });
+  }
+  const thread = getOrCreateEscalationThread(req.operatorUser.id);
+  res.json({ threads: thread ? [thread] : [] });
+});
+
+app.get('/api/admin/escalations/threads/:id', optionalAuth, operatorMiddleware, (req, res) => {
+  try {
+    const payload = getEscalationMessages(req.params.id, {
+      role: req.operatorRole,
+      user: req.operatorUser,
+    });
+    if (!payload) {
+      return res.status(404).json({ error: 'Чат не найден' });
+    }
+    res.json(payload);
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to load escalation chat' });
+  }
+});
+
+app.post('/api/admin/escalations/threads/:id/messages', optionalAuth, operatorMiddleware, (req, res) => {
+  req.body = { ...req.body, threadId: req.params.id };
+  uploadEscalationMedia(req, res, (uploadError) => {
+    if (uploadError) {
+      return res.status(400).json({ error: uploadError.message || 'Upload failed' });
+    }
+    try {
+      const customerThreadId = req.body?.customerThreadId
+        ? String(req.body.customerThreadId)
+        : null;
+      const message = addEscalationMessage({
+        threadId: req.params.id,
+        senderUser: req.operatorUser,
+        senderRole: req.operatorRole === 'admin' ? 'admin' : 'support',
+        body: req.body?.body,
+        customerThreadId,
+        files: req.files ?? [],
+        mediaUrlBase: req.escalationMediaUrlBase ?? '',
+      });
+      res.json({ message });
+    } catch (error) {
+      res.status(400).json({ error: error.message || 'Failed to send escalation message' });
     }
   });
 });

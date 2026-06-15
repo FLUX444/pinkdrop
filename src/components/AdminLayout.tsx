@@ -16,6 +16,7 @@ const ADMIN_NAV = [
   { to: '/admin/promo-codes', label: 'Промокоды' },
   { to: '/admin/users', label: 'Пользователи' },
   { to: '/admin/support', label: 'Поддержка' },
+  { to: '/admin/escalations', label: 'Саппорт-чат' },
   { to: '/admin/support-team', label: 'Саппорт' },
   { to: '/admin/products/new', label: 'Добавить товар' },
   { to: '/admin/hero', label: 'Главная' },
@@ -25,7 +26,10 @@ const ADMIN_NAV = [
   { to: '/admin/monitor', label: 'Мониторинг' },
 ];
 
-const SUPPORT_NAV = [{ to: '/admin/support', label: 'Поддержка' }];
+const SUPPORT_NAV = [
+  { to: '/admin/support', label: 'Поддержка' },
+  { to: '/admin/escalations', label: 'Админ' },
+];
 
 export function AdminLayout({ title, tag, role = 'admin', onLogout, children }: AdminLayoutProps) {
   const location = useLocation();
