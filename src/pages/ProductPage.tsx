@@ -16,11 +16,13 @@ import { ProductImageGallery } from '../components/ProductImageGallery';
 import { SimilarProducts } from '../components/SimilarProducts';
 import { ReviewItem } from '../components/ReviewItem';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { ShareMenu } from '../components/ShareMenu';
 import {
   getProductReferencePrice,
   hasActivePriceDropDiscount,
 } from '../utils/productPriceDrop';
 import { getSimilarProducts } from '../utils/similarProducts';
+import { buildProductShare } from '../utils/shareLinks';
 
 type Tab = 'description' | 'specs' | 'reviews';
 
@@ -224,6 +226,7 @@ export function ProductPage() {
   }
 
   const maxQty = getMaxPurchasableQuantity(product);
+  const productShare = buildProductShare(product);
 
   const handleAddToCart = () => {
     if (!isProductInStock(product)) return;
@@ -303,6 +306,14 @@ export function ProductPage() {
           >
             {isProductInStock(product) ? 'ЗАБРАТЬ СЕГОДНЯ ЗА 1 ЧАС' : 'Нет в наличии'}
           </button>
+
+          <ShareMenu
+            className="product-page__share"
+            url={productShare.url}
+            title={productShare.title}
+            message={productShare.message}
+            align="left"
+          />
         </div>
       </div>
 

@@ -1,14 +1,19 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Heart } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { ProductCard } from '../components/ProductCard';
+import { ShareMenu } from '../components/ShareMenu';
 import { AuthPanel } from '../components/AuthPanel';
+import { useImportSharedFavorites } from '../hooks/useImportSharedFavorites';
+import { buildFavoritesShare } from '../utils/shareLinks';
 
 export function FavoritesPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { items, isLoading, refreshFavorites } = useFavorites();
+  const { notice: importNotice, clearNotice: clearImportNotice } = useImportSharedFavorites();
+  const favoritesShare = buildFavoritesShare(items);
 
   useEffect(() => {
     void refreshFavorites();
@@ -71,7 +76,27 @@ export function FavoritesPage() {
             </h1>
             <p className="favorites-page__subtitle">Войдите, чтобы синхронизировать список между устройствами</p>
           </div>
+          {items.length > 0 && (
+            <ShareMenu
+              className="favorites-page__share"
+              url={favoritesShare.url}
+              title={favoritesShare.title}
+              message={favoritesShare.message}
+            />
+          )}
         </div>
+
+        {importNotice && (
+          <div className="favorites-page__import-notice" role="status">
+            <div>
+              <strong>Ссылка открыта</strong>
+              <p>{importNotice}</p>
+            </div>
+            <button type="button" onClick={clearImportNotice} aria-label="Закрыть">
+              <X size={18} />
+            </button>
+          </div>
+        )}
 
         {renderGrid()}
         <AuthPanel variant="inline" />
@@ -96,10 +121,27 @@ export function FavoritesPage() {
               : 'Добавляйте звёздочкой в каталоге'}
           </p>
         </div>
-        <span className="favorites-page__icon" aria-hidden>
-          <Heart size={18} />
-        </span>
+        {items.length > 0 && (
+          <ShareMenu
+            className="favorites-page__share"
+            url={favoritesShare.url}
+            title={favoritesShare.title}
+            message={favoritesShare.message}
+          />
+        )}
       </div>
+
+      {importNotice && (
+        <div className="favorites-page__import-notice" role="status">
+          <div>
+            <strong>Ссылка открыта</strong>
+            <p>{importNotice}</p>
+          </div>
+          <button type="button" onClick={clearImportNotice} aria-label="Закрыть">
+            <X size={18} />
+          </button>
+        </div>
+      )}
 
       {renderGrid()}
     </div>
