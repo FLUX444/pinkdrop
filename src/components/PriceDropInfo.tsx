@@ -20,7 +20,6 @@ interface PriceDropInfoProps {
 
 export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
   const [nextDropAt, setNextDropAt] = useState<string | null>(null);
-  const [isMaxDiscount, setIsMaxDiscount] = useState(false);
   const [ready, setReady] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
@@ -33,7 +32,6 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
         .then((timer) => {
           if (cancelled) return;
           setNextDropAt(timer.nextDropAt);
-          setIsMaxDiscount(timer.isMaxDiscount);
           setReady(true);
         })
         .catch(() => {
@@ -56,13 +54,9 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
   }, []);
 
   let displayCountdown = '--:--:--';
-  if (ready) {
-    if (isMaxDiscount) {
-      displayCountdown = 'скоро сброс';
-    } else if (nextDropAt) {
-      const remainingMs = Math.max(0, new Date(nextDropAt).getTime() - now);
-      displayCountdown = formatMs(remainingMs);
-    }
+  if (ready && nextDropAt) {
+    const remainingMs = Math.max(0, new Date(nextDropAt).getTime() - now);
+    displayCountdown = formatMs(remainingMs);
   }
 
   return (

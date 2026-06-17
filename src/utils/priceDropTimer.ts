@@ -41,6 +41,14 @@ function buildTimerState(
   };
 }
 
+export function getNextPriceEventAt(dropStartedAt: string, discountPercent: number) {
+  const started = new Date(dropStartedAt).getTime();
+  if (Number.isNaN(started)) return null;
+
+  const nextPeriod = discountPercent >= MAX_DISCOUNT ? MAX_DISCOUNT + 1 : discountPercent + 1;
+  return new Date(started + nextPeriod * PRICE_DROP_PERIOD_MS).toISOString();
+}
+
 export function getPriceDropTimerState(
   priceDrop: Pick<
     ProductPriceDrop,
@@ -71,35 +79,26 @@ export function getPriceDropTimerState(
     return null;
   }
 
-  const nextDropMs = priceDrop.nextDropAt ? new Date(priceDrop.nextDropAt).getTime() : NaN;
-  if (!Number.isNaN(nextDropMs)) {
-    return buildTimerState(
-      discountPercent,
-      priceDrop.nextDropAt,
-      Math.max(0, nextDropMs - now),
-      false
-    );
+  const resolvedNextDropAt =
+    (priceDrop.dropStartedAt
+      ? getNextPriceEventAt(priceDrop.dropStartedAt, discountPercent)
+      : null) ?? priceDrop.nextDropAt;
+
+  if (resolvedNextDropAt) {
+    const nextDropMs = new Date(resolvedNextDropAt).getTime();
+    if (!Number.isNaN(nextDropMs)) {
+      return buildTimerState(
+        discountPercent,
+        resolvedNextDropAt,
+        Math.max(0, nextDropMs - now),
+        false
+      );
+    }
   }
 
-  const started = new Date(priceDrop.dropStartedAt).getTime();
-  if (Number.isNaN(started)) return null;
-
-  const nextPeriod = discountPercent + 1;
-  const nextAt = started + nextPeriod * PRICE_DROP_PERIOD_MS;
-  const nextDropAt = new Date(nextAt).toISOString();
-
-  return buildTimerState(
-    discountPercent,
-    nextDropAt,
-    Math.max(0, nextAt - now),
-    false
-  );
+  return null;
 }
 
 export function formatPriceDropCountdown(state: PriceDropTimerState) {
-  if (state.isFrozen) {
-    return `${pad(state.hours)}:${pad(state.minutes)}:${pad(state.seconds)}`;
-  }
-  if (state.isMaxDiscount) return 'скоро сброс';
   return `${pad(state.hours)}:${pad(state.minutes)}:${pad(state.seconds)}`;
 }

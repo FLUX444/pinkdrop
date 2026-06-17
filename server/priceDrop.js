@@ -19,9 +19,10 @@ export function calculatePriceFromBase(basePrice, discountPercent) {
 }
 
 export function getNextDropAt(dropStartedAt, discountPercent) {
-  if (discountPercent >= MAX_DISCOUNT) return null;
   const started = new Date(dropStartedAt).getTime();
-  const nextPeriod = discountPercent + 1;
+  if (Number.isNaN(started)) return null;
+
+  const nextPeriod = discountPercent >= MAX_DISCOUNT ? MAX_DISCOUNT + 1 : discountPercent + 1;
   return new Date(started + nextPeriod * PERIOD_MS).toISOString();
 }
 
@@ -98,15 +99,16 @@ export function getGlobalPriceDropTimer(now = Date.now()) {
   const globalAnchor = getGlobalDropStartedAt();
   const globalDiscount = getDiscountPercent(globalAnchor, now);
   const nextDropAt = getNextDropAt(globalAnchor, globalDiscount);
+  const isMaxDiscount = globalDiscount >= MAX_DISCOUNT;
 
-  if (globalDiscount >= MAX_DISCOUNT || !nextDropAt) {
+  if (!nextDropAt) {
     return {
       enabled: true,
       discountPercent: globalDiscount,
       dropStartedAt: globalAnchor,
       nextDropAt: null,
       remainingMs: 0,
-      isMaxDiscount: true,
+      isMaxDiscount,
     };
   }
 
@@ -117,7 +119,7 @@ export function getGlobalPriceDropTimer(now = Date.now()) {
     dropStartedAt: globalAnchor,
     nextDropAt,
     remainingMs,
-    isMaxDiscount: false,
+    isMaxDiscount,
   };
 }
 
