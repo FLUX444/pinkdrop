@@ -158,11 +158,17 @@ export const uploadReviewMedia = multer({
 }).array('media', 5);
 
 const avatarStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, avatarUploadsDir),
-  filename: (req, file, cb) => {
-    const ext = extname(file.originalname).toLowerCase() || '.png';
-    const safeExt = ['.png', '.jpg', '.jpeg', '.webp', '.gif'].includes(ext) ? ext : '.png';
-    cb(null, `avatar-${req.user.id}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${safeExt}`);
+  destination: (req, _file, cb) => {
+    const userDir = join(avatarUploadsDir, String(req.user.id));
+    mkdirSync(userDir, { recursive: true });
+    cb(null, userDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = extname(file.originalname).toLowerCase() || '.jpg';
+    const safeExt = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.heic', '.heif', '.avif'].includes(ext)
+      ? ext
+      : '.jpg';
+    cb(null, `upload-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${safeExt}`);
   },
 });
 

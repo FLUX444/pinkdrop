@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { User, PresenceStatus } from '../types';
+import type { AvatarCropPayload } from '../utils/avatarCrop';
 import { AvatarCropModal } from './AvatarCropModal';
 import { AvatarWithPresence } from './AvatarWithPresence';
 import { usePresence } from '../context/PresenceContext';
@@ -24,7 +25,7 @@ function TelegramCameraIcon() {
 
 interface ProfileAvatarEditorProps {
   user: User;
-  onUpload: (file: File) => Promise<void>;
+  onUpload: (file: File, crop: AvatarCropPayload) => Promise<void>;
   onRemove: () => Promise<void>;
 }
 
@@ -43,15 +44,15 @@ function resolveAvatarSrc(url: string | null | undefined, version: number) {
 export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarEditorProps) {
   const presenceStatus = usePresence(user.id);
   const inputRef = useRef<HTMLInputElement>(null);
+  const originalFileRef = useRef<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null);
   const [avatarVersion, setAvatarVersion] = useState(0);
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
   const resolvedAvatar = resolveAvatarSrc(user.avatarUrl, avatarVersion);
-  const displayAvatar = previewUrl ?? (resolvedAvatar && resolvedAvatar !== failedSrc ? resolvedAvatar : null);
+  const displayAvatar = resolvedAvatar && resolvedAvatar !== failedSrc ? resolvedAvatar : null;
   const hasUploadedAvatar = Boolean(user.avatarUrl?.startsWith('/uploads/avatars/'));
 
   useEffect(() => {
@@ -74,6 +75,7 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
       URL.revokeObjectURL(cropSourceUrl);
     }
     setCropSourceUrl(null);
+    originalFileRef.current = null;
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -87,29 +89,30 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
     }
 
     setError('');
+    originalFileRef.current = file;
     if (cropSourceUrl) {
       URL.revokeObjectURL(cropSourceUrl);
     }
     setCropSourceUrl(URL.createObjectURL(file));
   };
 
-  const handleCropConfirm = async (blob: Blob) => {
-    const file = new File([blob], `avatar-${Date.now()}.jpg`, { type: 'image/jpeg' });
-    const nextPreview = URL.createObjectURL(blob);
-    setPreviewUrl(nextPreview);
+  const handleCropConfirm = async (crop: AvatarCropPayload) => {
+    const file = originalFileRef.current;
+    if (!file) {
+      setError('Не удалось прочитать файл');
+      return;
+    }
+
     setBusy(true);
     setError('');
 
     try {
-      await onUpload(file);
+      await onUpload(file, crop);
       setAvatarVersion((value) => value + 1);
       closeCropModal();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось загрузить фото');
-      setPreviewUrl(null);
     } finally {
-      URL.revokeObjectURL(nextPreview);
-      setPreviewUrl(null);
       setBusy(false);
     }
   };
@@ -119,6 +122,7 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
     setError('');
     try {
       await onRemove();
+      setAvatarVersion((value) => value + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось удалить фото');
     } finally {
@@ -166,7 +170,7 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/heic,image/heif"
         className="profile-avatar-editor__input"
         onChange={handleFileChange}
       />

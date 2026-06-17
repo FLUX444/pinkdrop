@@ -6,6 +6,10 @@ export interface AvatarCropState {
   enhance: boolean;
 }
 
+export type AvatarCropPayload = AvatarCropState & {
+  cropSize: number;
+};
+
 export function getCoverScale(image: HTMLImageElement, viewportSize: number) {
   return Math.max(viewportSize / image.naturalWidth, viewportSize / image.naturalHeight);
 }

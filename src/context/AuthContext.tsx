@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { api } from '../api/client';
 import type { AuthProvidersConfig, ReviewPrompt, User, UserOrder } from '../types';
+import type { AvatarCropPayload } from '../utils/avatarCrop';
 
 interface AuthContextValue {
   user: User | null;
@@ -54,7 +55,7 @@ interface AuthContextValue {
   }) => Promise<void>;
   logout: () => Promise<void>;
   updateName: (name: string) => Promise<void>;
-  uploadAvatar: (file: File) => Promise<void>;
+  uploadAvatar: (file: File, crop?: AvatarCropPayload) => Promise<void>;
   removeAvatar: () => Promise<void>;
   refreshOrders: () => Promise<void>;
   refreshReviewPrompts: () => Promise<void>;
@@ -384,8 +385,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(nextUser);
   };
 
-  const uploadAvatar = async (file: File) => {
-    const { user: nextUser } = await api.uploadAvatar(file);
+  const uploadAvatar = async (file: File, crop?: AvatarCropPayload) => {
+    const { user: nextUser } = await api.uploadAvatar(file, crop);
     setUser(nextUser);
   };
 

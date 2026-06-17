@@ -2,9 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Crop, Loader2, RotateCw, Sparkles } from 'lucide-react';
 import {
   clampCropState,
-  exportAvatarCrop,
   getCoverScale,
   normalizeAvatarSourceImage,
+  type AvatarCropPayload,
   type AvatarCropState,
 } from '../utils/avatarCrop';
 
@@ -17,7 +17,7 @@ type CornerId = 'tl' | 'tr' | 'bl' | 'br';
 interface AvatarCropModalProps {
   imageUrl: string;
   onCancel: () => void;
-  onConfirm: (blob: Blob) => Promise<void>;
+  onConfirm: (crop: AvatarCropPayload) => Promise<void>;
 }
 
 type InteractionState =
@@ -228,14 +228,15 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
   };
 
   const handleConfirm = async () => {
-    const image = imageRef.current;
-    if (!image || !ready) return;
+    if (!ready) return;
 
     setBusy(true);
     setError('');
     try {
-      const blob = await exportAvatarCrop(image, cropRef.current, cropSizeRef.current, 512);
-      await onConfirm(blob);
+      await onConfirm({
+        ...cropRef.current,
+        cropSize: cropSizeRef.current,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось сохранить фото');
       setBusy(false);

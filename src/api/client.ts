@@ -1,3 +1,4 @@
+import type { AvatarCropPayload } from '../utils/avatarCrop';
 import type {
   AdminNotification,
   AdminOrderSummary,
@@ -258,9 +259,12 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ name }),
     }),
-  uploadAvatar: (file: File) => {
+  uploadAvatar: (file: File, crop?: AvatarCropPayload) => {
     const formData = new FormData();
     formData.append('avatar', file);
+    if (crop) {
+      formData.append('crop', JSON.stringify(crop));
+    }
     return request<{ user: User; avatarUrl: string }>('/auth/profile/avatar', {
       method: 'POST',
       body: formData,

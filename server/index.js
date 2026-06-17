@@ -266,6 +266,12 @@ import {
 import { buildSitemapXml } from './sitemap.js';
 import { registerOgPreviewRoutes } from './ogPreview.js';
 import { registerOgImageRoutes } from './ogImage.js';
+import {
+  cleanupUserAvatarDir,
+  parseAvatarCropPayload,
+  processUserAvatarUpload,
+  removeAvatarFile,
+} from './avatarProcess.js';
 
 initDb();
 repairBrokenAvatarUrls(db);
@@ -1163,56 +1169,58 @@ app.post('/api/auth/profile/avatar', authMiddleware, (req, res) => {
       return res.status(400).json({ error: 'Выберите изображение' });
     }
 
-    const previousAvatar = db
-      .prepare('SELECT avatar_url FROM users WHERE id = ?')
-      .get(req.user.id)?.avatar_url;
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
-    const savedPath = resolveUploadDiskPath(avatarUrl);
-    if (!savedPath || !existsSync(savedPath)) {
-      return res.status(500).json({ error: 'Файл не сохранился на сервере. Попробуйте ещё раз.' });
-    }
+    const userId = req.user.id;
+    const inputPath = req.file.path;
+    const crop = parseAvatarCropPayload(req.body?.crop);
 
-    db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, req.user.id);
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+    try {
+      const previousAvatar = db
+        .prepare('SELECT avatar_url FROM users WHERE id = ?')
+        .get(userId)?.avatar_url;
 
-    if (
-      previousAvatar &&
-      previousAvatar !== avatarUrl &&
-      previousAvatar.startsWith('/uploads/avatars/')
-    ) {
-      const previousPath = resolveUploadDiskPath(previousAvatar);
-      if (existsSync(previousPath)) {
+      const { publicUrl } = await processUserAvatarUpload(inputPath, userId, crop);
+
+      db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(publicUrl, userId);
+      const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+
+      if (previousAvatar && previousAvatar !== publicUrl) {
+        await removeAvatarFile(previousAvatar);
+      }
+
+      await cleanupUserAvatarDir(userId, publicUrl);
+
+      res.json({ user: userToJson(user), avatarUrl: publicUrl });
+    } catch (processError) {
+      console.error('[avatar] process failed:', processError);
+      res.status(400).json({
+        error: processError.message || 'Не удалось обработать фото',
+      });
+    } finally {
+      if (existsSync(inputPath)) {
         try {
-          await unlink(previousPath);
+          await unlink(inputPath);
         } catch {
           // ignore cleanup errors
         }
       }
     }
-
-    res.json({ user: userToJson(user), avatarUrl });
   });
 });
 
 app.delete('/api/auth/profile/avatar', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
   const previousAvatar = db
     .prepare('SELECT avatar_url FROM users WHERE id = ?')
-    .get(req.user.id)?.avatar_url;
+    .get(userId)?.avatar_url;
 
-  db.prepare('UPDATE users SET avatar_url = NULL WHERE id = ?').run(req.user.id);
+  db.prepare('UPDATE users SET avatar_url = NULL WHERE id = ?').run(userId);
 
   if (previousAvatar?.startsWith('/uploads/avatars/')) {
-    const previousPath = resolveUploadDiskPath(previousAvatar);
-    if (previousPath && existsSync(previousPath)) {
-      try {
-        await unlink(previousPath);
-      } catch {
-        // ignore cleanup errors
-      }
-    }
+    await removeAvatarFile(previousAvatar);
+    await cleanupUserAvatarDir(userId);
   }
 
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   res.json({ user: userToJson(user) });
 });
 

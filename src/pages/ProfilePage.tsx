@@ -33,6 +33,7 @@ import { SavedAddressCard } from '../components/SavedAddressCard';
 import { useAppDialog } from '../context/AppDialogContext';
 import { useAuth } from '../context/AuthContext';
 import type { Product, ReviewPrompt, SavedDeliveryAddress } from '../types';
+import type { AvatarCropPayload } from '../utils/avatarCrop';
 import { formatDeliveryAddress, hasCompleteDeliveryAddress } from '../utils/formatDeliveryAddress';
 import { getDeviceLocation } from '../utils/getDeviceLocation';
 import { getOrderDeliveryTimerState } from '../utils/orderDeliveryTimer';
@@ -371,8 +372,8 @@ export function ProfilePage() {
     }
   };
 
-  const handleAvatarUpload = async (file: File) => {
-    await uploadAvatar(file);
+  const handleAvatarUpload = async (file: File, crop: AvatarCropPayload) => {
+    await uploadAvatar(file, crop);
     setAuthMessage('Фото профиля обновлено');
   };
 
