@@ -12241,6 +12241,11 @@ a.checkout-summary__product-name:active {
 
   .hero:has(.hero__plaques) .hero__headline {
     align-items: flex-start;
+    width: 100%;
+  }
+
+  .hero:has(.hero__plaques) .hero__tag {
+    align-self: center;
   }
 
   .hero:has(.hero__plaques) .hero__cta-block {
@@ -12348,6 +12353,11 @@ a.checkout-summary__product-name:active {
 
   .hero:has(.price-drop-info--hero-center):not(:has(.hero__plaques)) .hero__headline {
     align-items: flex-start;
+    width: 100%;
+  }
+
+  .hero:has(.price-drop-info--hero-center):not(:has(.hero__plaques)) .hero__tag {
+    align-self: center;
   }
 
   .hero:has(.price-drop-info--hero-center):not(:has(.hero__plaques)) .hero__product {
