@@ -68,7 +68,7 @@ export function SeoManager() {
     setMetaTag('property', 'og:description', page.description);
     setMetaTag('property', 'og:url', `${origin}${pathname}`);
     setOgImage(getDefaultOgImageUrl(origin, pathname));
-    setMetaTag('name', 'twitter:card', 'summary_large_image');
+    setMetaTag('name', 'twitter:card', 'summary');
 
     const isPrivate =
       pathname.startsWith('/admin') ||

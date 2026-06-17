@@ -10,12 +10,12 @@ import { enrichProduct } from './priceDrop.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
 
-const OG_WIDTH = 1200;
-const OG_HEIGHT = 630;
-const CACHE_VERSION = 'v6';
-export const OG_IMAGE_QUERY = 'v=6';
-const PRODUCT_THUMB = 200;
-const LOGO_THUMB = 200;
+/** Квадратное превью — в Telegram отображается компактно, не на всю ширину */
+const OG_SIZE = 512;
+const CACHE_VERSION = 'v7';
+export const OG_IMAGE_QUERY = 'v=7';
+const PRODUCT_THUMB = 300;
+const LOGO_HEIGHT = 88;
 
 sharp.cache(false);
 
@@ -63,60 +63,48 @@ function resolveStaticFilePath(relativePath) {
 
 function buildCardBackgroundSvg() {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${OG_SIZE}" height="${OG_SIZE}" viewBox="0 0 ${OG_SIZE} ${OG_SIZE}">
   <defs>
     <linearGradient id="cardBase" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#080808"/>
       <stop offset="52%" stop-color="#161016"/>
       <stop offset="100%" stop-color="#050505"/>
     </linearGradient>
-    <radialGradient id="cardGlow" cx="70%" cy="16%" r="38%">
-      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.2"/>
-      <stop offset="34%" stop-color="#ff2d95" stop-opacity="0"/>
-    </radialGradient>
-    <pattern id="cardGrid" width="22" height="22" patternUnits="userSpaceOnUse">
-      <path d="M 22 0 L 0 0 0 22" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
-    </pattern>
-    <radialGradient id="cardOrb" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.34"/>
+    <radialGradient id="cardGlow" cx="72%" cy="18%" r="42%">
+      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.22"/>
       <stop offset="100%" stop-color="#ff2d95" stop-opacity="0"/>
     </radialGradient>
+    <pattern id="cardGrid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
   </defs>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" rx="24" fill="url(#cardBase)"/>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" rx="24" fill="url(#cardGlow)"/>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="url(#cardGrid)" opacity="0.38"/>
-  <ellipse cx="${Math.round(OG_WIDTH * 0.82)}" cy="${Math.round(OG_HEIGHT * 0.12)}" rx="280" ry="180" fill="url(#cardOrb)" opacity="0.55"/>
-  <rect x="10" y="10" width="${OG_WIDTH - 20}" height="${OG_HEIGHT - 20}" rx="20" fill="none" stroke="#ff2d95" stroke-opacity="0.62" stroke-width="2"/>
+  <rect width="${OG_SIZE}" height="${OG_SIZE}" rx="20" fill="url(#cardBase)"/>
+  <rect width="${OG_SIZE}" height="${OG_SIZE}" rx="20" fill="url(#cardGlow)"/>
+  <rect width="${OG_SIZE}" height="${OG_SIZE}" fill="url(#cardGrid)" opacity="0.38"/>
+  <rect x="8" y="8" width="${OG_SIZE - 16}" height="${OG_SIZE - 16}" rx="16" fill="none" stroke="#ff2d95" stroke-opacity="0.55" stroke-width="1.5"/>
 </svg>`);
 }
 
 function buildThumbFrameSvg(left, top, size) {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <rect x="${left}" y="${top}" width="${size}" height="${size}" rx="18" fill="#0d0d0d" fill-opacity="0.55"/>
-  <rect x="${left}" y="${top}" width="${size}" height="${size}" rx="18" fill="none" stroke="#ff2d95" stroke-opacity="0.35" stroke-width="1.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="${OG_SIZE}" height="${OG_SIZE}" viewBox="0 0 ${OG_SIZE} ${OG_SIZE}">
+  <rect x="${left}" y="${top}" width="${size}" height="${size}" rx="14" fill="#0d0d0d" fill-opacity="0.5"/>
+  <rect x="${left}" y="${top}" width="${size}" height="${size}" rx="14" fill="none" stroke="#ff2d95" stroke-opacity="0.32" stroke-width="1.5"/>
 </svg>`);
 }
 
-function buildShareTextSvg(subtitle) {
-  const thumbLeft = Math.round((OG_WIDTH - LOGO_THUMB) / 2);
-  const textY = thumbLeft + LOGO_THUMB + 72;
+function buildShareLabelSvg(subtitle) {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <text x="600" y="${textY}" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="44" font-weight="700" fill="#ff2d95" letter-spacing="7">PINKDROP</text>
-  <text x="600" y="${textY + 52}" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="36" font-weight="600" fill="#ffffff">${escapeXml(subtitle)}</text>
-  <text x="600" y="${textY + 96}" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" fill="#9a9a9a">доставка за 3 часа · Красноярск</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="${OG_SIZE}" height="${OG_SIZE}" viewBox="0 0 ${OG_SIZE} ${OG_SIZE}">
+  <text x="256" y="448" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="700" fill="#ff2d95" letter-spacing="4">PINKDROP</text>
+  <text x="256" y="478" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">${escapeXml(subtitle)}</text>
 </svg>`);
 }
 
-function buildProductTextSvg(productName, priceLabel) {
-  const thumbTop = 118;
-  const textY = thumbTop + PRODUCT_THUMB + 58;
-  const priceWithBrand = `${priceLabel} · PINKDROP`;
+function buildProductLabelSvg(priceLabel) {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <text x="600" y="${textY}" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="30" font-weight="600" fill="#ffffff">${escapeXml(productName)}</text>
-  <text x="600" y="${textY + 42}" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="26" font-weight="700" fill="#ff2d95">${escapeXml(priceWithBrand)}</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="${OG_SIZE}" height="${OG_SIZE}" viewBox="0 0 ${OG_SIZE} ${OG_SIZE}">
+  <text x="256" y="486" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="700" fill="#ff2d95">${escapeXml(priceLabel)}</text>
 </svg>`);
 }
 
@@ -149,29 +137,11 @@ function centerInSquare(imageWidth, imageHeight, squareLeft, squareTop, squareSi
   };
 }
 
-async function buildShareOgPng(subtitle) {
-  const thumbLeft = Math.round((OG_WIDTH - LOGO_THUMB) / 2);
-  const thumbTop = 118;
-  const logo = await loadLogo(78);
-
-  const composites = [
-    { input: buildCardBackgroundSvg(), top: 0, left: 0 },
-    { input: buildThumbFrameSvg(thumbLeft, thumbTop, LOGO_THUMB), top: 0, left: 0 },
-    { input: buildShareTextSvg(subtitle), top: 0, left: 0 },
-  ];
-
-  if (logo) {
-    const logoMeta = await sharp(logo).metadata();
-    const logoWidth = logoMeta.width ?? 0;
-    const logoHeight = logoMeta.height ?? 0;
-    const pos = centerInSquare(logoWidth, logoHeight, thumbLeft, thumbTop, LOGO_THUMB);
-    composites.push({ input: logo, top: pos.top, left: pos.left });
-  }
-
+async function renderSquarePng(composites) {
   return sharp({
     create: {
-      width: OG_WIDTH,
-      height: OG_HEIGHT,
+      width: OG_SIZE,
+      height: OG_SIZE,
       channels: 4,
       background: { r: 8, g: 8, b: 8, alpha: 1 },
     },
@@ -181,22 +151,48 @@ async function buildShareOgPng(subtitle) {
     .toBuffer();
 }
 
+async function buildShareOgPng(subtitle) {
+  const thumbSize = 220;
+  const thumbLeft = Math.round((OG_SIZE - thumbSize) / 2);
+  const thumbTop = 118;
+  const logo = await loadLogo(LOGO_HEIGHT);
+
+  const composites = [
+    { input: buildCardBackgroundSvg(), top: 0, left: 0 },
+    { input: buildThumbFrameSvg(thumbLeft, thumbTop, thumbSize), top: 0, left: 0 },
+    { input: buildShareLabelSvg(subtitle), top: 0, left: 0 },
+  ];
+
+  if (logo) {
+    const logoMeta = await sharp(logo).metadata();
+    const pos = centerInSquare(
+      logoMeta.width ?? 0,
+      logoMeta.height ?? 0,
+      thumbLeft,
+      thumbTop,
+      thumbSize
+    );
+    composites.push({ input: logo, top: pos.top, left: pos.left });
+  }
+
+  return renderSquarePng(composites);
+}
+
 async function buildProductOgPng(product) {
   const priceLabel = product.isFree ? 'бесплатно' : formatPriceRub(product.price);
-  const productName = truncate(product.name, 56);
   const imagePath = resolveProductImagePath(product.images?.[0]);
 
   if (!imagePath) {
-    return buildShareOgPng(productName);
+    return buildShareOgPng(truncate(product.name, 28));
   }
 
   try {
-    const thumbLeft = Math.round((OG_WIDTH - PRODUCT_THUMB) / 2);
-    const thumbTop = 118;
+    const thumbLeft = Math.round((OG_SIZE - PRODUCT_THUMB) / 2);
+    const thumbTop = 72;
 
     const productImage = await sharp(imagePath, { failOn: 'none' })
       .rotate()
-      .resize(PRODUCT_THUMB - 28, PRODUCT_THUMB - 28, {
+      .resize(PRODUCT_THUMB - 36, PRODUCT_THUMB - 36, {
         fit: 'contain',
         background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
@@ -204,31 +200,23 @@ async function buildProductOgPng(product) {
       .toBuffer();
 
     const productMeta = await sharp(productImage).metadata();
-    const productWidth = productMeta.width ?? PRODUCT_THUMB;
-    const productHeight = productMeta.height ?? PRODUCT_THUMB;
-    const pos = centerInSquare(productWidth, productHeight, thumbLeft, thumbTop, PRODUCT_THUMB);
+    const pos = centerInSquare(
+      productMeta.width ?? PRODUCT_THUMB,
+      productMeta.height ?? PRODUCT_THUMB,
+      thumbLeft,
+      thumbTop,
+      PRODUCT_THUMB
+    );
 
-    const composites = [
+    return renderSquarePng([
       { input: buildCardBackgroundSvg(), top: 0, left: 0 },
       { input: buildThumbFrameSvg(thumbLeft, thumbTop, PRODUCT_THUMB), top: 0, left: 0 },
       { input: productImage, top: pos.top, left: pos.left },
-      { input: buildProductTextSvg(productName, priceLabel), top: 0, left: 0 },
-    ];
-
-    return sharp({
-      create: {
-        width: OG_WIDTH,
-        height: OG_HEIGHT,
-        channels: 4,
-        background: { r: 8, g: 8, b: 8, alpha: 1 },
-      },
-    })
-      .composite(composites)
-      .png()
-      .toBuffer();
+      { input: buildProductLabelSvg(priceLabel), top: 0, left: 0 },
+    ]);
   } catch (error) {
     console.error('[og-image] product render failed:', imagePath, error);
-    return buildShareOgPng(productName);
+    return buildShareOgPng(truncate(product.name, 28));
   }
 }
 
@@ -342,3 +330,6 @@ export function registerOgImageRoutes(app) {
     }
   });
 }
+
+export const OG_IMAGE_WIDTH = OG_SIZE;
+export const OG_IMAGE_HEIGHT = OG_SIZE;

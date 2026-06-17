@@ -9,6 +9,8 @@ import {
   getOgCartImagePath,
   getOgFavoritesImagePath,
   getOgProductImagePath,
+  OG_IMAGE_WIDTH,
+  OG_IMAGE_HEIGHT,
 } from './ogImage.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -109,10 +111,10 @@ function buildOgHtml(meta) {
   if (meta.image) {
     html = upsertMetaTag(html, 'property', 'og:image', meta.image);
     html = upsertMetaTag(html, 'property', 'og:image:secure_url', meta.image);
-    html = upsertMetaTag(html, 'property', 'og:image:width', '1200');
-    html = upsertMetaTag(html, 'property', 'og:image:height', '630');
+    html = upsertMetaTag(html, 'property', 'og:image:width', String(OG_IMAGE_WIDTH));
+    html = upsertMetaTag(html, 'property', 'og:image:height', String(OG_IMAGE_HEIGHT));
     html = upsertMetaTag(html, 'property', 'og:image:type', 'image/png');
-    html = upsertMetaTag(html, 'name', 'twitter:card', 'summary_large_image');
+    html = upsertMetaTag(html, 'name', 'twitter:card', 'summary');
     html = upsertMetaTag(html, 'name', 'twitter:image', meta.image);
   }
 

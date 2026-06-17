@@ -4,6 +4,7 @@ import {
   clampCropState,
   exportAvatarCrop,
   getCoverScale,
+  normalizeAvatarSourceImage,
   type AvatarCropState,
 } from '../utils/avatarCrop';
 
@@ -42,6 +43,7 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
   });
   const cropSizeRef = useRef(DEFAULT_CROP_SIZE);
   const imageSizeRef = useRef({ width: 0, height: 0 });
+  const sourcePreparedRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -59,6 +61,12 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
       document.body.style.overflow = '';
     };
   }, []);
+
+  useEffect(() => {
+    sourcePreparedRef.current = false;
+    setReady(false);
+    setError('');
+  }, [imageUrl]);
 
   const normalizeCrop = useCallback((next: AvatarCropState, viewportSize = cropSizeRef.current) => {
     const { width, height } = imageSizeRef.current;
@@ -135,10 +143,7 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
     };
   }, [endInteraction, handlePointerMove]);
 
-  const handleImageLoad = () => {
-    const image = imageRef.current;
-    if (!image) return;
-
+  const initCropFromImage = (image: HTMLImageElement) => {
     const size = {
       width: image.naturalWidth,
       height: image.naturalHeight,
@@ -161,6 +166,30 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
     cropRef.current = initial;
     setCrop(initial);
     setReady(true);
+  };
+
+  const handleImageLoad = () => {
+    const image = imageRef.current;
+    if (!image || !image.naturalWidth) return;
+
+    if (!sourcePreparedRef.current) {
+      sourcePreparedRef.current = true;
+      void (async () => {
+        try {
+          const normalized = await normalizeAvatarSourceImage(image);
+          if (normalized.src !== image.src) {
+            image.src = normalized.src;
+            return;
+          }
+          initCropFromImage(image);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Не удалось загрузить фото');
+        }
+      })();
+      return;
+    }
+
+    initCropFromImage(image);
   };
 
   const startPan = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -205,7 +234,7 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
     setBusy(true);
     setError('');
     try {
-      const blob = await exportAvatarCrop(image, cropRef.current, cropSizeRef.current);
+      const blob = await exportAvatarCrop(image, cropRef.current, cropSizeRef.current, 512);
       await onConfirm(blob);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось сохранить фото');
