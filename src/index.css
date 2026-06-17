@@ -10291,9 +10291,9 @@ a.checkout-summary__product-name:active {
 
 .price-drop-badge--compact .price-drop-badge__timer {
   color: #fff;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-shadow: 0 0 10px rgba(255, 45, 149, 0.5);
 }
 
@@ -10488,9 +10488,14 @@ a.checkout-summary__product-name:active {
   right: 6px;
 }
 
-.price-drop-badge--compact {
-  padding: 3px 6px;
-  font-size: 0.6rem;
+.product-card__drop-timer .price-drop-badge--compact {
+  padding: 5px 9px;
+  gap: 5px;
+}
+
+.product-card__drop-timer .price-drop-badge--compact .price-drop-badge__timer {
+  font-size: 0.78rem;
+  letter-spacing: 0.045em;
 }
 
 .product-card__body {
@@ -16827,6 +16832,14 @@ a.checkout-summary__product-name:active {
   .catalog-page .product-grid .product-card__rating-badge {
     font-size: 0.8rem;
     padding: 5px 9px;
+  }
+
+  .catalog-page .product-grid .product-card__drop-timer .price-drop-badge--compact {
+    padding: 6px 10px;
+  }
+
+  .catalog-page .product-grid .product-card__drop-timer .price-drop-badge--compact .price-drop-badge__timer {
+    font-size: 0.84rem;
   }
 
   .catalog-page .admin-add-card__icon {
