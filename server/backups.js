@@ -20,11 +20,11 @@ const backupRoot = join(dataDir, 'backups');
 const filesBackupDir = join(backupRoot, 'files');
 const statePath = join(backupRoot, 'state.json');
 const manifestPath = join(backupRoot, 'files-manifest.json');
-const publicRoot = join(__dirname, '..', 'public');
+import { publicRoot, uploadsRoot } from './upload.js';
 
 const uploadRoots = [
   join(publicRoot, 'images', 'products'),
-  join(publicRoot, 'uploads'),
+  uploadsRoot,
 ];
 
 let backupInProgress = false;

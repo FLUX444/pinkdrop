@@ -1,21 +1,96 @@
 import multer from 'multer';
-import { mkdirSync } from 'fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs';
 import { dirname, join, extname } from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const publicRoot = join(__dirname, '..', 'public');
+const dataDir = join(__dirname, 'data');
+
+/** Постоянное хранилище загрузок рядом с БД — не трогается git pull / stash */
+export const uploadsRoot =
+  process.env.UPLOADS_ROOT?.trim() || join(dataDir, 'uploads');
+
 const uploadsDir = join(publicRoot, 'images', 'products');
-const reviewUploadsRoot = join(publicRoot, 'uploads', 'reviews');
-const avatarUploadsDir = join(publicRoot, 'uploads', 'avatars');
-const supportUploadsRoot = join(publicRoot, 'uploads', 'support');
-const escalationUploadsRoot = join(publicRoot, 'uploads', 'escalation');
+const reviewUploadsRoot = join(uploadsRoot, 'reviews');
+const avatarUploadsDir = join(uploadsRoot, 'avatars');
+const supportUploadsRoot = join(uploadsRoot, 'support');
+const escalationUploadsRoot = join(uploadsRoot, 'escalation');
+
 mkdirSync(uploadsDir, { recursive: true });
 mkdirSync(reviewUploadsRoot, { recursive: true });
 mkdirSync(avatarUploadsDir, { recursive: true });
 mkdirSync(supportUploadsRoot, { recursive: true });
 mkdirSync(escalationUploadsRoot, { recursive: true });
+
+function copyMissingFiles(srcDir, destDir) {
+  if (!existsSync(srcDir)) return;
+
+  mkdirSync(destDir, { recursive: true });
+
+  for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+    const srcPath = join(srcDir, entry.name);
+    const destPath = join(destDir, entry.name);
+
+    if (entry.isDirectory()) {
+      copyMissingFiles(srcPath, destPath);
+      continue;
+    }
+
+    if (!existsSync(destPath)) {
+      cpSync(srcPath, destPath);
+    }
+  }
+}
+
+function migrateLegacyUploadsFromPublic() {
+  const legacyRoot = join(publicRoot, 'uploads');
+  copyMissingFiles(legacyRoot, uploadsRoot);
+}
+
+migrateLegacyUploadsFromPublic();
+
+export function resolveUploadDiskPath(publicPath) {
+  const value = String(publicPath ?? '').trim();
+  if (!value.startsWith('/uploads/')) return null;
+  return join(uploadsRoot, value.slice('/uploads/'.length));
+}
+
+export function uploadFileExists(publicPath) {
+  const diskPath = resolveUploadDiskPath(publicPath);
+  if (!diskPath) return false;
+
+  try {
+    return statSync(diskPath).isFile();
+  } catch {
+    return false;
+  }
+}
+
+export function sanitizeStoredAvatarUrl(avatarUrl) {
+  if (!avatarUrl) return undefined;
+  if (!avatarUrl.startsWith('/uploads/')) return avatarUrl;
+  return uploadFileExists(avatarUrl) ? avatarUrl : undefined;
+}
+
+export function repairBrokenAvatarUrls(db) {
+  const rows = db
+    .prepare(`SELECT id, avatar_url FROM users WHERE avatar_url LIKE '/uploads/%'`)
+    .all();
+
+  let repaired = 0;
+  for (const row of rows) {
+    if (!uploadFileExists(row.avatar_url)) {
+      db.prepare('UPDATE users SET avatar_url = NULL WHERE id = ?').run(row.id);
+      repaired += 1;
+    }
+  }
+
+  if (repaired > 0) {
+    console.log(`[uploads] Cleared ${repaired} broken avatar URL(s) from database`);
+  }
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),

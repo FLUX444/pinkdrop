@@ -8,7 +8,7 @@ import { processAllPriceDrops } from './priceDrop.js';
 import { checkBotHealth } from './botMonitor.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const publicRoot = join(__dirname, '..', 'public');
+import { publicRoot, uploadsRoot } from './upload.js';
 const CHECK_INTERVAL_MS = Number(process.env.SITE_MONITOR_INTERVAL_MS) || 5 * 60 * 1000;
 const telegramDedupMs = 15 * 60 * 1000;
 const recentTelegramKeys = new Map();
@@ -138,9 +138,9 @@ export function getSiteLogs(limit = 80) {
 function ensureUploadDirectories() {
   const dirs = [
     join(publicRoot, 'images', 'products'),
-    join(publicRoot, 'uploads', 'avatars'),
-    join(publicRoot, 'uploads', 'reviews'),
-    join(publicRoot, 'uploads', 'support'),
+    join(uploadsRoot, 'avatars'),
+    join(uploadsRoot, 'reviews'),
+    join(uploadsRoot, 'support'),
   ];
 
   const created = [];

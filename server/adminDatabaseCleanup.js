@@ -6,8 +6,7 @@ import { getAdminOperatorUserIds } from './adminAccess.js';
 import { clearUserPresence } from './presence.js';
 import { logSiteEvent } from './siteMonitor.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const publicRoot = join(__dirname, '..', 'public');
+import { uploadsRoot, resolveUploadDiskPath } from './upload.js';
 
 function deleteUserOrders(userId) {
   const orders = db.prepare('SELECT id FROM orders WHERE user_id = ?').all(userId);
@@ -19,9 +18,7 @@ function deleteUserOrders(userId) {
 }
 
 function mediaUrlToDiskPath(url) {
-  const value = String(url ?? '');
-  if (!value.startsWith('/uploads/')) return null;
-  return join(publicRoot, value);
+  return resolveUploadDiskPath(url);
 }
 
 function purgeSupportThreadAttachments(threadId) {
@@ -59,7 +56,7 @@ function purgeSupportThreadAttachments(threadId) {
     }
   }
 
-  const threadDir = join(publicRoot, 'uploads', 'support', String(threadId));
+  const threadDir = join(uploadsRoot, 'support', String(threadId));
   if (existsSync(threadDir)) {
     try {
       rmSync(threadDir, { recursive: true, force: true });
@@ -80,7 +77,7 @@ function purgeAllSupportData() {
   db.prepare('DELETE FROM support_threads').run();
   db.prepare('UPDATE support_ticket_counter SET value = 0 WHERE id = 1').run();
 
-  const supportRoot = join(publicRoot, 'uploads', 'support');
+  const supportRoot = join(uploadsRoot, 'support');
   if (existsSync(supportRoot)) {
     rmSync(supportRoot, { recursive: true, force: true });
   }
@@ -140,7 +137,7 @@ function purgeAllReviews() {
 
   syncAllProductRatings();
 
-  const reviewsRoot = join(publicRoot, 'uploads', 'reviews');
+  const reviewsRoot = join(uploadsRoot, 'reviews');
   if (existsSync(reviewsRoot)) {
     rmSync(reviewsRoot, { recursive: true, force: true });
   }

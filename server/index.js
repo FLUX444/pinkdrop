@@ -61,6 +61,9 @@ import {
   uploadEscalationMedia,
   uploadUserAvatar,
   publicRoot,
+  uploadsRoot,
+  resolveUploadDiskPath,
+  repairBrokenAvatarUrls,
 } from './upload.js';
 import { config, isGoogleEnabled, isVkEnabled } from './config.js';
 import { verifyEmailTransport } from './email.js';
@@ -265,6 +268,7 @@ import { registerOgPreviewRoutes } from './ogPreview.js';
 import { registerOgImageRoutes } from './ogImage.js';
 
 initDb();
+repairBrokenAvatarUrls(db);
 clearExpiredOAuthStates();
 
 const app = express();
@@ -292,12 +296,15 @@ for (const fileName of faviconStaticFiles) {
 applySecurityMiddleware(app);
 app.use(
   '/uploads',
-  express.static(join(publicRoot, 'uploads'), {
+  express.static(uploadsRoot, {
     maxAge: '7d',
     etag: true,
-    fallthrough: false,
+    fallthrough: true,
   })
 );
+app.use('/uploads', (_req, res) => {
+  res.status(404).end();
+});
 app.use(
   '/images',
   express.static(join(publicRoot, 'images'), {
@@ -1160,6 +1167,11 @@ app.post('/api/auth/profile/avatar', authMiddleware, (req, res) => {
       .prepare('SELECT avatar_url FROM users WHERE id = ?')
       .get(req.user.id)?.avatar_url;
     const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    const savedPath = resolveUploadDiskPath(avatarUrl);
+    if (!savedPath || !existsSync(savedPath)) {
+      return res.status(500).json({ error: 'Файл не сохранился на сервере. Попробуйте ещё раз.' });
+    }
+
     db.prepare('UPDATE users SET avatar_url = ? WHERE id = ?').run(avatarUrl, req.user.id);
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
 
@@ -1168,7 +1180,7 @@ app.post('/api/auth/profile/avatar', authMiddleware, (req, res) => {
       previousAvatar !== avatarUrl &&
       previousAvatar.startsWith('/uploads/avatars/')
     ) {
-      const previousPath = join(publicRoot, previousAvatar.replace(/^\//, ''));
+      const previousPath = resolveUploadDiskPath(previousAvatar);
       if (existsSync(previousPath)) {
         try {
           await unlink(previousPath);
@@ -1182,8 +1194,24 @@ app.post('/api/auth/profile/avatar', authMiddleware, (req, res) => {
   });
 });
 
-app.delete('/api/auth/profile/avatar', authMiddleware, (req, res) => {
+app.delete('/api/auth/profile/avatar', authMiddleware, async (req, res) => {
+  const previousAvatar = db
+    .prepare('SELECT avatar_url FROM users WHERE id = ?')
+    .get(req.user.id)?.avatar_url;
+
   db.prepare('UPDATE users SET avatar_url = NULL WHERE id = ?').run(req.user.id);
+
+  if (previousAvatar?.startsWith('/uploads/avatars/')) {
+    const previousPath = resolveUploadDiskPath(previousAvatar);
+    if (previousPath && existsSync(previousPath)) {
+      try {
+        await unlink(previousPath);
+      } catch {
+        // ignore cleanup errors
+      }
+    }
+  }
+
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   res.json({ user: userToJson(user) });
 });

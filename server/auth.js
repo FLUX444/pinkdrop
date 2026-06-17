@@ -10,6 +10,7 @@ import {
   isVkEnabled,
 } from './config.js';
 import { getUserOperatorRole } from './adminAccess.js';
+import { sanitizeStoredAvatarUrl } from './upload.js';
 import {
   sendAccountLoginNotificationEmail,
   sendEmailChangedNotificationEmail,
@@ -180,7 +181,7 @@ export function userToJson(user) {
     phone: user.phone ?? undefined,
     email: user.email ?? undefined,
     name: user.name ?? undefined,
-    avatarUrl: user.avatar_url ?? undefined,
+    avatarUrl: sanitizeStoredAvatarUrl(user.avatar_url),
     primaryProvider: user.primary_provider ?? undefined,
     providers: getUserProviders(user.id),
     telegramSiteLinked: isTelegramSiteLinked(user.id),

@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import db, { getProductById } from './db.js';
 
-const publicRoot = join(dirname(fileURLToPath(import.meta.url)), '..', 'public');
+import { uploadsRoot, resolveUploadDiskPath } from './upload.js';
 import { config, isTelegramEnabled } from './config.js';
 import { createAdminNotification } from './stockAlerts.js';
 import { enrichProduct } from './priceDrop.js';
@@ -154,9 +154,7 @@ function assertThreadOpen(thread) {
 }
 
 function mediaUrlToDiskPath(url) {
-  const value = String(url ?? '');
-  if (!value.startsWith('/uploads/')) return null;
-  return join(publicRoot, value);
+  return resolveUploadDiskPath(url);
 }
 
 function purgeThreadAttachments(threadId) {
@@ -194,7 +192,7 @@ function purgeThreadAttachments(threadId) {
     }
   }
 
-  const threadDir = join(publicRoot, 'uploads', 'support', String(threadId));
+  const threadDir = join(uploadsRoot, 'support', String(threadId));
   if (existsSync(threadDir)) {
     try {
       rmSync(threadDir, { recursive: true, force: true });
