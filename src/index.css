@@ -10301,6 +10301,32 @@ a.checkout-summary__product-name:active {
   margin: 10px 0 12px;
 }
 
+.price-drop-badge--page {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin: 10px 0 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+}
+
+.price-drop-badge--page .price-drop-badge__label {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.price-drop-badge--page .price-drop-badge__timer {
+  font-size: clamp(1.2rem, 4vw, 1.45rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(255, 45, 149, 0.42);
+}
+
 .product-card__drop-timer {
   position: absolute;
   top: auto;

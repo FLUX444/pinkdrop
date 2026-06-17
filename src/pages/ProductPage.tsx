@@ -291,7 +291,7 @@ export function ProductPage() {
             </span>
           </div>
 
-          <PriceDropBadge priceDrop={product.priceDrop} />
+          <PriceDropBadge priceDrop={product.priceDrop} variant="page" />
           <DeliveryTimer />
 
           <div className="quantity-control">
