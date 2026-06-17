@@ -1,5 +1,5 @@
 import db, { getProductById, getAllProductsRaw } from './db.js';
-import { config } from './config.js';
+import { config, isTelegramEnabled } from './config.js';
 import { enrichProduct } from './priceDrop.js';
 import { telegramFetch } from './telegramFetch.js';
 import {
