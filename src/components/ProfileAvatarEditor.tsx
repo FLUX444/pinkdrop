@@ -99,8 +99,7 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
   const handleCropConfirm = async (crop: AvatarCropPayload) => {
     const file = originalFileRef.current;
     if (!file) {
-      setError('Не удалось прочитать файл');
-      return;
+      throw new Error('Не удалось прочитать файл');
     }
 
     setBusy(true);
@@ -110,8 +109,6 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
       await onUpload(file, crop);
       setAvatarVersion((value) => value + 1);
       closeCropModal();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось загрузить фото');
     } finally {
       setBusy(false);
     }

@@ -239,6 +239,7 @@ export function AvatarCropModal({ imageUrl, onCancel, onConfirm }: AvatarCropMod
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось сохранить фото');
+    } finally {
       setBusy(false);
     }
   };

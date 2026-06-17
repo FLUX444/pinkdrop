@@ -68,8 +68,9 @@ async function assertAvatarNotBlank(outputPath) {
   const stats = await sharp(outputPath).stats();
   const average =
     stats.channels.reduce((sum, channel) => sum + channel.mean, 0) / stats.channels.length;
+  const maxStd = Math.max(...stats.channels.map((channel) => channel.stdev ?? 0));
 
-  if (average < 8) {
+  if (average < 6 && maxStd < 4) {
     throw new Error('Не удалось обработать фото — попробуйте другое изображение');
   }
 }
@@ -98,6 +99,9 @@ export async function processUserAvatarUpload(inputPath, userId, crop = null) {
 
   if (crop) {
     const extract = computeExtractRect(width, height, crop);
+    if (extract.width < 8 || extract.height < 8) {
+      throw new Error('Слишком сильное уменьшение — увеличьте масштаб');
+    }
     pipeline = pipeline.extract(extract);
   } else {
     const side = Math.min(width, height);
@@ -114,6 +118,7 @@ export async function processUserAvatarUpload(inputPath, userId, crop = null) {
   }
 
   await pipeline
+    .flatten({ background: { r: 8, g: 8, b: 8 } })
     .resize(AVATAR_OUTPUT_SIZE, AVATAR_OUTPUT_SIZE, { fit: 'cover' })
     .jpeg({ quality: 88, mozjpeg: true })
     .toFile(outputPath);
