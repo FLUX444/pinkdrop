@@ -262,6 +262,7 @@ import {
 } from './orderFulfillment.js';
 import { buildSitemapXml } from './sitemap.js';
 import { registerOgPreviewRoutes } from './ogPreview.js';
+import { registerOgImageRoutes } from './ogImage.js';
 
 initDb();
 clearExpiredOAuthStates();
@@ -695,6 +696,7 @@ app.get('/sitemap.xml', (_req, res) => {
 });
 
 registerOgPreviewRoutes(app);
+registerOgImageRoutes(app);
 
 app.get('/api/products', (_req, res) => {
   res.json(enrichProducts(getAllProductsRaw()));

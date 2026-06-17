@@ -4,14 +4,18 @@ import { fileURLToPath } from 'url';
 import { config } from './config.js';
 import { getProductById } from './db.js';
 import { enrichProduct } from './priceDrop.js';
+import {
+  getOgBrandImagePath,
+  getOgCartImagePath,
+  getOgFavoritesImagePath,
+  getOgProductImagePath,
+} from './ogImage.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
 
 const DEFAULT_DESCRIPTION =
   'PINKDROP — онлайн-витрина с доставкой за 3 часа в Красноярске. Сумки, украшения, аксессуары и новинки каждый день.';
-
-const TOKEN_RE = /^[a-z0-9_-]+$/i;
 
 let cachedIndexHtml = null;
 let cachedIndexPath = null;
@@ -105,6 +109,9 @@ function buildOgHtml(meta) {
   if (meta.image) {
     html = upsertMetaTag(html, 'property', 'og:image', meta.image);
     html = upsertMetaTag(html, 'property', 'og:image:secure_url', meta.image);
+    html = upsertMetaTag(html, 'property', 'og:image:width', '1200');
+    html = upsertMetaTag(html, 'property', 'og:image:height', '630');
+    html = upsertMetaTag(html, 'property', 'og:image:type', 'image/png');
     html = upsertMetaTag(html, 'name', 'twitter:card', 'summary_large_image');
     html = upsertMetaTag(html, 'name', 'twitter:image', meta.image);
   }
@@ -121,27 +128,7 @@ function formatPriceRub(price) {
 }
 
 function getLogoImageUrl(origin) {
-  return absoluteUrl('/favicon-512.png', origin);
-}
-
-function parseFavoritesShareParam(raw) {
-  const decoded = decodeURIComponent(String(raw ?? '').trim());
-  if (!decoded) return [];
-
-  const entries = [];
-
-  for (const chunk of decoded.split(',')) {
-    const parts = chunk.trim().split(':');
-    if (parts.length < 2) continue;
-
-    const productId = parts.at(-1) ?? '';
-    const category = parts.slice(0, -1).join(':');
-
-    if (!TOKEN_RE.test(category) || !TOKEN_RE.test(productId)) continue;
-    entries.push({ category, productId });
-  }
-
-  return entries;
+  return getOgBrandImagePath(origin);
 }
 
 function getDefaultOgMeta(origin, pageUrl) {
@@ -160,7 +147,7 @@ export function getProductOgMeta(category, productId, origin) {
 
   const path = `/product/${category}/${productId}`;
   const priceLabel = product.isFree ? 'бесплатно' : formatPriceRub(product.price);
-  const image = product.images?.[0] ? absoluteUrl(product.images[0], origin) : getLogoImageUrl(origin);
+  const image = getOgProductImagePath(origin, category, productId);
 
   return {
     title: `${product.name} — ${priceLabel} · PINKDROP`,
@@ -176,28 +163,17 @@ export function getCartOgMeta(origin, pageUrl) {
     title: 'Корзина PINKDROP',
     description: 'Моя корзина на PINKDROP — доставка за 3 часа по Красноярску',
     url: absoluteUrl(pageUrl, origin),
-    image: getLogoImageUrl(origin),
+    image: getOgCartImagePath(origin),
     type: 'website',
   };
 }
 
-export function getFavoritesOgMeta(origin, pageUrl, itemsParam) {
-  let image = getLogoImageUrl(origin);
-  const entries = itemsParam ? parseFavoritesShareParam(String(itemsParam)) : [];
-
-  for (const entry of entries) {
-    const product = enrichProduct(getProductById(entry.productId, entry.category));
-    if (product?.images?.[0]) {
-      image = absoluteUrl(product.images[0], origin);
-      break;
-    }
-  }
-
+export function getFavoritesOgMeta(origin, pageUrl) {
   return {
     title: 'Избранное PINKDROP',
     description: 'Моё избранное на PINKDROP — доставка за 3 часа по Красноярску',
     url: absoluteUrl(pageUrl, origin),
-    image,
+    image: getOgFavoritesImagePath(origin),
     type: 'website',
   };
 }
@@ -229,9 +205,6 @@ export function registerOgPreviewRoutes(app) {
   });
 
   app.get('/profile/favorites', (req, res) => {
-    sendOgHtml(
-      res,
-      getFavoritesOgMeta(origin, req.originalUrl.split('#')[0], req.query.items)
-    );
+    sendOgHtml(res, getFavoritesOgMeta(origin, req.originalUrl.split('#')[0]));
   });
 }

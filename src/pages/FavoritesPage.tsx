@@ -9,6 +9,7 @@ import { AuthPanel } from '../components/AuthPanel';
 import { useImportSharedFavorites } from '../hooks/useImportSharedFavorites';
 import { buildFavoritesShare } from '../utils/shareLinks';
 import { setOgImage } from '../utils/metaTags';
+import { getOgFavoritesImageUrl } from '../utils/ogImage';
 
 export function FavoritesPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -21,19 +22,8 @@ export function FavoritesPage() {
   }, [refreshFavorites]);
 
   useEffect(() => {
-    const origin = window.location.origin;
-    const fallback = `${origin}/favicon-512.png`;
-    const firstImagePath = items.find((item) => item.product?.images?.[0])?.product?.images?.[0];
-    if (!firstImagePath) {
-      setOgImage(fallback);
-      return;
-    }
-
-    const absolute = firstImagePath.startsWith('http')
-      ? firstImagePath
-      : new URL(firstImagePath, origin).href;
-    setOgImage(absolute);
-  }, [items]);
+    setOgImage(getOgFavoritesImageUrl(window.location.origin));
+  }, []);
 
   if (authLoading) {
     return (

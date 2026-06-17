@@ -12,6 +12,7 @@ import { useImportSharedCart } from '../hooks/useImportSharedCart';
 import type { OrderDeliveryInfo, ReviewPrompt } from '../types';
 import { buildCartShare } from '../utils/shareLinks';
 import { setOgImage } from '../utils/metaTags';
+import { getOgCartImageUrl } from '../utils/ogImage';
 
 export function CartPage() {
   const { user, isLoading, openAuthModal } = useAuth();
@@ -20,8 +21,7 @@ export function CartPage() {
   const cartShare = buildCartShare(items);
 
   useEffect(() => {
-    const origin = window.location.origin;
-    setOgImage(`${origin}/favicon-512.png`);
+    setOgImage(getOgCartImageUrl(window.location.origin));
   }, []);
 
   const [searchParams, setSearchParams] = useSearchParams();
