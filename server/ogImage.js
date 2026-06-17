@@ -12,6 +12,7 @@ const projectRoot = join(__dirname, '..');
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
+const CACHE_VERSION = 'v3';
 
 sharp.cache(false);
 
@@ -57,40 +58,63 @@ function resolveStaticFilePath(relativePath) {
   return null;
 }
 
-function buildBackgroundSvg() {
+function buildBlackShareBackgroundSvg() {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fffafd"/>
-      <stop offset="50%" stop-color="#fff2f9"/>
-      <stop offset="100%" stop-color="#ffe3f1"/>
+    <radialGradient id="glow" cx="50%" cy="42%" r="58%">
+      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.22"/>
+      <stop offset="55%" stop-color="#ff2d95" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#ff2d95" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="edge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ff2d95" stop-opacity="0.08"/>
     </linearGradient>
   </defs>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="url(#bg)"/>
-  <rect x="40" y="40" width="1120" height="550" rx="30" fill="none" stroke="#ff2d95" stroke-opacity="0.14" stroke-width="2"/>
-  <ellipse cx="600" cy="110" rx="430" ry="170" fill="#ff2d95" fill-opacity="0.07"/>
+  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="#090909"/>
+  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="url(#glow)"/>
+  <rect x="28" y="28" width="1144" height="574" rx="28" fill="none" stroke="url(#edge)" stroke-width="1.5"/>
 </svg>`);
 }
 
-function buildBrandCardSvg(subtitle) {
+function buildBlackShareTextSvg(subtitle) {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <rect x="330" y="118" width="540" height="360" rx="32" fill="#ffffff" fill-opacity="0.96"/>
-  <rect x="330" y="118" width="540" height="360" rx="32" fill="none" stroke="#ff2d95" stroke-opacity="0.12" stroke-width="2"/>
-  <text x="600" y="352" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="50" font-weight="700" fill="#ff2d95" letter-spacing="7">PINKDROP</text>
-  <text x="600" y="412" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="34" font-weight="600" fill="#1f1f1f">${escapeXml(subtitle)}</text>
-  <text x="600" y="456" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" fill="#777777">доставка за 3 часа · Красноярск</text>
+  <text x="600" y="318" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="46" font-weight="700" fill="#ff2d95" letter-spacing="8">PINKDROP</text>
+  <text x="600" y="382" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="40" font-weight="600" fill="#ffffff">${escapeXml(subtitle)}</text>
+  <text x="600" y="432" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" fill="#9a9a9a">доставка за 3 часа · Красноярск</text>
 </svg>`);
 }
 
-function buildProductCardSvg(productName, priceLabel) {
+function buildProductShareBackgroundSvg() {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <rect x="210" y="88" width="780" height="430" rx="34" fill="#ffffff" fill-opacity="0.97"/>
-  <rect x="210" y="88" width="780" height="430" rx="34" fill="none" stroke="#ff2d95" stroke-opacity="0.12" stroke-width="2"/>
-  <text x="600" y="560" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="30" font-weight="600" fill="#1f1f1f">${escapeXml(productName)}</text>
-  <text x="600" y="598" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="24" font-weight="700" fill="#ff2d95">${escapeXml(priceLabel)} · PINKDROP</text>
+  <defs>
+    <radialGradient id="spot" cx="50%" cy="40%" r="52%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.1"/>
+      <stop offset="45%" stop-color="#ff2d95" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#090909" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="frame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ff2d95" stop-opacity="0.12"/>
+    </linearGradient>
+  </defs>
+  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="#090909"/>
+  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="url(#spot)"/>
+  <rect x="220" y="54" width="760" height="456" rx="30" fill="#111111" fill-opacity="0.92"/>
+  <rect x="220" y="54" width="760" height="456" rx="30" fill="none" stroke="url(#frame)" stroke-width="2"/>
+  <rect x="28" y="28" width="1144" height="574" rx="28" fill="none" stroke="#ff2d95" stroke-opacity="0.18" stroke-width="1.5"/>
+</svg>`);
+}
+
+function buildProductShareTextSvg(productName, priceLabel) {
+  const priceWithBrand = `${priceLabel} · PINKDROP`;
+  return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
+  <text x="600" y="552" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="32" font-weight="600" fill="#ffffff">${escapeXml(productName)}</text>
+  <text x="600" y="596" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="26" font-weight="700" fill="#ff2d95">${escapeXml(priceWithBrand)}</text>
 </svg>`);
 }
 
@@ -116,67 +140,96 @@ function resolveProductImagePath(imageUrl) {
   return resolveStaticFilePath(relative);
 }
 
-async function buildBrandOgPng(subtitle) {
-  const logo = await loadLogo(118);
-  const composites = [{ input: buildBrandCardSvg(subtitle), top: 0, left: 0 }];
+async function buildBlackShareOgPng(subtitle) {
+  const logo = await loadLogo(92);
+  const composites = [
+    { input: buildBlackShareBackgroundSvg(), top: 0, left: 0 },
+    { input: buildBlackShareTextSvg(subtitle), top: 0, left: 0 },
+  ];
 
   if (logo) {
     const logoMeta = await sharp(logo).metadata();
     composites.push({
       input: logo,
-      top: 156,
+      top: 148,
       left: Math.round((OG_WIDTH - (logoMeta.width ?? 0)) / 2),
     });
   }
 
-  return sharp(buildBackgroundSvg()).composite(composites).png().toBuffer();
+  return sharp({
+    create: {
+      width: OG_WIDTH,
+      height: OG_HEIGHT,
+      channels: 4,
+      background: { r: 9, g: 9, b: 9, alpha: 1 },
+    },
+  })
+    .composite(composites)
+    .png()
+    .toBuffer();
 }
 
 async function buildProductOgPng(product) {
   const priceLabel = product.isFree ? 'бесплатно' : formatPriceRub(product.price);
-  const productName = truncate(product.name, 52);
+  const productName = truncate(product.name, 56);
   const imagePath = resolveProductImagePath(product.images?.[0]);
 
   if (!imagePath) {
-    return buildBrandOgPng(productName);
+    return buildBlackShareOgPng(productName);
   }
 
   try {
     const productImage = await sharp(imagePath, { failOn: 'none' })
       .rotate()
-      .resize(360, 360, {
+      .resize(390, 390, {
         fit: 'contain',
-        background: { r: 255, g: 255, b: 255, alpha: 0 },
+        background: { r: 17, g: 17, b: 17, alpha: 0 },
       })
       .png()
       .toBuffer();
 
     const productMeta = await sharp(productImage).metadata();
-    const productWidth = productMeta.width ?? 360;
-    const productHeight = productMeta.height ?? 360;
-    const productLeft = Math.round((OG_WIDTH - productWidth) / 2);
-    const productTop = 122 + Math.round((360 - productHeight) / 2);
+    const productWidth = productMeta.width ?? 390;
+    const productHeight = productMeta.height ?? 390;
+    const stageLeft = 220;
+    const stageTop = 54;
+    const stageWidth = 760;
+    const stageHeight = 456;
+    const productLeft = stageLeft + Math.round((stageWidth - productWidth) / 2);
+    const productTop = stageTop + Math.round((stageHeight - productHeight) / 2);
 
     const composites = [
-      { input: buildProductCardSvg(productName, priceLabel), top: 0, left: 0 },
+      { input: buildProductShareBackgroundSvg(), top: 0, left: 0 },
       { input: productImage, top: productTop, left: productLeft },
+      { input: buildProductShareTextSvg(productName, priceLabel), top: 0, left: 0 },
     ];
 
-    return sharp(buildBackgroundSvg()).composite(composites).png().toBuffer();
+    return sharp({
+      create: {
+        width: OG_WIDTH,
+        height: OG_HEIGHT,
+        channels: 4,
+        background: { r: 9, g: 9, b: 9, alpha: 1 },
+      },
+    })
+      .composite(composites)
+      .png()
+      .toBuffer();
   } catch (error) {
     console.error('[og-image] product render failed:', imagePath, error);
-    return buildBrandOgPng(productName);
+    return buildBlackShareOgPng(productName);
   }
 }
 
 async function getCachedPng(cacheKey, generator) {
-  const cached = imageCache.get(cacheKey);
+  const versionedKey = `${CACHE_VERSION}:${cacheKey}`;
+  const cached = imageCache.get(versionedKey);
   if (cached) return cached;
 
   const buffer = await generator();
   const etag = `"${createHash('md5').update(buffer).digest('hex')}"`;
   const payload = { buffer, etag };
-  imageCache.set(cacheKey, payload);
+  imageCache.set(versionedKey, payload);
   return payload;
 }
 
@@ -212,7 +265,7 @@ export function getOgProductImagePath(origin, category, productId) {
 export function registerOgImageRoutes(app) {
   app.get('/og/share/brand.png', async (_req, res) => {
     try {
-      const payload = await getCachedPng('brand', () => buildBrandOgPng('онлайн-витрина'));
+      const payload = await getCachedPng('brand', () => buildBlackShareOgPng('онлайн-витрина'));
       sendOgPng(res, payload);
     } catch (error) {
       console.error('[og-image] brand failed:', error);
@@ -222,7 +275,7 @@ export function registerOgImageRoutes(app) {
 
   app.get('/og/share/cart.png', async (_req, res) => {
     try {
-      const payload = await getCachedPng('cart', () => buildBrandOgPng('Корзина'));
+      const payload = await getCachedPng('cart', () => buildBlackShareOgPng('Корзина'));
       sendOgPng(res, payload);
     } catch (error) {
       console.error('[og-image] cart failed:', error);
@@ -232,7 +285,7 @@ export function registerOgImageRoutes(app) {
 
   app.get('/og/share/favorites.png', async (_req, res) => {
     try {
-      const payload = await getCachedPng('favorites', () => buildBrandOgPng('Избранное'));
+      const payload = await getCachedPng('favorites', () => buildBlackShareOgPng('Избранное'));
       sendOgPng(res, payload);
     } catch (error) {
       console.error('[og-image] favorites failed:', error);
@@ -246,7 +299,7 @@ export function registerOgImageRoutes(app) {
       const product = enrichProduct(getProductById(id, category));
 
       if (!product) {
-        const payload = await getCachedPng('brand', () => buildBrandOgPng('онлайн-витрина'));
+        const payload = await getCachedPng('brand', () => buildBlackShareOgPng('онлайн-витрина'));
         sendOgPng(res, payload);
         return;
       }
@@ -260,7 +313,7 @@ export function registerOgImageRoutes(app) {
     } catch (error) {
       console.error('[og-image] product failed:', error);
       try {
-        const payload = await getCachedPng('brand-fallback', () => buildBrandOgPng('PINKDROP'));
+        const payload = await getCachedPng('brand-fallback', () => buildBlackShareOgPng('PINKDROP'));
         sendOgPng(res, payload);
       } catch (fallbackError) {
         console.error('[og-image] product fallback failed:', fallbackError);
