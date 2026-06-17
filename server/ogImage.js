@@ -12,7 +12,8 @@ const projectRoot = join(__dirname, '..');
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
+export const OG_IMAGE_QUERY = 'v=5';
 const PRODUCT_THUMB = 200;
 const LOGO_THUMB = 200;
 
@@ -243,9 +244,16 @@ async function getCachedPng(cacheKey, generator) {
   return payload;
 }
 
+function withOgImageVersion(path) {
+  const separator = path.includes('?') ? '&' : '?';
+  return `${path}${separator}${OG_IMAGE_QUERY}`;
+}
+
 function sendOgPng(res, { buffer, etag }) {
   res.setHeader('Content-Type', 'image/png');
   res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   res.setHeader('ETag', etag);
 
   if (res.req.headers['if-none-match'] === etag) {
@@ -257,19 +265,21 @@ function sendOgPng(res, { buffer, etag }) {
 }
 
 export function getOgBrandImagePath(origin) {
-  return `${origin.replace(/\/$/, '')}/og/share/brand.png`;
+  return withOgImageVersion(`${origin.replace(/\/$/, '')}/og/share/brand.png`);
 }
 
 export function getOgCartImagePath(origin) {
-  return `${origin.replace(/\/$/, '')}/og/share/cart.png`;
+  return withOgImageVersion(`${origin.replace(/\/$/, '')}/og/share/cart.png`);
 }
 
 export function getOgFavoritesImagePath(origin) {
-  return `${origin.replace(/\/$/, '')}/og/share/favorites.png`;
+  return withOgImageVersion(`${origin.replace(/\/$/, '')}/og/share/favorites.png`);
 }
 
 export function getOgProductImagePath(origin, category, productId) {
-  return `${origin.replace(/\/$/, '')}/og/product/${category}/${productId}.png`;
+  return withOgImageVersion(
+    `${origin.replace(/\/$/, '')}/og/product/${category}/${productId}.png`
+  );
 }
 
 export function registerOgImageRoutes(app) {

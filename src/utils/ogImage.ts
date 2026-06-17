@@ -1,17 +1,23 @@
+const OG_IMAGE_QUERY = 'v=5';
+
+function withOgImageVersion(path: string) {
+  return `${path}?${OG_IMAGE_QUERY}`;
+}
+
 export function getOgBrandImageUrl(origin: string) {
-  return `${origin}/og/share/brand.png`;
+  return withOgImageVersion(`${origin}/og/share/brand.png`);
 }
 
 export function getOgCartImageUrl(origin: string) {
-  return `${origin}/og/share/cart.png`;
+  return withOgImageVersion(`${origin}/og/share/cart.png`);
 }
 
 export function getOgFavoritesImageUrl(origin: string) {
-  return `${origin}/og/share/favorites.png`;
+  return withOgImageVersion(`${origin}/og/share/favorites.png`);
 }
 
 export function getOgProductImageUrl(origin: string, category: string, productId: string) {
-  return `${origin}/og/product/${category}/${productId}.png`;
+  return withOgImageVersion(`${origin}/og/product/${category}/${productId}.png`);
 }
 
 export function getDefaultOgImageUrl(origin: string, pathname: string) {

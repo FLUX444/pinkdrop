@@ -44,7 +44,8 @@ export function applySecurityMiddleware(app) {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-      crossOriginResourcePolicy: { policy: 'same-site' },
+      // Telegram / соцсети должны свободно подгружать og:image
+      crossOriginResourcePolicy: false,
     })
   );
 
