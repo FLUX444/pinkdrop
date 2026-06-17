@@ -261,6 +261,7 @@ import {
   removeUnusedProductImages,
 } from './orderFulfillment.js';
 import { buildSitemapXml } from './sitemap.js';
+import { registerOgPreviewRoutes } from './ogPreview.js';
 
 initDb();
 clearExpiredOAuthStates();
@@ -274,6 +275,7 @@ const faviconStaticFiles = [
   'favicon-48.png',
   'favicon-96.png',
   'favicon-192.png',
+  'favicon-512.png',
   'apple-touch-icon.png',
   'site.webmanifest',
 ];
@@ -691,6 +693,8 @@ app.get('/sitemap.xml', (_req, res) => {
   res.set('Cache-Control', 'public, max-age=3600');
   res.send(buildSitemapXml());
 });
+
+registerOgPreviewRoutes(app);
 
 app.get('/api/products', (_req, res) => {
   res.json(enrichProducts(getAllProductsRaw()));
