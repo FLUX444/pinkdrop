@@ -15,6 +15,8 @@ export type SharedFavoriteEntry = {
 
 const TOKEN_RE = /^[a-z0-9_-]+$/i;
 const MAX_SHARED_ITEMS = 24;
+/** Меняем при обновлении OG-картинок — Telegram кэширует превью по URL */
+const SHARE_PREVIEW_VERSION = '6';
 
 function isValidToken(value: string) {
   return TOKEN_RE.test(value) && value.length > 0 && value.length <= 64;
@@ -22,7 +24,9 @@ function isValidToken(value: string) {
 
 export function buildAbsoluteUrl(path: string) {
   if (typeof window === 'undefined') return path;
-  return new URL(path, window.location.origin).href;
+  const url = new URL(path, window.location.origin);
+  url.searchParams.set('pd', SHARE_PREVIEW_VERSION);
+  return url.href;
 }
 
 export function encodeCartShareParam(entries: SharedCartEntry[]) {

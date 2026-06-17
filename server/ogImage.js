@@ -12,8 +12,8 @@ const projectRoot = join(__dirname, '..');
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
-const CACHE_VERSION = 'v5';
-export const OG_IMAGE_QUERY = 'v=5';
+const CACHE_VERSION = 'v6';
+export const OG_IMAGE_QUERY = 'v=6';
 const PRODUCT_THUMB = 200;
 const LOGO_THUMB = 200;
 

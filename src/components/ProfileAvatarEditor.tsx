@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Loader2 } from 'lucide-react';
-import type { User } from '../types';
+import type { User, PresenceStatus } from '../types';
 import { AvatarCropModal } from './AvatarCropModal';
+import { AvatarWithPresence } from './AvatarWithPresence';
+import { usePresence } from '../context/PresenceContext';
+
+const PRESENCE_LABELS: Record<PresenceStatus, string> = {
+  online: 'В сети',
+  away: 'Отошёл',
+  offline: 'Не в сети',
+};
 
 function TelegramCameraIcon() {
   return (
@@ -24,22 +32,31 @@ function getDisplayLabel(user: User) {
   return user.name || user.email || user.phone || '?';
 }
 
+function resolveAvatarSrc(url: string | null | undefined, version: number) {
+  if (!url) return null;
+
+  const absolute = url.startsWith('/') ? `${window.location.origin}${url}` : url;
+  if (!url.startsWith('/uploads/avatars/')) return absolute;
+  return version > 0 ? `${absolute}?v=${version}` : absolute;
+}
+
 export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarEditorProps) {
+  const presenceStatus = usePresence(user.id);
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null);
   const [avatarVersion, setAvatarVersion] = useState(0);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-  const resolveAvatarUrl = (url: string | null | undefined) => {
-    if (!url) return null;
-    if (!url.startsWith('/uploads/avatars/')) return url;
-    return avatarVersion > 0 ? `${url}?v=${avatarVersion}` : url;
-  };
-
-  const displayAvatar = previewUrl ?? resolveAvatarUrl(user.avatarUrl);
+  const resolvedAvatar = resolveAvatarSrc(user.avatarUrl, avatarVersion);
+  const displayAvatar = previewUrl ?? (resolvedAvatar && resolvedAvatar !== failedSrc ? resolvedAvatar : null);
   const hasUploadedAvatar = Boolean(user.avatarUrl?.startsWith('/uploads/avatars/'));
+
+  useEffect(() => {
+    setFailedSrc(null);
+  }, [user.avatarUrl, avatarVersion]);
 
   useEffect(() => {
     return () => {
@@ -118,22 +135,33 @@ export function ProfileAvatarEditor({ user, onUpload, onRemove }: ProfileAvatarE
         disabled={busy}
         aria-label="Изменить фото профиля"
       >
-        {displayAvatar ? (
-          <img
-            src={displayAvatar}
-            alt=""
-            className="profile-avatar-editor__image"
-            onError={() => setError('Не удалось загрузить фото профиля')}
-          />
-        ) : (
-          <span className="profile-avatar-editor__placeholder" aria-hidden>
-            {getDisplayLabel(user).charAt(0).toUpperCase()}
-          </span>
-        )}
+        <AvatarWithPresence userId={user.id} size={96} className="profile-avatar-editor__presence">
+          {displayAvatar ? (
+            <img
+              src={displayAvatar}
+              alt=""
+              className="profile-avatar-editor__image"
+              onError={() => {
+                if (displayAvatar) setFailedSrc(displayAvatar);
+              }}
+            />
+          ) : (
+            <span className="profile-avatar-editor__placeholder" aria-hidden>
+              {getDisplayLabel(user).charAt(0).toUpperCase()}
+            </span>
+          )}
+        </AvatarWithPresence>
         <span className="profile-avatar-editor__camera" aria-hidden>
           {busy ? <Loader2 size={16} className="profile-avatar-editor__spin" /> : <TelegramCameraIcon />}
         </span>
       </button>
+
+      <p
+        className={`profile-avatar-editor__status profile-avatar-editor__status--${presenceStatus}`}
+        aria-live="polite"
+      >
+        {PRESENCE_LABELS[presenceStatus]}
+      </p>
 
       <input
         ref={inputRef}
