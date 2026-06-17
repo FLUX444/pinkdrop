@@ -16,6 +16,10 @@ import { TELEGRAM_BOT } from '../data/products';
 import { DeliveryTimer } from './DeliveryTimer';
 import { ProductArtwork } from './ProductArtwork';
 import { ProductImage } from './ProductImage';
+import {
+  getProductReferencePrice,
+  hasActivePriceDropDiscount,
+} from '../utils/productPriceDrop';
 
 interface CartContentProps {
   onCheckout: () => void;
@@ -96,6 +100,15 @@ export function CartContent({ onCheckout }: CartContentProps) {
           const maxQty = getMaxPurchasableQuantity(product);
           const atMax = quantity >= maxQty;
           const selected = isItemSelected(product.id);
+          const hasPriceDropDiscount = hasActivePriceDropDiscount(product);
+          const referencePrice = getProductReferencePrice(product);
+          const lineTotal = product.price * quantity;
+          const lineReferenceTotal =
+            product.bargainDiscount && product.oldPrice
+              ? product.oldPrice * quantity
+              : referencePrice && referencePrice > product.price
+                ? referencePrice * quantity
+                : null;
 
           return (
             <li key={product.id} className={`cart-item${selected ? '' : ' cart-item--unselected'}`}>
@@ -135,16 +148,21 @@ export function CartContent({ onCheckout }: CartContentProps) {
                 <span className="cart-item__unit">
                   {product.bargainDiscount && product.oldPrice ? (
                     <>
-                      <span className="cart-item__old-price">{formatPrice(product.oldPrice)}</span>
-                      {' '}
-                      <span className="cart-item__bargain-price">{formatPrice(product.price)}</span>
+                      <span className="cart-item__prices">
+                        <span className="cart-item__old-price">{formatPrice(product.oldPrice)}</span>
+                        <span className="cart-item__current-price">{formatPrice(product.price)}</span>
+                      </span>
                       {' / шт'}
                       <em className="cart-item__bargain-badge"> −{product.bargainDiscount.totalPercent}% от бота</em>
                     </>
+                  ) : hasPriceDropDiscount && referencePrice ? (
+                    <span className="cart-item__prices cart-item__prices--drop">
+                      <span className="cart-item__old-price">{formatPrice(referencePrice)}</span>
+                      <span className="cart-item__current-price">{formatPrice(product.price)}</span>
+                      <span className="cart-item__unit-suffix"> / шт</span>
+                    </span>
                   ) : (
-                    <>
-                      {formatPrice(product.price)} / шт
-                    </>
+                    <>{formatPrice(product.price)} / шт</>
                   )}
                   {typeof product.stock === 'number' && (
                     <em> · в наличии {product.stock}</em>
@@ -174,9 +192,14 @@ export function CartContent({ onCheckout }: CartContentProps) {
                       <Plus size={16} />
                     </button>
                   </div>
-                  <strong className="cart-item__total">
-                    {formatPrice(product.price * quantity)}
-                  </strong>
+                  <div
+                    className={`cart-item__total-wrap${lineReferenceTotal ? ' cart-item__total-wrap--dropped' : ''}`}
+                  >
+                    {lineReferenceTotal && (
+                      <span className="cart-item__total-old">{formatPrice(lineReferenceTotal)}</span>
+                    )}
+                    <strong className="cart-item__total">{formatPrice(lineTotal)}</strong>
+                  </div>
                 </div>
               </div>
             </li>

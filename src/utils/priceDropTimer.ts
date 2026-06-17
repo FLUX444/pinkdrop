@@ -41,12 +41,21 @@ function buildTimerState(
   };
 }
 
-export function getNextPriceEventAt(dropStartedAt: string, discountPercent: number) {
+export function getNextTimerEventAt(dropStartedAt: string, now = Date.now()) {
   const started = new Date(dropStartedAt).getTime();
   if (Number.isNaN(started)) return null;
 
-  const nextPeriod = discountPercent >= MAX_DISCOUNT ? MAX_DISCOUNT + 1 : discountPercent + 1;
-  return new Date(started + nextPeriod * PRICE_DROP_PERIOD_MS).toISOString();
+  const elapsedPeriods = Math.floor((now - started) / PRICE_DROP_PERIOD_MS);
+  return new Date(started + (elapsedPeriods + 1) * PRICE_DROP_PERIOD_MS).toISOString();
+}
+
+export function getTimerRemainingMs(dropStartedAt: string, now = Date.now()) {
+  const started = new Date(dropStartedAt).getTime();
+  if (Number.isNaN(started)) return 0;
+
+  const elapsedPeriods = Math.floor((now - started) / PRICE_DROP_PERIOD_MS);
+  const nextAt = started + (elapsedPeriods + 1) * PRICE_DROP_PERIOD_MS;
+  return Math.max(0, nextAt - now);
 }
 
 export function getPriceDropTimerState(
@@ -79,17 +88,25 @@ export function getPriceDropTimerState(
     return null;
   }
 
-  const resolvedNextDropAt =
-    (priceDrop.dropStartedAt
-      ? getNextPriceEventAt(priceDrop.dropStartedAt, discountPercent)
-      : null) ?? priceDrop.nextDropAt;
+  if (priceDrop.dropStartedAt) {
+    const nextDropAt = getNextTimerEventAt(priceDrop.dropStartedAt, now);
+    if (nextDropAt) {
+      const nextDropMs = new Date(nextDropAt).getTime();
+      return buildTimerState(
+        discountPercent,
+        nextDropAt,
+        Math.max(0, nextDropMs - now),
+        false
+      );
+    }
+  }
 
-  if (resolvedNextDropAt) {
-    const nextDropMs = new Date(resolvedNextDropAt).getTime();
+  if (priceDrop.nextDropAt) {
+    const nextDropMs = new Date(priceDrop.nextDropAt).getTime();
     if (!Number.isNaN(nextDropMs)) {
       return buildTimerState(
         discountPercent,
-        resolvedNextDropAt,
+        priceDrop.nextDropAt,
         Math.max(0, nextDropMs - now),
         false
       );

@@ -16,6 +16,7 @@ import {
   getProductReferencePrice,
   hasActivePriceDropDiscount,
 } from '../utils/productPriceDrop';
+import { PRICE_DROP_PERIOD_MS } from '../utils/priceDropTimer';
 
 interface ProductCardProps {
   product: Product;
@@ -87,23 +88,28 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
   }, [hasPriceDropDiscount, product.oldPrice, product.price]);
 
   useEffect(() => {
-    if (!product.priceDrop?.enabled || !product.priceDrop.nextDropAt) return undefined;
+    if (!product.priceDrop?.enabled || !product.priceDrop.dropStartedAt) return undefined;
 
-    const nextDropTime = new Date(product.priceDrop.nextDropAt).getTime();
-    if (Number.isNaN(nextDropTime)) return undefined;
+    const started = new Date(product.priceDrop.dropStartedAt).getTime();
+    if (Number.isNaN(started)) return undefined;
 
-    const delay = Math.max(0, nextDropTime - Date.now() + 150);
-    const timeout = window.setTimeout(() => {
-      onPriceDropDue?.();
-    }, delay);
+    const scheduleRefresh = () => {
+      const now = Date.now();
+      const elapsedPeriods = Math.floor((now - started) / PRICE_DROP_PERIOD_MS);
+      const nextAt = started + (elapsedPeriods + 1) * PRICE_DROP_PERIOD_MS;
+      const delay = Math.max(0, nextAt - now + 150);
+      return window.setTimeout(() => {
+        onPriceDropDue?.();
+      }, delay);
+    };
 
+    const timeout = scheduleRefresh();
     return () => window.clearTimeout(timeout);
   }, [
     onPriceDropDue,
     product.id,
-    product.priceDrop?.discountPercent,
+    product.priceDrop?.dropStartedAt,
     product.priceDrop?.enabled,
-    product.priceDrop?.nextDropAt,
   ]);
 
   return (

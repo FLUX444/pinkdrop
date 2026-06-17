@@ -16,6 +16,7 @@ import { CrossSell } from './CrossSell';
 import { ReviewItem } from './ReviewItem';
 import { ProductImageGallery } from './ProductImageGallery';
 import { FavoriteButton } from './FavoriteButton';
+import { PRICE_DROP_PERIOD_MS } from '../utils/priceDropTimer';
 
 interface ProductModalProps {
   product: Product | null;
@@ -83,12 +84,15 @@ export function ProductModal({ product, onClose, onPriceDropDue }: ProductModalP
   }, [hasPriceDropDiscount, product?.oldPrice, product?.price]);
 
   useEffect(() => {
-    if (!product?.priceDrop?.enabled || !product.priceDrop.nextDropAt) return undefined;
+    if (!product?.priceDrop?.enabled || !product.priceDrop.dropStartedAt) return undefined;
 
-    const nextDropTime = new Date(product.priceDrop.nextDropAt).getTime();
-    if (Number.isNaN(nextDropTime)) return undefined;
+    const started = new Date(product.priceDrop.dropStartedAt).getTime();
+    if (Number.isNaN(started)) return undefined;
 
-    const delay = Math.max(0, nextDropTime - Date.now() + 150);
+    const now = Date.now();
+    const elapsedPeriods = Math.floor((now - started) / PRICE_DROP_PERIOD_MS);
+    const nextAt = started + (elapsedPeriods + 1) * PRICE_DROP_PERIOD_MS;
+    const delay = Math.max(0, nextAt - now + 150);
     const timeout = window.setTimeout(() => {
       onPriceDropDue?.();
     }, delay);
@@ -97,9 +101,8 @@ export function ProductModal({ product, onClose, onPriceDropDue }: ProductModalP
   }, [
     onPriceDropDue,
     product?.id,
-    product?.priceDrop?.discountPercent,
+    product?.priceDrop?.dropStartedAt,
     product?.priceDrop?.enabled,
-    product?.priceDrop?.nextDropAt,
   ]);
 
   if (!product) return null;

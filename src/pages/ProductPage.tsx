@@ -24,6 +24,7 @@ import {
 } from '../utils/productPriceDrop';
 import { getSimilarProducts } from '../utils/similarProducts';
 import { buildProductShare } from '../utils/shareLinks';
+import { PRICE_DROP_PERIOD_MS } from '../utils/priceDropTimer';
 
 type Tab = 'description' | 'specs' | 'reviews';
 
@@ -162,12 +163,15 @@ export function ProductPage() {
   }, [hasPriceDropDiscount, product, product?.oldPrice, product?.price]);
 
   useEffect(() => {
-    if (!product?.priceDrop?.enabled || !product.priceDrop.nextDropAt) return undefined;
+    if (!product?.priceDrop?.enabled || !product.priceDrop.dropStartedAt) return undefined;
 
-    const nextDropTime = new Date(product.priceDrop.nextDropAt).getTime();
-    if (Number.isNaN(nextDropTime)) return undefined;
+    const started = new Date(product.priceDrop.dropStartedAt).getTime();
+    if (Number.isNaN(started)) return undefined;
 
-    const delay = Math.max(0, nextDropTime - Date.now() + 150);
+    const now = Date.now();
+    const elapsedPeriods = Math.floor((now - started) / PRICE_DROP_PERIOD_MS);
+    const nextAt = started + (elapsedPeriods + 1) * PRICE_DROP_PERIOD_MS;
+    const delay = Math.max(0, nextAt - now + 150);
     const timeout = window.setTimeout(() => {
       if (priceRefreshTimeoutRef.current !== null) {
         window.clearTimeout(priceRefreshTimeoutRef.current);
@@ -181,9 +185,8 @@ export function ProductPage() {
     return () => window.clearTimeout(timeout);
   }, [
     product?.id,
-    product?.priceDrop?.discountPercent,
+    product?.priceDrop?.dropStartedAt,
     product?.priceDrop?.enabled,
-    product?.priceDrop?.nextDropAt,
     refreshProduct,
   ]);
 

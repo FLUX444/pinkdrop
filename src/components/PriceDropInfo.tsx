@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
-import { PRICE_DROP_PERIOD_HOURS } from '../utils/priceDropTimer';
+import { getTimerRemainingMs, PRICE_DROP_PERIOD_HOURS } from '../utils/priceDropTimer';
 
 function pad(value: number) {
   return String(value).padStart(2, '0');
@@ -19,7 +19,7 @@ interface PriceDropInfoProps {
 }
 
 export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
-  const [nextDropAt, setNextDropAt] = useState<string | null>(null);
+  const [dropStartedAt, setDropStartedAt] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
@@ -31,7 +31,7 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
         .getPriceDropTimer()
         .then((timer) => {
           if (cancelled) return;
-          setNextDropAt(timer.nextDropAt);
+          setDropStartedAt(timer.dropStartedAt);
           setReady(true);
         })
         .catch(() => {
@@ -53,11 +53,8 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
     return () => window.clearInterval(interval);
   }, []);
 
-  let displayCountdown = '--:--:--';
-  if (ready && nextDropAt) {
-    const remainingMs = Math.max(0, new Date(nextDropAt).getTime() - now);
-    displayCountdown = formatMs(remainingMs);
-  }
+  const displayCountdown =
+    ready && dropStartedAt ? formatMs(getTimerRemainingMs(dropStartedAt, now)) : '--:--:--';
 
   return (
     <section

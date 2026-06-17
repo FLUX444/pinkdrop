@@ -26,6 +26,14 @@ export function getNextDropAt(dropStartedAt, discountPercent) {
   return new Date(started + nextPeriod * PERIOD_MS).toISOString();
 }
 
+export function getNextTimerEventAt(dropStartedAt, now = Date.now()) {
+  const started = new Date(dropStartedAt).getTime();
+  if (Number.isNaN(started)) return null;
+
+  const elapsedPeriods = Math.floor((now - started) / PERIOD_MS);
+  return new Date(started + (elapsedPeriods + 1) * PERIOD_MS).toISOString();
+}
+
 function migratePriceDropPeriodColumn() {
   const columns = db.prepare('PRAGMA table_info(site_price_drop)').all();
   if (!columns.some((column) => column.name === 'period_ms')) {
@@ -98,7 +106,7 @@ export function getGlobalDropStartedAt() {
 export function getGlobalPriceDropTimer(now = Date.now()) {
   const globalAnchor = getGlobalDropStartedAt();
   const globalDiscount = getDiscountPercent(globalAnchor, now);
-  const nextDropAt = getNextDropAt(globalAnchor, globalDiscount);
+  const nextDropAt = getNextTimerEventAt(globalAnchor, now);
   const isMaxDiscount = globalDiscount >= MAX_DISCOUNT;
 
   if (!nextDropAt) {
@@ -188,7 +196,7 @@ export function priceDropToJson(row) {
     nextDropAt: frozen
       ? row.frozen_until
       : row.enabled
-        ? getNextDropAt(globalAnchor, globalDiscount)
+        ? getNextTimerEventAt(globalAnchor, now)
         : null,
   };
 }
