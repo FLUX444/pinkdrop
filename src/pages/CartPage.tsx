@@ -11,12 +11,19 @@ import { useCart } from '../context/CartContext';
 import { useImportSharedCart } from '../hooks/useImportSharedCart';
 import type { OrderDeliveryInfo, ReviewPrompt } from '../types';
 import { buildCartShare } from '../utils/shareLinks';
+import { setOgImage } from '../utils/metaTags';
 
 export function CartPage() {
   const { user, isLoading, openAuthModal } = useAuth();
   const { someItemsSelected, selectedItems, items, setAllItemsSelected, cartNotice, refreshCart, clearCartNotice } = useCart();
   const { notice: importNotice, clearNotice: clearImportNotice } = useImportSharedCart();
   const cartShare = buildCartShare(items);
+
+  useEffect(() => {
+    const origin = window.location.origin;
+    setOgImage(`${origin}/favicon-512.png`);
+  }, []);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const isCheckoutOpen = searchParams.get('checkout') === '1';
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);

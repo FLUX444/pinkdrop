@@ -27,7 +27,7 @@ export function canStartBargain(product: {
   if (siteDiscount >= MAX_BARGAIN_DISCOUNT) {
     return {
       ok: false,
-      reason: 'На сайте уже максимальная скидка −28%. Бот не может снизить цену ещё.',
+      reason: 'На сайте уже максимальная скидка. Бот не может снизить цену ещё.',
     };
   }
 
@@ -50,7 +50,7 @@ export function canStartCartBargain(
   if (!eligible.length) {
     return {
       ok: false,
-      reason: 'Все товары в корзине уже с максимальной скидкой −28%',
+      reason: 'Все товары в корзине уже с максимальной скидкой',
     };
   }
 

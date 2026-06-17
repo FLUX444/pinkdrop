@@ -58,7 +58,7 @@ export function PriceDropInfo({ variant = 'standalone' }: PriceDropInfoProps) {
   let displayCountdown = '--:--:--';
   if (ready) {
     if (isMaxDiscount) {
-      displayCountdown = 'MAX −28%';
+      displayCountdown = 'скоро сброс';
     } else if (nextDropAt) {
       const remainingMs = Math.max(0, new Date(nextDropAt).getTime() - now);
       displayCountdown = formatMs(remainingMs);

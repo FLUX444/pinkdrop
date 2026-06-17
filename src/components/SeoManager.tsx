@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { setOgImage } from '../utils/metaTags';
 
 const SITE_NAME = 'PINKDROP';
 const DEFAULT_TITLE = 'PINKDROP — доставка за 3 часа';
@@ -65,6 +66,9 @@ export function SeoManager() {
     setMetaTag('property', 'og:title', page.title);
     setMetaTag('property', 'og:description', page.description);
     setMetaTag('property', 'og:url', `${origin}${pathname}`);
+    const defaultOgImage = `${origin}/favicon-512.png`;
+    setOgImage(defaultOgImage);
+    setMetaTag('name', 'twitter:card', 'summary_large_image');
 
     const isPrivate =
       pathname.startsWith('/admin') ||

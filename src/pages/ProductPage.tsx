@@ -17,6 +17,7 @@ import { SimilarProducts } from '../components/SimilarProducts';
 import { ReviewItem } from '../components/ReviewItem';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { ShareMenu } from '../components/ShareMenu';
+import { setOgImage } from '../utils/metaTags';
 import {
   getProductReferencePrice,
   hasActivePriceDropDiscount,
@@ -68,6 +69,16 @@ export function ProductPage() {
     setTab('description');
     refreshProduct();
   }, [refreshProduct]);
+
+  useEffect(() => {
+    const imagePath =
+      product?.images?.[0] ?? staticProducts.find((item) => item.id === id)?.images?.[0];
+    if (!imagePath) return;
+
+    const origin = window.location.origin;
+    const absolute = imagePath.startsWith('http') ? imagePath : new URL(imagePath, origin).href;
+    setOgImage(absolute);
+  }, [id, product?.id, product?.images]);
 
   useEffect(() => {
     api

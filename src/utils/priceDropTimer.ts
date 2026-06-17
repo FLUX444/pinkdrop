@@ -100,6 +100,6 @@ export function formatPriceDropCountdown(state: PriceDropTimerState) {
   if (state.isFrozen) {
     return `${pad(state.hours)}:${pad(state.minutes)}:${pad(state.seconds)}`;
   }
-  if (state.isMaxDiscount) return 'MAX −28%';
+  if (state.isMaxDiscount) return 'скоро сброс';
   return `${pad(state.hours)}:${pad(state.minutes)}:${pad(state.seconds)}`;
 }
