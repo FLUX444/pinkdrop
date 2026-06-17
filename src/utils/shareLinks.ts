@@ -16,7 +16,7 @@ export type SharedFavoriteEntry = {
 const TOKEN_RE = /^[a-z0-9_-]+$/i;
 const MAX_SHARED_ITEMS = 24;
 /** Меняем при обновлении OG-картинок — Telegram кэширует превью по URL */
-const SHARE_PREVIEW_VERSION = '8';
+const SHARE_PREVIEW_VERSION = '9';
 
 function isValidToken(value: string) {
   return TOKEN_RE.test(value) && value.length > 0 && value.length <= 64;

@@ -10,11 +10,12 @@ import { enrichProduct } from './priceDrop.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
 
-/** Квадратное превью — товар/логотип на весь кадр */
+/** Квадратное превью — товар/логотип на фирменном фоне */
 const OG_SIZE = 512;
-const CACHE_VERSION = 'v8';
-export const OG_IMAGE_QUERY = 'v=8';
+const CACHE_VERSION = 'v9';
+export const OG_IMAGE_QUERY = 'v=9';
 const LOGO_FILL = 440;
+const PRODUCT_FILL = 440;
 
 sharp.cache(false);
 
@@ -64,10 +65,27 @@ function buildSquareBackgroundSvg() {
 </svg>`);
 }
 
-function buildBorderOverlaySvg() {
+function buildProductBackgroundSvg() {
   return Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${OG_SIZE}" height="${OG_SIZE}" viewBox="0 0 ${OG_SIZE} ${OG_SIZE}">
-  <rect x="3" y="3" width="${OG_SIZE - 6}" height="${OG_SIZE - 6}" rx="12" fill="none" stroke="#ff2d95" stroke-opacity="0.5" stroke-width="2"/>
+  <defs>
+    <linearGradient id="cardBase" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="50%" stop-color="#181018"/>
+      <stop offset="100%" stop-color="#060606"/>
+    </linearGradient>
+    <radialGradient id="cardGlow" cx="50%" cy="42%" r="58%">
+      <stop offset="0%" stop-color="#ff2d95" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#ff2d95" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="cardGrid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M 18 0 L 0 0 0 18" fill="none" stroke="#ffffff" stroke-opacity="0.055" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="${OG_SIZE}" height="${OG_SIZE}" fill="url(#cardBase)"/>
+  <rect width="${OG_SIZE}" height="${OG_SIZE}" fill="url(#cardGlow)"/>
+  <rect width="${OG_SIZE}" height="${OG_SIZE}" fill="url(#cardGrid)" opacity="0.38"/>
+  <rect x="3" y="3" width="${OG_SIZE - 6}" height="${OG_SIZE - 6}" rx="12" fill="none" stroke="#ff2d95" stroke-opacity="0.45" stroke-width="2"/>
 </svg>`);
 }
 
@@ -138,17 +156,23 @@ async function buildProductOgPng(product) {
   try {
     const productImage = await sharp(imagePath, { failOn: 'none' })
       .rotate()
-      .resize(OG_SIZE, OG_SIZE, {
-        fit: 'cover',
-        position: 'centre',
+      .resize(PRODUCT_FILL, PRODUCT_FILL, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
       })
       .png()
       .toBuffer();
 
-    return sharp(productImage)
-      .composite([{ input: buildBorderOverlaySvg(), top: 0, left: 0 }])
-      .png()
-      .toBuffer();
+    const productMeta = await sharp(productImage).metadata();
+    const pos = centerOnCanvas(
+      productMeta.width ?? PRODUCT_FILL,
+      productMeta.height ?? PRODUCT_FILL
+    );
+
+    return renderOnSquare([
+      { input: buildProductBackgroundSvg(), top: 0, left: 0 },
+      { input: productImage, top: pos.top, left: pos.left },
+    ]);
   } catch (error) {
     console.error('[og-image] product render failed:', imagePath, error);
     return buildShareOgPng();

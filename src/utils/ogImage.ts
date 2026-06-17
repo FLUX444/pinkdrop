@@ -1,4 +1,4 @@
-const OG_IMAGE_QUERY = 'v=8';
+const OG_IMAGE_QUERY = 'v=9';
 
 function withOgImageVersion(path: string) {
   return `${path}?${OG_IMAGE_QUERY}`;
