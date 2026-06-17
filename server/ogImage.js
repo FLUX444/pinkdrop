@@ -1,15 +1,19 @@
 import { createHash } from 'crypto';
 import { existsSync, statSync } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 import { publicRoot } from './upload.js';
 import { getProductById } from './db.js';
 import { enrichProduct } from './priceDrop.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = join(__dirname, '..');
+
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 
-const LOGO_PATH = join(publicRoot, 'images', 'pinkdrop-pd-logo.png');
+sharp.cache(false);
 
 const imageCache = new Map();
 
@@ -29,7 +33,28 @@ function truncate(value, maxLength) {
 }
 
 function formatPriceRub(price) {
-  return `${new Intl.NumberFormat('ru-RU').format(price)} ₽`;
+  const amount = new Intl.NumberFormat('ru-RU')
+    .format(price)
+    .replace(/[\u00a0\u202f]/g, ' ');
+  return `${amount} ₽`;
+}
+
+function resolveStaticFilePath(relativePath) {
+  const normalized = String(relativePath ?? '').replace(/^\//, '');
+  if (!normalized) return null;
+
+  const candidates = [
+    join(publicRoot, normalized),
+    process.env.SITE_ROOT ? join(process.env.SITE_ROOT, normalized) : null,
+    join(projectRoot, 'dist', normalized),
+    `/var/www/pinkdrop/${normalized}`,
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+
+  return null;
 }
 
 function buildBackgroundSvg() {
@@ -70,9 +95,10 @@ function buildProductCardSvg(productName, priceLabel) {
 }
 
 async function loadLogo(height) {
-  if (!existsSync(LOGO_PATH)) return null;
+  const logoPath = resolveStaticFilePath('images/pinkdrop-pd-logo.png');
+  if (!logoPath) return null;
 
-  return sharp(LOGO_PATH)
+  return sharp(logoPath, { failOn: 'none' })
     .resize({ height, fit: 'inside' })
     .png()
     .toBuffer();
@@ -87,8 +113,7 @@ function resolveProductImagePath(imageUrl) {
       ? imageUrl
       : `/${imageUrl}`;
 
-  const filePath = join(publicRoot, relative.replace(/^\//, ''));
-  return existsSync(filePath) ? filePath : null;
+  return resolveStaticFilePath(relative);
 }
 
 async function buildBrandOgPng(subtitle) {
@@ -108,34 +133,40 @@ async function buildBrandOgPng(subtitle) {
 }
 
 async function buildProductOgPng(product) {
-  const imagePath = resolveProductImagePath(product.images?.[0]);
   const priceLabel = product.isFree ? 'бесплатно' : formatPriceRub(product.price);
   const productName = truncate(product.name, 52);
+  const imagePath = resolveProductImagePath(product.images?.[0]);
 
   if (!imagePath) {
     return buildBrandOgPng(productName);
   }
 
-  const productImage = await sharp(imagePath)
-    .resize(360, 360, {
-      fit: 'contain',
-      background: { r: 255, g: 255, b: 255, alpha: 0 },
-    })
-    .png()
-    .toBuffer();
+  try {
+    const productImage = await sharp(imagePath, { failOn: 'none' })
+      .rotate()
+      .resize(360, 360, {
+        fit: 'contain',
+        background: { r: 255, g: 255, b: 255, alpha: 0 },
+      })
+      .png()
+      .toBuffer();
 
-  const productMeta = await sharp(productImage).metadata();
-  const productWidth = productMeta.width ?? 360;
-  const productHeight = productMeta.height ?? 360;
-  const productLeft = Math.round((OG_WIDTH - productWidth) / 2);
-  const productTop = 122 + Math.round((360 - productHeight) / 2);
+    const productMeta = await sharp(productImage).metadata();
+    const productWidth = productMeta.width ?? 360;
+    const productHeight = productMeta.height ?? 360;
+    const productLeft = Math.round((OG_WIDTH - productWidth) / 2);
+    const productTop = 122 + Math.round((360 - productHeight) / 2);
 
-  const composites = [
-    { input: buildProductCardSvg(productName, priceLabel), top: 0, left: 0 },
-    { input: productImage, top: productTop, left: productLeft },
-  ];
+    const composites = [
+      { input: buildProductCardSvg(productName, priceLabel), top: 0, left: 0 },
+      { input: productImage, top: productTop, left: productLeft },
+    ];
 
-  return sharp(buildBackgroundSvg()).composite(composites).png().toBuffer();
+    return sharp(buildBackgroundSvg()).composite(composites).png().toBuffer();
+  } catch (error) {
+    console.error('[og-image] product render failed:', imagePath, error);
+    return buildBrandOgPng(productName);
+  }
 }
 
 async function getCachedPng(cacheKey, generator) {
@@ -228,7 +259,13 @@ export function registerOgImageRoutes(app) {
       sendOgPng(res, payload);
     } catch (error) {
       console.error('[og-image] product failed:', error);
-      res.status(500).end();
+      try {
+        const payload = await getCachedPng('brand-fallback', () => buildBrandOgPng('PINKDROP'));
+        sendOgPng(res, payload);
+      } catch (fallbackError) {
+        console.error('[og-image] product fallback failed:', fallbackError);
+        res.status(500).end();
+      }
     }
   });
 }
