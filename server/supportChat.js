@@ -14,6 +14,8 @@ import {
   getSecurityIncidentToken,
 } from './securityIncident.js';
 import { getUserOperatorRole } from './adminAccess.js';
+import { decryptMessageBody, encryptMessageBody } from './chatCrypto.js';
+import { protectChatMediaList, protectChatMediaUrl } from './chatMedia.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -134,7 +136,7 @@ function rowToThread(row) {
     userEmail: row.user_email ?? null,
     userPhone: row.user_phone ?? null,
     userAvatarUrl: row.user_avatar_url ?? null,
-    lastMessage: row.last_message ?? null,
+    lastMessage: row.last_message ? decryptMessageBody(row.last_message) : null,
     lastMessageAt: row.last_message_at ?? null,
     unreadForAdmin: Number(row.unread_for_admin ?? 0),
     status: row.status === 'closed' ? 'closed' : 'open',
@@ -259,7 +261,7 @@ function saveSupportMessageMedia(messageId, files = [], urlBase = '') {
     const result = insert.run(messageId, url, mediaType, file.originalname ?? null);
     media.push({
       id: String(result.lastInsertRowid),
-      url,
+      url: protectChatMediaUrl(url),
       type: mediaType,
       name: file.originalname ?? null,
     });
@@ -286,7 +288,7 @@ function getMediaForMessages(messageIds = []) {
     const list = map.get(row.message_id) ?? [];
     list.push({
       id: String(row.id),
-      url: row.url,
+      url: protectChatMediaUrl(row.url),
       type: row.media_type,
       name: row.name ?? null,
     });
@@ -364,7 +366,7 @@ function rowToMessage(row, thread, media = [], viewerRole = 'user') {
   const base = {
     id: String(row.id),
     threadId: String(row.thread_id),
-    body: row.body,
+    body: decryptMessageBody(row.body),
     createdAt: row.created_at,
     senderRole: row.sender_role,
     authorAvatarUrl: null,
@@ -684,7 +686,7 @@ export async function addUserSupportMessage(user, bodyRaw, threadId = null, uplo
       `INSERT INTO support_messages (thread_id, sender_role, admin_user_id, body)
        VALUES (?, 'user', NULL, ?)`
     )
-    .run(thread.id, displayBody);
+    .run(thread.id, encryptMessageBody(displayBody));
 
   const media = saveSupportMessageMedia(result.lastInsertRowid, files, urlBase);
 
@@ -839,7 +841,7 @@ export function addAdminSupportMessage(
       `INSERT INTO support_messages (thread_id, sender_role, admin_user_id, body)
        VALUES (?, 'admin', ?, ?)`
     )
-    .run(threadId, adminUser.id, displayBody);
+    .run(threadId, adminUser.id, encryptMessageBody(displayBody));
 
   const media = saveSupportMessageMedia(result.lastInsertRowid, files, urlBase);
 
@@ -943,7 +945,7 @@ export async function submitSecurityIncidentSupport(tokenRaw, bodyRaw) {
       `INSERT INTO support_messages (thread_id, sender_role, admin_user_id, body)
        VALUES (?, 'user', NULL, ?)`
     )
-    .run(thread.id, body);
+    .run(thread.id, encryptMessageBody(body));
 
   db.prepare(`UPDATE support_threads SET updated_at = datetime('now') WHERE id = ?`).run(thread.id);
 

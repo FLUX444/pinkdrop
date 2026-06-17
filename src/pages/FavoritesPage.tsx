@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useAppDialog } from '../context/AppDialogContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { ProductCard } from '../components/ProductCard';
 import { ShareMenu } from '../components/ShareMenu';
@@ -13,7 +14,8 @@ import { getOgFavoritesImageUrl } from '../utils/ogImage';
 
 export function FavoritesPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { items, isLoading, refreshFavorites } = useFavorites();
+  const { confirm } = useAppDialog();
+  const { items, isLoading, refreshFavorites, clearAllFavorites } = useFavorites();
   const { notice: importNotice, clearNotice: clearImportNotice } = useImportSharedFavorites();
   const favoritesShare = buildFavoritesShare(items);
 
@@ -34,6 +36,33 @@ export function FavoritesPage() {
   }
 
   const pageClass = 'profile-page favorites-page';
+
+  const handleClearAll = async () => {
+    const confirmed = await confirm({
+      title: 'Очистить избранное',
+      message: `Удалить все ${items.length} ${items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'} из избранного?`,
+      confirmLabel: 'Удалить всё',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+    await clearAllFavorites();
+  };
+
+  const renderToolbar = () => {
+    if (isLoading || items.length === 0) return null;
+
+    return (
+      <div className="favorites-page__toolbar">
+        <span className="favorites-page__toolbar-count">
+          {items.length} {items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'}
+        </span>
+        <button type="button" className="cart-page__clear-all" onClick={() => void handleClearAll()}>
+          <Trash2 size={16} aria-hidden />
+          Удалить всё
+        </button>
+      </div>
+    );
+  };
 
   const renderGrid = () => {
     if (isLoading) {
@@ -104,6 +133,7 @@ export function FavoritesPage() {
           </div>
         )}
 
+        {renderToolbar()}
         {renderGrid()}
         <AuthPanel variant="inline" />
       </div>
@@ -149,6 +179,7 @@ export function FavoritesPage() {
         </div>
       )}
 
+      {renderToolbar()}
       {renderGrid()}
     </div>
   );

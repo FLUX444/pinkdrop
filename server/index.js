@@ -66,12 +66,14 @@ import {
   repairBrokenAvatarUrls,
 } from './upload.js';
 import { config, isGoogleEnabled, isVkEnabled } from './config.js';
+import { isEncryptionConfigured } from './crypto.js';
+import { migrateChatEncryption } from './chatCrypto.js';
+import { handleChatMediaRequest } from './chatMedia.js';
 import { verifyEmailTransport } from './email.js';
 import { checkDeliveryZone, DELIVERY_ZONE_DISTRICTS } from './deliveryZones.js';
 import { reverseGeocode } from './geocode.js';
 import { getSavedDeliveryAddress, saveDeliveryAddress } from './deliveryAddress.js';
 import { getOrderStatus } from './orderDelivery.js';
-import { isEncryptionConfigured } from './crypto.js';
 import {
   adminMiddleware,
   operatorMiddleware,
@@ -300,6 +302,12 @@ for (const fileName of faviconStaticFiles) {
 }
 
 applySecurityMiddleware(app);
+app.use('/uploads/support', (_req, res) => {
+  res.status(403).json({ error: 'Chat attachments require authentication' });
+});
+app.use('/uploads/escalation', (_req, res) => {
+  res.status(403).json({ error: 'Chat attachments require authentication' });
+});
 app.use(
   '/uploads',
   express.static(uploadsRoot, {
@@ -321,6 +329,7 @@ app.use(
 app.use(cors(createCorsOptions()));
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+app.get('/api/chat-media/{*relativePath}', handleChatMediaRequest);
 app.use('/api', generalApiLimiter);
 app.use('/api', mutationOriginGuard);
 
@@ -2504,6 +2513,15 @@ const onServerReady = async (protocol) => {
   console.log('Telegram link API: /api/auth/telegram/link/*');
   console.log(`Price drop period: ${PERIOD_MS / (60 * 60 * 1000)}h (scheduler every ${SCHEDULER_INTERVAL_MS / 1000}s)`);
   console.log(`Security: strictOrigin=${config.strictOriginCheck}, cors=${config.corsOrigins.join(', ')}`);
+  if (isEncryptionConfigured()) {
+    const migrated = migrateChatEncryption();
+    console.log(
+      `Chat encryption: AES-256-GCM at rest (migrated ${migrated.supportBodies} support + ${migrated.escalationBodies} escalation messages)`
+    );
+  } else {
+    migrateChatEncryption();
+    console.log('Chat encryption: dev fallback key — set ENCRYPTION_KEY (64 hex chars) in production .env');
+  }
   if (isAdminConfigured()) {
     console.log('Admin panel: /admin');
     console.log(

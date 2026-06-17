@@ -3,6 +3,13 @@ import { createAdminNotification } from './stockAlerts.js';
 import { getSupportThreadSnapshot } from './supportChat.js';
 import { getAdminOperatorUserIds } from './adminAccess.js';
 import { config, isTelegramEnabled } from './config.js';
+import {
+  decryptContextSnapshot,
+  decryptMessageBody,
+  encryptContextSnapshot,
+  encryptMessageBody,
+} from './chatCrypto.js';
+import { protectChatMediaUrl } from './chatMedia.js';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -133,7 +140,7 @@ function rowToEscalationThread(row) {
     supportUserAvatarUrl: row.support_user_avatar_url ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    lastMessage: row.last_message ?? null,
+    lastMessage: row.last_message ? decryptMessageBody(row.last_message) : null,
     lastMessageAt: row.last_message_at ?? null,
     unreadForAdmin: Number(row.unread_for_admin ?? 0),
     unreadForSupport: Number(row.unread_for_support ?? 0),
@@ -142,14 +149,7 @@ function rowToEscalationThread(row) {
 
 function rowToEscalationMessage(row) {
   if (!row) return null;
-  let context = null;
-  if (row.context_snapshot) {
-    try {
-      context = JSON.parse(row.context_snapshot);
-    } catch {
-      context = null;
-    }
-  }
+  let context = decryptContextSnapshot(row.context_snapshot);
   const senderLabel =
     row.sender_name || row.sender_email || (row.sender_role === 'admin' ? 'Администратор' : 'Саппорт');
   return {
@@ -160,7 +160,7 @@ function rowToEscalationMessage(row) {
     senderName: row.sender_name ?? null,
     senderEmail: row.sender_email ?? null,
     senderLabel,
-    body: row.body,
+    body: decryptMessageBody(row.body),
     context,
     createdAt: row.created_at,
     media: [],
@@ -184,7 +184,7 @@ function enrichMessagesWithMedia(messages) {
     const key = String(row.message_id);
     if (!mediaByMessage.has(key)) mediaByMessage.set(key, []);
     mediaByMessage.get(key).push({
-      url: row.url,
+      url: protectChatMediaUrl(row.url),
       type: row.media_type,
       name: row.name ?? undefined,
     });
@@ -443,8 +443,8 @@ export function addEscalationMessage({
       threadId,
       senderUser.id,
       senderRole,
-      text,
-      context ? JSON.stringify(context) : null
+      encryptMessageBody(text),
+      context ? encryptContextSnapshot(context) : null
     );
 
   if (files.length > 0) {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Trash2, Minus, Plus } from 'lucide-react';
+import { useAppDialog } from '../context/AppDialogContext';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -27,10 +28,12 @@ interface CartContentProps {
 
 export function CartContent({ onCheckout }: CartContentProps) {
   const { user, authProviders } = useAuth();
+  const { confirm } = useAppDialog();
   const { startTelegramLink, telegramLinkBusy } = useTelegramLinkFlow('/profile/link-telegram');
   const {
     items,
     removeItem,
+    clearCart,
     updateQuantity,
     toggleItemSelected,
     setAllItemsSelected,
@@ -61,6 +64,17 @@ export function CartContent({ onCheckout }: CartContentProps) {
   const botUsername =
     authProviders?.telegram?.botUsername || TELEGRAM_BOT;
   const bargainHref = buildCartBargainDeepLink(botUsername);
+
+  const handleClearCart = async () => {
+    const confirmed = await confirm({
+      title: 'Очистить корзину',
+      message: `Удалить все ${items.length} ${items.length === 1 ? 'товар' : items.length < 5 ? 'товара' : 'товаров'} из корзины?`,
+      confirmLabel: 'Удалить всё',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+    clearCart();
+  };
 
   if (items.length === 0) {
     return (
@@ -93,6 +107,14 @@ export function CartContent({ onCheckout }: CartContentProps) {
             Выбрано: {selectedItemCount} шт.
           </span>
         )}
+        <button
+          type="button"
+          className="cart-page__clear-all"
+          onClick={() => void handleClearCart()}
+        >
+          <Trash2 size={16} aria-hidden />
+          Удалить всё
+        </button>
       </div>
 
       <ul className="cart-page__items">

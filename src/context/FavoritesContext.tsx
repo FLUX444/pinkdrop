@@ -18,6 +18,7 @@ interface FavoritesContextValue {
   isFavorite: (product: Product) => boolean;
   toggleFavorite: (product: Product) => Promise<boolean>;
   removeFavorite: (productId: string, category: string) => Promise<void>;
+  clearAllFavorites: () => Promise<void>;
   refreshFavorites: () => Promise<void>;
 }
 
@@ -275,6 +276,17 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     [applyItems, user]
   );
 
+  const clearAllFavorites = useCallback(async () => {
+    if (!user) {
+      writeGuestFavorites([]);
+      applyItems([]);
+      return;
+    }
+
+    const data = await api.saveFavorites([]);
+    applyItems(data.items);
+  }, [applyItems, user]);
+
   const value = useMemo(
     () => ({
       items,
@@ -282,9 +294,10 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       isFavorite,
       toggleFavorite,
       removeFavorite,
+      clearAllFavorites,
       refreshFavorites,
     }),
-    [items, isLoading, isFavorite, toggleFavorite, removeFavorite, refreshFavorites]
+    [items, isLoading, isFavorite, toggleFavorite, removeFavorite, clearAllFavorites, refreshFavorites]
   );
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
