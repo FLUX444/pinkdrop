@@ -477,7 +477,7 @@ export const api = {
     code: string;
     discountType: 'percent' | 'fixed';
     discountValue: number;
-    durationPreset?: '10s' | '20m' | '1y';
+    durationPreset?: '20m' | '1y';
     durationValue?: number | null;
     durationUnit?: 'seconds' | 'minutes' | 'hours' | 'days' | 'years' | null;
     maxUses: number | 'unlimited' | null;

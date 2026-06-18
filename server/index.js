@@ -260,6 +260,7 @@ import {
   validatePromoCode,
 } from './promoCodes.js';
 import {
+  assertActivePaymentMethod,
   confirmCashOrderReceipt,
   deductOrderItemStock,
   deleteProductFromDb,
@@ -2313,6 +2314,13 @@ app.post('/api/orders', orderLimiter, authMiddleware, (req, res) => {
     return res.status(400).json({ error: 'Missing order data' });
   }
 
+  let normalizedPaymentMethod;
+  try {
+    normalizedPaymentMethod = assertActivePaymentMethod(paymentMethod);
+  } catch (error) {
+    return res.status(400).json({ error: error.message || 'Способ оплаты недоступен' });
+  }
+
   const orderId = generateOrderId();
   const userId = req.user?.id ?? null;
 
@@ -2341,7 +2349,7 @@ app.post('/api/orders', orderLimiter, authMiddleware, (req, res) => {
   }
 
   const serverPromoDiscount = validatedPromo.discount;
-  const fulfillmentStatus = isPayOnDelivery(paymentMethod) ? 'pending' : 'fulfilled';
+  const fulfillmentStatus = isPayOnDelivery(normalizedPaymentMethod) ? 'pending' : 'fulfilled';
 
   const createOrder = db.transaction(() => {
     db.prepare(
@@ -2356,7 +2364,7 @@ app.post('/api/orders', orderLimiter, authMiddleware, (req, res) => {
       customerName,
       address,
       comment,
-      paymentMethod,
+      normalizedPaymentMethod,
       total,
       serverPromoDiscount,
       deliverySlot || null,
@@ -2476,7 +2484,7 @@ app.post('/api/orders', orderLimiter, authMiddleware, (req, res) => {
     orderId,
     customerName,
     phone,
-    paymentMethod,
+    paymentMethod: normalizedPaymentMethod,
     promoCode: validatedPromo.code,
     total: Number(orderRow?.total ?? total),
     items: notifyItems,

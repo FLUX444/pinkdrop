@@ -491,6 +491,7 @@ export interface SupportOperator {
   createdAt: string;
 }
 
+/** Активный способ оплаты на сайте. `card` и `test` остаются только для старых заказов в БД. */
 export type PaymentMethod = 'cash' | 'card' | 'test';
 
 export interface SavedDeliveryAddress {

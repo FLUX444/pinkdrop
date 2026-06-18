@@ -5267,24 +5267,13 @@ a.cart-item__thumb:active {
   margin-bottom: 12px;
 }
 
-.checkout-form__test-fill {
-  width: 100%;
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border: 1px solid rgba(255, 45, 149, 0.45);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 45, 149, 0.12);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.checkout-form__test-fill:hover {
-  border-color: var(--accent);
-  background: rgba(255, 45, 149, 0.2);
+.checkout-form__payment-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  cursor: default;
+  pointer-events: none;
 }
 
 .checkout-form label {

@@ -16,6 +16,16 @@ export function isPrepaidPayment(paymentMethod) {
   return paymentMethod === 'card' || paymentMethod === 'test';
 }
 
+export const ACTIVE_PAYMENT_METHODS = ['cash'];
+
+export function assertActivePaymentMethod(paymentMethod) {
+  const normalized = String(paymentMethod ?? '').trim();
+  if (!ACTIVE_PAYMENT_METHODS.includes(normalized)) {
+    throw new Error('Выбранный способ оплаты недоступен');
+  }
+  return normalized;
+}
+
 export function generateOrderId() {
   for (let attempt = 0; attempt < 30; attempt += 1) {
     const id = String(Math.floor(100000 + Math.random() * 900000));

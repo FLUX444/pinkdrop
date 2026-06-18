@@ -12,7 +12,7 @@ import { clearFormDraft } from '../utils/formDraft';
 import { formatPrice } from '../utils/formatPrice';
 import type { PromoCode } from '../types';
 
-type DurationPreset = '10s' | '20m' | '1y';
+type DurationPreset = '20m' | '1y';
 type DurationUnit = 'seconds' | 'minutes' | 'hours' | 'days' | 'years';
 
 const DURATION_UNIT_OPTIONS: Array<{ value: DurationUnit; label: string }> = [
@@ -29,7 +29,6 @@ const DISCOUNT_TYPE_OPTIONS = [
 ];
 
 const DURATION_OPTIONS: Array<{ id: DurationPreset; label: string; hint: string }> = [
-  { id: '10s', label: '10 сек', hint: 'для теста' },
   { id: '20m', label: '20 мин', hint: 'быстрая акция' },
   { id: '1y', label: '1 год', hint: 'долгая акция' },
 ];

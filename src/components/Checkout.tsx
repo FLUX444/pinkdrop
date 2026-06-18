@@ -6,7 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/formatPrice';
 import { getProductPath } from '../utils/productUrl';
-import type { DeliveryZoneCheck, OrderDeliveryInfo, PaymentMethod, ReviewPrompt } from '../types';
+import type { DeliveryZoneCheck, OrderDeliveryInfo, ReviewPrompt } from '../types';
 import { formatDeliveryAddress, hasCompleteDeliveryAddress } from '../utils/formatDeliveryAddress';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '../utils/formDraft';
 import { getDeviceLocation } from '../utils/getDeviceLocation';
@@ -41,7 +41,6 @@ type CheckoutDraft = {
   entrance: string;
   intercom: string;
   comment: string;
-  payment: PaymentMethod;
   deliverySlot: string;
   agreed: boolean;
   rememberAddress: boolean;
@@ -73,7 +72,6 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
   const [entrance, setEntrance] = useState('');
   const [intercom, setIntercom] = useState('');
   const [comment, setComment] = useState('');
-  const [payment, setPayment] = useState<PaymentMethod>('cash');
   const [deliverySlot, setDeliverySlot] = useState('Как можно скорее');
   const [agreed, setAgreed] = useState(false);
   const [rememberAddress, setRememberAddress] = useState(false);
@@ -120,7 +118,6 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
       setEntrance(draft.entrance || '');
       setIntercom(draft.intercom || '');
       setComment(draft.comment || '');
-      setPayment(draft.payment || 'cash');
       setDeliverySlot(draft.deliverySlot || 'Как можно скорее');
       setAgreed(Boolean(draft.agreed));
       setRememberAddress(Boolean(draft.rememberAddress));
@@ -189,7 +186,6 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
       entrance,
       intercom,
       comment,
-      payment,
       deliverySlot,
       agreed,
       rememberAddress,
@@ -209,7 +205,6 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
     intercom,
     isOpen,
     name,
-    payment,
     phone,
     rememberAddress,
     street,
@@ -261,21 +256,6 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
 
   if (!isOpen || selectedItems.length === 0) return null;
 
-  const fillTestOrder = () => {
-    setName(user?.name || 'Тестовый покупатель');
-    setPhone('+7 (999) 123-45-67');
-    setStreet('ул. 9 Мая');
-    setHouse('12');
-    setApartment('25');
-    setEntrance('1');
-    setIntercom('123');
-    setComment('Тестовая оплата: проверить заказ, списание товара и окно отзыва');
-    setPayment('test');
-    setDeliverySlot('Как можно скорее');
-    setCoords({ lat: 56.0128, lon: 92.9214 });
-    setAgreed(true);
-  };
-
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 11);
     if (digits.length === 0) return '';
@@ -316,7 +296,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
         phone,
         address,
         comment,
-        paymentMethod: payment,
+        paymentMethod: 'cash',
         total: selectedTotal,
         promoDiscount,
         promoCodeId: appliedPromoId || null,
@@ -365,9 +345,6 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
       <form className="checkout-form" onSubmit={handleSubmit}>
         <div className="checkout-form__section">
           <h2 className="mono">// КОНТАКТЫ</h2>
-          <button type="button" className="checkout-form__test-fill" onClick={fillTestOrder}>
-            Заполнить тестовые данные
-          </button>
           <label>
             Имя
             <input
@@ -547,34 +524,9 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
 
         <div className="checkout-form__section">
           <h2 className="mono">// ОПЛАТА</h2>
-          <div className="payment-options">
-            <label className={`payment-option ${payment === 'cash' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="payment"
-                checked={payment === 'cash'}
-                onChange={() => setPayment('cash')}
-              />
-              <Y2KIcon name="cash" size={18} /> Наличные курьеру
-            </label>
-            <label className={`payment-option ${payment === 'card' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="payment"
-                checked={payment === 'card'}
-                onChange={() => setPayment('card')}
-              />
-              <Y2KIcon name="card" size={18} /> Картой онлайн (ЮKassa)
-            </label>
-            <label className={`payment-option ${payment === 'test' ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="payment"
-                checked={payment === 'test'}
-                onChange={() => setPayment('test')}
-              />
-              <Y2KIcon name="card" size={18} /> Тестовая оплата — без списания
-            </label>
+          <div className="checkout-form__payment-note payment-option active">
+            <Y2KIcon name="cash" size={18} />
+            <span>Наличные курьеру при получении</span>
           </div>
         </div>
 
@@ -659,11 +611,7 @@ export function Checkout({ isOpen, onClose, onSuccess }: CheckoutProps) {
           className="btn btn--primary btn--pulse checkout-form__submit"
           disabled={loading || !agreed || selectedItems.length === 0}
         >
-          {loading
-            ? 'Обработка...'
-            : payment === 'test'
-              ? `Тестово оплатить ${formatPrice(selectedTotal)}`
-              : `Оплатить ${formatPrice(selectedTotal)} и ждать курьера`}
+          {loading ? 'Обработка...' : `Оформить заказ на ${formatPrice(selectedTotal)}`}
         </button>
       </form>
     </div>
