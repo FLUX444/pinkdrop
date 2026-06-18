@@ -72,7 +72,7 @@ export function AdminPage() {
     try {
       const data = await api.updateAdminPriceDrop(product.category, product.id, {
         enabled,
-        basePrice: product.priceDrop?.basePrice ?? product.price,
+        basePrice: product.price,
       });
       setProducts((items) =>
         items.map((item) => (item.id === product.id ? data.product : item))

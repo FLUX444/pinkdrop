@@ -7,7 +7,7 @@ import { AdminLoginScreen } from '../components/AdminLoginScreen';
 import { NumberInput } from '../components/NumberInput';
 import { getCategoryLabel } from '../utils/detectCategory';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '../utils/formDraft';
-import type { ProductDbCategory } from '../types';
+import type { Product, ProductDbCategory } from '../types';
 
 const MAX_PRODUCT_IMAGES = 8;
 
@@ -51,28 +51,25 @@ export function AdminEditProductPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [priceDropEnabled, setPriceDropEnabled] = useState(false);
 
-  const applyProductFields = (product: {
-    name: string;
-    price: number;
-    oldPrice?: number | null;
-    stock?: number | null;
-    description?: string | null;
-    color?: string | null;
-    material?: string | null;
-    images?: string[];
-  }) => {
+  const applyProductFields = (product: Product) => {
     const draft =
       category && id ? readFormDraft<ProductEditDraft>(productEditDraftKey(category, id)) : null;
 
+    const editPrice = product.priceDrop?.enabled
+      ? (product.priceDrop.basePrice ?? product.price)
+      : product.price;
+
     setName(draft?.name ?? product.name);
-    setPrice(draft?.price ?? String(product.price));
+    setPrice(draft?.price ?? String(editPrice));
     setOldPrice(draft?.oldPrice ?? (product.oldPrice != null ? String(product.oldPrice) : ''));
     setStock(draft?.stock ?? String(product.stock ?? 0));
     setDescription(draft?.description ?? (product.description ?? ''));
     setColor(draft?.color ?? (product.color ?? ''));
     setMaterial(draft?.material ?? (product.material ?? ''));
     setExistingImages(product.images ?? []);
+    setPriceDropEnabled(Boolean(product.priceDrop?.enabled));
     setFormReady(true);
   };
 
@@ -243,6 +240,9 @@ export function AdminEditProductPage() {
       <p className="admin-page__hint">
         Категория: {category ? getCategoryLabel(category as ProductDbCategory) : '—'} ({category}). Можно менять фото, цену,
         остаток и описание. Всего до {MAX_PRODUCT_IMAGES} изображений.
+        {priceDropEnabled
+          ? ' Автоснижение включено: указывайте исходную цену, скидка по таймеру применится автоматически.'
+          : ''}
       </p>
 
       <form className="admin-form" onSubmit={handleSubmit}>
@@ -258,7 +258,7 @@ export function AdminEditProductPage() {
 
         <div className="admin-form__row">
           <label className="admin-form__field">
-            Цена, ₽ *
+            {priceDropEnabled ? 'Исходная цена (до скидки), ₽ *' : 'Цена, ₽ *'}
             <NumberInput
               min="0"
               value={price}

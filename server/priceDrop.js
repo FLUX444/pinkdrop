@@ -320,22 +320,66 @@ export function ensureAllPriceDrops() {
   }
 }
 
+export function syncPriceDropBaseFromAdmin(productId, category, adminBasePrice) {
+  const row = getPriceDropRow(productId, category);
+  if (!row) return null;
+
+  const basePrice = Math.max(1, Math.round(Number(adminBasePrice)));
+  const nowIso = new Date().toISOString();
+
+  if (!row.enabled) {
+    db.prepare(
+      `UPDATE product_price_drops
+       SET base_price = ?, current_price = ?, last_changed_at = ?
+       WHERE product_id = ? AND category = ?`
+    ).run(basePrice, basePrice, nowIso, productId, category);
+    syncProductTablePrice(productId, category, basePrice, basePrice, 0);
+    return getPriceDropRow(productId, category);
+  }
+
+  const globalAnchor = getGlobalDropStartedAt();
+  const globalDiscount = getDiscountPercent(globalAnchor);
+  const discountPercent = isFrozen(row) ? 0 : globalDiscount;
+  const currentPrice = calculatePriceFromBase(basePrice, discountPercent);
+
+  db.prepare(
+    `UPDATE product_price_drops
+     SET base_price = ?, current_price = ?, discount_percent = ?, drop_started_at = ?, last_changed_at = ?
+     WHERE product_id = ? AND category = ?`
+  ).run(basePrice, currentPrice, discountPercent, globalAnchor, nowIso, productId, category);
+
+  syncProductTablePrice(productId, category, basePrice, currentPrice, discountPercent);
+  return getPriceDropRow(productId, category);
+}
+
 export function setPriceDropEnabled(productId, category, enabled, basePrice) {
   if (enabled) {
     const product = getProductById(productId, category);
-    return enablePriceDrop(productId, category, basePrice ?? product?.price ?? 0);
+    const resolvedBase = Math.max(1, Math.round(Number(basePrice ?? product?.price ?? 0)));
+    return enablePriceDrop(productId, category, resolvedBase);
   }
 
   const row = getPriceDropRow(productId, category);
   if (!row) return null;
 
+  const product = getProductById(productId, category);
+  const manualPrice = Math.max(
+    1,
+    Math.round(Number(product?.price ?? row.current_price ?? row.base_price))
+  );
+  const nowIso = new Date().toISOString();
+
   db.prepare(
     `UPDATE product_price_drops
-     SET enabled = 0, status = 'stopped', last_changed_at = ?
+     SET enabled = 0,
+         status = 'stopped',
+         base_price = ?,
+         current_price = ?,
+         last_changed_at = ?
      WHERE product_id = ? AND category = ?`
-  ).run(new Date().toISOString(), productId, category);
+  ).run(manualPrice, manualPrice, nowIso, productId, category);
 
-  syncProductTablePrice(productId, category, row.base_price, row.base_price, 0);
+  syncProductTablePrice(productId, category, manualPrice, manualPrice, 0);
   return getPriceDropRow(productId, category);
 }
 

@@ -99,6 +99,7 @@ import {
   resetPriceDrop,
   SCHEDULER_INTERVAL_MS,
   setPriceDropEnabled,
+  syncPriceDropBaseFromAdmin,
 } from './priceDrop.js';
 import {
   getAdminNotifications,
@@ -1871,8 +1872,9 @@ app.patch('/api/admin/products/:category/:id', adminMiddleware, (req, res) => {
 
       removeUnusedProductImages(existing.images, images);
 
+      syncPriceDropBaseFromAdmin(id, category, price);
       const dropRow = getPriceDropRow(id, category);
-      const enriched = enrichProduct(product);
+      const enriched = enrichProduct(getProductById(id, category));
       const previousStock = Number(existing.stock ?? 0);
       if (previousStock <= 0 && enriched.stock > 0) {
         void notifyProductRestocked(id, category, previousStock, enriched.stock);
