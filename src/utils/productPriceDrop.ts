@@ -13,3 +13,9 @@ export function hasActivePriceDropDiscount(product: Pick<Product, 'oldPrice' | '
       referencePrice > product.price
   );
 }
+
+export function calculatePriceDropCurrentPrice(basePrice: number, discountPercent: number) {
+  const normalizedBase = Math.max(1, Math.round(basePrice));
+  const normalizedDiscount = Math.max(0, Math.min(28, Math.round(discountPercent)));
+  return Math.round(normalizedBase * (1 - normalizedDiscount / 100));
+}

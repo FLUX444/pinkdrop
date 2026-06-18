@@ -91,6 +91,7 @@ import {
   enrichProduct,
   enrichProducts,
   enablePriceDrop,
+  ensurePriceDropForProduct,
   getGlobalPriceDropTimer,
   getPriceDropRow,
   priceDropToJson,
@@ -1872,8 +1873,9 @@ app.patch('/api/admin/products/:category/:id', adminMiddleware, (req, res) => {
 
       removeUnusedProductImages(existing.images, images);
 
-      syncPriceDropBaseFromAdmin(id, category, price);
-      const dropRow = getPriceDropRow(id, category);
+      ensurePriceDropForProduct(getProductById(id, category));
+      const syncedDropRow = syncPriceDropBaseFromAdmin(id, category, price);
+      const dropRow = syncedDropRow ?? getPriceDropRow(id, category);
       const enriched = enrichProduct(getProductById(id, category));
       const previousStock = Number(existing.stock ?? 0);
       if (previousStock <= 0 && enriched.stock > 0) {
@@ -1913,6 +1915,30 @@ app.patch('/api/admin/products/:category/:id/price-drop', adminMiddleware, (req,
     });
   } catch (error) {
     res.status(400).json({ error: error.message || 'Failed to update price drop' });
+  }
+});
+
+app.patch('/api/admin/products/:category/:id/base-price', adminMiddleware, (req, res) => {
+  try {
+    const { category, id } = req.params;
+    const product = getProductById(id, category);
+    if (!product) return res.status(404).json({ error: 'Товар не найден' });
+
+    const basePrice = Number(req.body.basePrice);
+    if (!Number.isFinite(basePrice) || basePrice < 1) {
+      return res.status(400).json({ error: 'Укажите корректную цену' });
+    }
+
+    ensurePriceDropForProduct(product);
+    const row = syncPriceDropBaseFromAdmin(id, category, basePrice);
+    const nextProduct = enrichProduct(getProductById(id, category));
+
+    res.json({
+      product: nextProduct,
+      priceDrop: priceDropToJson(row),
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || 'Failed to update product price' });
   }
 });
 

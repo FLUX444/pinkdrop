@@ -11452,6 +11452,33 @@ a.checkout-summary__product-name:active {
   font-variant-numeric: tabular-nums;
 }
 
+.admin-table__price-input {
+  width: 100%;
+  min-width: 88px;
+  max-width: 120px;
+  margin-left: auto;
+  display: block;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 45, 149, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.admin-table__price-input:focus {
+  outline: none;
+  border-color: rgba(255, 45, 149, 0.65);
+  box-shadow: 0 0 0 2px rgba(255, 45, 149, 0.15);
+}
+
+.admin-table__price-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .admin-table__cell-center {
   text-align: center;
 }
@@ -11603,6 +11630,15 @@ a.checkout-summary__product-name:active {
 .admin-form__hint {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.admin-form__price-preview {
+  font-size: 0.8rem;
+  color: var(--accent-light);
+}
+
+.admin-form__price-preview strong {
+  color: var(--accent);
 }
 
 .admin-upload {

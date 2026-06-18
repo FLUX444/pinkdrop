@@ -8,6 +8,71 @@ import { AdminLoginScreen } from '../components/AdminLoginScreen';
 import { formatPrice } from '../utils/formatPrice';
 import type { Product } from '../types';
 
+function AdminBasePriceInput({
+  product,
+  disabled,
+  onSaved,
+  onError,
+}: {
+  product: Product;
+  disabled: boolean;
+  onSaved: (product: Product) => void;
+  onError: (message: string) => void;
+}) {
+  const drop = product.priceDrop;
+  const storedBase = drop?.basePrice ?? product.price;
+
+  const [value, setValue] = useState(String(storedBase));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setValue(String(storedBase));
+  }, [storedBase, product.id]);
+
+  const save = async () => {
+    if (!product.category) return;
+
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      setValue(String(storedBase));
+      onError('Укажите корректную цену');
+      return;
+    }
+
+    if (parsed === storedBase) return;
+
+    setSaving(true);
+    onError('');
+    try {
+      const data = await api.updateAdminProductBasePrice(product.category, product.id, parsed);
+      onSaved(data.product);
+    } catch (err) {
+      setValue(String(storedBase));
+      onError(err instanceof Error ? err.message : 'Не удалось обновить цену');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <input
+      type="number"
+      min={1}
+      className="admin-table__price-input"
+      value={value}
+      disabled={disabled || saving}
+      onChange={(event) => setValue(event.target.value)}
+      onBlur={() => void save()}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          event.currentTarget.blur();
+        }
+      }}
+      aria-label={`Исходная цена ${product.name}`}
+    />
+  );
+}
+
 export function AdminPage() {
   const { confirm } = useAppDialog();
   const navigate = useNavigate();
@@ -155,6 +220,8 @@ export function AdminPage() {
     <AdminLayout title="Автоснижение цен" tag="PRICE_DROP_CONTROL" onLogout={() => void handleLogout()}>
       <p className="admin-page__hint">
         Цена падает каждые 2 часа на 1% от исходной. Максимум −28%, затем цена сбрасывается.
+        Меняйте исходную цену прямо в таблице или в карточке товара — скидка, таймер и база обновятся
+        автоматически. Вкл/выкл нужен только чтобы полностью отключить автоснижение.
       </p>
 
       {error && <p className="admin-page__error">{error}</p>}
@@ -201,7 +268,18 @@ export function AdminPage() {
                     <strong>{product.name}</strong>
                     <span className="admin-table__meta mono">{product.category}</span>
                   </td>
-                  <td className="admin-table__cell-num">{formatPrice(drop?.basePrice ?? product.price)}</td>
+                  <td className="admin-table__cell-num">
+                    <AdminBasePriceInput
+                      product={product}
+                      disabled={busyId === key}
+                      onSaved={(nextProduct) => {
+                        setProducts((items) =>
+                          items.map((item) => (item.id === nextProduct.id ? nextProduct : item))
+                        );
+                      }}
+                      onError={setError}
+                    />
+                  </td>
                   <td className="admin-table__cell-num">{formatPrice(product.price)}</td>
                   <td className="admin-table__cell-center">
                     {drop?.enabled ? `−${drop.discountPercent}%` : '0%'}

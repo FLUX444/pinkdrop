@@ -6,6 +6,8 @@ import { AdminLayout } from '../components/AdminLayout';
 import { AdminLoginScreen } from '../components/AdminLoginScreen';
 import { NumberInput } from '../components/NumberInput';
 import { getCategoryLabel } from '../utils/detectCategory';
+import { calculatePriceDropCurrentPrice } from '../utils/productPriceDrop';
+import { formatPrice } from '../utils/formatPrice';
 import { clearFormDraft, readFormDraft, writeFormDraft } from '../utils/formDraft';
 import type { Product, ProductDbCategory } from '../types';
 
@@ -52,6 +54,12 @@ export function AdminEditProductPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [priceDropEnabled, setPriceDropEnabled] = useState(false);
+  const [priceDropDiscount, setPriceDropDiscount] = useState(0);
+
+  const previewCurrentPrice =
+    priceDropEnabled && price
+      ? calculatePriceDropCurrentPrice(Number.parseInt(price, 10) || 0, priceDropDiscount)
+      : null;
 
   const applyProductFields = (product: Product) => {
     const draft =
@@ -70,6 +78,7 @@ export function AdminEditProductPage() {
     setMaterial(draft?.material ?? (product.material ?? ''));
     setExistingImages(product.images ?? []);
     setPriceDropEnabled(Boolean(product.priceDrop?.enabled));
+    setPriceDropDiscount(product.priceDrop?.discountPercent ?? 0);
     setFormReady(true);
   };
 
@@ -154,7 +163,7 @@ export function AdminEditProductPage() {
       formData.append('stock', stock);
       formData.append('description', description.trim());
       formData.append('existingImages', JSON.stringify(existingImages));
-      if (oldPrice) formData.append('oldPrice', oldPrice);
+      if (oldPrice && !priceDropEnabled) formData.append('oldPrice', oldPrice);
       if (color.trim()) formData.append('color', color.trim());
       if (material.trim()) formData.append('material', material.trim());
       imageFiles.forEach((file) => formData.append('images', file));
@@ -265,15 +274,23 @@ export function AdminEditProductPage() {
               onChange={(event) => setPrice(event.target.value)}
               required
             />
+            {priceDropEnabled && previewCurrentPrice != null && Number.isFinite(previewCurrentPrice) && (
+              <span className="admin-form__price-preview">
+                Со скидкой −{priceDropDiscount}%: <strong>{formatPrice(previewCurrentPrice)}</strong>
+                {priceDropDiscount > 0 ? ' · таймер скидки сохраняется' : ''}
+              </span>
+            )}
           </label>
-          <label className="admin-form__field">
-            Старая цена, ₽
-            <NumberInput
-              min="0"
-              value={oldPrice}
-              onChange={(event) => setOldPrice(event.target.value)}
-            />
-          </label>
+          {!priceDropEnabled && (
+            <label className="admin-form__field">
+              Старая цена, ₽
+              <NumberInput
+                min="0"
+                value={oldPrice}
+                onChange={(event) => setOldPrice(event.target.value)}
+              />
+            </label>
+          )}
           <label className="admin-form__field">
             В наличии, шт *
             <NumberInput

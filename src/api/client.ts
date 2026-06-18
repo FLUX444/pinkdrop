@@ -552,6 +552,14 @@ export const api = {
         body: JSON.stringify(payload),
       }
     ),
+  updateAdminProductBasePrice: (category: string, id: string, basePrice: number) =>
+    request<{ product: Product; priceDrop: Product['priceDrop'] }>(
+      `/admin/products/${category}/${id}/base-price`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ basePrice }),
+      }
+    ),
   resetAdminPriceDrop: (category: string, id: string) =>
     request<{ product: Product; priceDrop: Product['priceDrop'] }>(
       `/admin/products/${category}/${id}/price-drop/reset`,
