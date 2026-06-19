@@ -7,6 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
 
 const SOURCE_CANDIDATES = [
+  join(publicDir, 'images', 'pinkdrop-pd-logo.png'),
   join(publicDir, 'favicon-512.png'),
   join(publicDir, 'favicon-192.png'),
   join(publicDir, 'favicon-48.png'),
