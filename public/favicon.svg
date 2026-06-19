@@ -1,15 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 40" role="img" aria-label="PD">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="PD">
   <text
-    x="14"
-    y="32"
+    x="18"
+    y="44"
     fill="#FF2D95"
     font-family="Impact, Haettenschweiler, 'Arial Black', sans-serif"
     font-weight="900"
     font-size="32"
   >P</text>
   <text
-    x="46"
-    y="32"
+    x="42"
+    y="44"
     fill="#FF2D95"
     font-family="Impact, Haettenschweiler, 'Arial Black', sans-serif"
     font-weight="900"

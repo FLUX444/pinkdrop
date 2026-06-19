@@ -11,7 +11,8 @@
     "bot:kill": "powershell -ExecutionPolicy Bypass -File scripts/kill-bot.ps1 -IncludePyLaunchers",
     "bot:install": "python3 -m pip install -r \"BOT TG/requirements.txt\"",
     "certs:dev": "node scripts/generate-dev-certs.mjs",
-    "build": "tsc -b && vite build",
+    "build": "node scripts/generate-favicons.mjs && tsc -b && vite build",
+    "favicons": "node scripts/generate-favicons.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

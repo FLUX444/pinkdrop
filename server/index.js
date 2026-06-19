@@ -286,10 +286,12 @@ const app = express();
 
 const faviconStaticFiles = [
   'favicon.ico',
+  'favicon.svg',
   'favicon-16.png',
   'favicon-32.png',
   'favicon-48.png',
   'favicon-96.png',
+  'favicon-120.png',
   'favicon-192.png',
   'favicon-512.png',
   'apple-touch-icon.png',
