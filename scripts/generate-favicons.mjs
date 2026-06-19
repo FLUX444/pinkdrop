@@ -1,16 +1,15 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
-const rootDir = join(__dirname, '..');
 
 const SOURCE_CANDIDATES = [
   join(publicDir, 'favicon-512.png'),
   join(publicDir, 'favicon-192.png'),
-  join(rootDir, 'dist', 'favicon-32.png'),
+  join(publicDir, 'favicon-48.png'),
   join(publicDir, 'favicon-32.png'),
 ];
 
@@ -20,7 +19,7 @@ function resolveSourcePath() {
   for (const candidate of SOURCE_CANDIDATES) {
     if (existsSync(candidate)) return candidate;
   }
-  throw new Error('Favicon source image not found');
+  throw new Error('Favicon source image not found in public/');
 }
 
 async function removeBlackBackground(inputPath) {
