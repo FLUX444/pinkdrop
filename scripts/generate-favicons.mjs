@@ -12,8 +12,11 @@ const SOURCE_CANDIDATES = [
 ];
 
 const SIZES = [16, 32, 48, 96, 120, 192, 512];
+/** Совпадает с --accent в index.css и ?v= в index.html — меняй вместе. */
+const FAVICON_CACHE_VERSION = '13';
 /** Высота логотипа в шапке (ширина — по пропорциям мастера, не квадрат favicon). */
 const BRAND_LOGO_HEIGHTS = [48, 58, 96, 116, 174, 232];
+const ACCENT = { r: 255, g: 45, b: 149 };
 
 function resolveSourcePath() {
   for (const candidate of SOURCE_CANDIDATES) {
@@ -34,6 +37,36 @@ async function removeBlackBackground(inputPath) {
     const b = data[i + 2];
     if (r < 48 && g < 48 && b < 48) {
       data[i + 3] = 0;
+    }
+  }
+
+  return sharp(data, {
+    raw: {
+      width: info.width,
+      height: info.height,
+      channels: 4,
+    },
+  }).png();
+}
+
+/** Розовые пиксели → #ff2d95, как надпись PINK в шапке. */
+async function normalizeAccentPink(sourcePipeline) {
+  const { data, info } = await sourcePipeline
+    .clone()
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i + 3];
+    if (a < 16) continue;
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    if (r > 72 && r > g + 18 && r > b + 18) {
+      data[i] = ACCENT.r;
+      data[i + 1] = ACCENT.g;
+      data[i + 2] = ACCENT.b;
     }
   }
 
@@ -112,7 +145,7 @@ async function main() {
   const sourcePath = resolveSourcePath();
   console.log(`source: ${sourcePath}`);
 
-  const master = await removeBlackBackground(sourcePath);
+  const master = await normalizeAccentPink(await removeBlackBackground(sourcePath));
   const masterMeta = await master.metadata();
   console.log(`master: ${masterMeta.width}x${masterMeta.height}, alpha=${masterMeta.hasAlpha}`);
 
