@@ -412,14 +412,22 @@ main,
   --brand-logo-size: 58px;
   width: var(--brand-logo-size);
   height: var(--brand-logo-size);
-  object-fit: contain;
   flex-shrink: 0;
   display: block;
   background: none !important;
-  background-color: transparent !important;
+  background-color: var(--accent) !important;
   border: 0;
   border-radius: 0;
   box-shadow: none;
+  -webkit-mask-image: var(--brand-logo-src);
+  mask-image: var(--brand-logo-src);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  filter: drop-shadow(0 0 8px rgba(255, 45, 149, 0.45));
 }
 
 .mobile-menu__logo-image {
