@@ -1,9 +1,9 @@
 import type { CSSProperties } from 'react';
 
-/** Тот же файл, что favicon во вкладке — nginx отдаёт из /var/www/pinkdrop после deploy. */
-const LOGO_VERSION = '11';
-const HEADER_LOGO_SRC = `/favicon-512.png?v=${LOGO_VERSION}`;
-const MOBILE_LOGO_SRC = `/favicon-192.png?v=${LOGO_VERSION}`;
+/** 58px в шапке, файл 116px — чётко на ПК, без загрузки 512px. */
+const LOGO_VERSION = '12';
+const HEADER_LOGO_SRC = `/images/brand-logo-116.png?v=${LOGO_VERSION}`;
+const MOBILE_LOGO_SRC = `/images/brand-logo-96.png?v=${LOGO_VERSION}`;
 
 interface BrandLogoProps {
   className?: string;
