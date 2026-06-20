@@ -409,8 +409,9 @@ main,
 .brand-logo,
 .header__logo-image,
 .mobile-menu__logo-image {
-  width: 58px;
-  height: 58px;
+  --brand-logo-size: 58px;
+  width: var(--brand-logo-size);
+  height: var(--brand-logo-size);
   object-fit: contain;
   flex-shrink: 0;
   display: block;
@@ -419,14 +420,10 @@ main,
   border: 0;
   border-radius: 0;
   box-shadow: none;
-  filter:
-    drop-shadow(0 0 2px rgba(255, 45, 149, 0.55))
-    drop-shadow(0 0 6px rgba(255, 45, 149, 0.28));
 }
 
 .mobile-menu__logo-image {
-  width: 48px;
-  height: 48px;
+  --brand-logo-size: 48px;
 }
 
 .header__logo-mark {

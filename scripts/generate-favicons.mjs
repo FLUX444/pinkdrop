@@ -15,6 +15,8 @@ const SOURCE_CANDIDATES = [
 ];
 
 const SIZES = [16, 32, 48, 96, 120, 192, 512];
+/** Высота логотипа в шапке (ширина — по пропорциям мастера, не квадрат favicon). */
+const BRAND_LOGO_HEIGHTS = [48, 58, 96, 116, 174, 232];
 
 function resolveSourcePath() {
   for (const candidate of SOURCE_CANDIDATES) {
@@ -91,6 +93,24 @@ function buildIco(sizes, buffers) {
   return output;
 }
 
+async function renderBrandLogoPng(sourcePipeline, height) {
+  const meta = await sourcePipeline.metadata();
+  const sourceWidth = meta.width ?? height;
+  const sourceHeight = meta.height ?? height;
+  const width = Math.max(1, Math.round(height * (sourceWidth / sourceHeight)));
+
+  return sourcePipeline
+    .clone()
+    .resize(width, height, {
+      fit: 'inside',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel: 'lanczos3',
+    })
+    .sharpen({ sigma: 0.6, m1: 0.5, m2: 0.25 })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+}
+
 async function main() {
   const sourcePath = resolveSourcePath();
   console.log(`source: ${sourcePath}`);
@@ -113,6 +133,13 @@ async function main() {
   const icoBuffers = await Promise.all(icoSizes.map((size) => renderPng(master, size)));
   writeFileSync(join(publicDir, 'favicon.ico'), buildIco(icoSizes, icoBuffers));
   console.log('wrote favicon.ico');
+
+  const brandLogoDir = join(publicDir, 'images');
+  for (const height of BRAND_LOGO_HEIGHTS) {
+    const buffer = await renderBrandLogoPng(master, height);
+    writeFileSync(join(brandLogoDir, `brand-logo-${height}.png`), buffer);
+    console.log(`wrote images/brand-logo-${height}.png`);
+  }
 }
 
 main().catch((error) => {
