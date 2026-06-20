@@ -7,11 +7,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const publicDir = join(__dirname, '..', 'public');
 
 const SOURCE_CANDIDATES = [
+  join(publicDir, 'images', 'pinkdrop-email-logo.png'),
   join(publicDir, 'images', 'pinkdrop-pd-logo.png'),
-  join(publicDir, 'favicon-512.png'),
-  join(publicDir, 'favicon-192.png'),
-  join(publicDir, 'favicon-48.png'),
-  join(publicDir, 'favicon-32.png'),
 ];
 
 const SIZES = [16, 32, 48, 96, 120, 192, 512];

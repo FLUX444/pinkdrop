@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 
-/** Тот же PD-логотип, что во вкладке браузера — favicon-512 уже есть на сервере. */
-const HEADER_LOGO_SRC = '/favicon-512.png';
-const MOBILE_LOGO_SRC = '/favicon-192.png';
+/** Чёткий логотип для шапки — генерируется из email-logo master при build. */
+const HEADER_LOGO_SRC = '/images/brand-logo-232.png';
+const MOBILE_LOGO_SRC = '/images/brand-logo-174.png';
 
 interface BrandLogoProps {
   className?: string;
