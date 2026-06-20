@@ -1,8 +1,9 @@
 import type { CSSProperties } from 'react';
 
-/** Чёткий логотип для шапки — генерируется из email-logo master при build. */
-const HEADER_LOGO_SRC = '/images/brand-logo-232.png';
-const MOBILE_LOGO_SRC = '/images/brand-logo-174.png';
+/** Тот же файл, что favicon во вкладке — nginx отдаёт из /var/www/pinkdrop после deploy. */
+const LOGO_VERSION = '11';
+const HEADER_LOGO_SRC = `/favicon-512.png?v=${LOGO_VERSION}`;
+const MOBILE_LOGO_SRC = `/favicon-192.png?v=${LOGO_VERSION}`;
 
 interface BrandLogoProps {
   className?: string;

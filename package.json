@@ -13,6 +13,7 @@
     "certs:dev": "node scripts/generate-dev-certs.mjs",
     "build": "node scripts/generate-favicons.mjs && tsc -b && vite build",
     "favicons": "node scripts/generate-favicons.mjs",
+    "deploy:vps": "bash scripts/deploy-vps.sh",
     "lint": "eslint .",
     "preview": "vite preview"
   },
