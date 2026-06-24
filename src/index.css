@@ -10561,6 +10561,44 @@ a.checkout-summary__product-name:active {
   letter-spacing: 0.03em;
 }
 
+@media (max-width: 819px) {
+  .product-card__image-wrap {
+    min-height: 168px;
+    height: 46vw;
+    max-height: 215px;
+  }
+
+  .product-card .product-art__cutout,
+  .product-card .product-art--bag-bow .product-art__cutout,
+  .product-card .product-art--jewelry-pink .product-art__cutout,
+  .product-card .product-art--jewelry-silver .product-art__cutout,
+  .product-card .product-art--ring-heart .product-art__cutout,
+  .product-card .product-art--lashes-diy .product-art__cutout {
+    width: 92%;
+    height: 94%;
+  }
+
+  .product-card__drop-timer {
+    bottom: 6px;
+    right: 6px;
+  }
+
+  .product-card__drop-timer .price-drop-badge--compact {
+    padding: 2px 6px;
+    gap: 3px;
+    border-radius: 999px;
+  }
+
+  .product-card__drop-timer .price-drop-badge--compact .price-drop-badge__timer {
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
+  }
+
+  .product-card__drop-timer .price-drop-badge--compact .price-drop-badge__discount {
+    font-size: 0.56rem;
+  }
+}
+
 .product-card__body {
   position: relative;
   z-index: 1;
