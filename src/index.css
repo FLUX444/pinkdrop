@@ -10562,39 +10562,33 @@ a.checkout-summary__product-name:active {
 }
 
 @media (max-width: 819px) {
-  .product-card__image-wrap {
-    min-height: 196px;
-    height: 54vw;
-    max-height: 252px;
-  }
-
+  /* Карточка того же размера — увеличиваем только фото внутри */
   .product-card .product-art__orb {
-    width: 58%;
-    opacity: 0.38;
+    width: 52%;
+    opacity: 0.32;
   }
 
   .product-card .product-art__cutout,
   .product-card .product-art--bag-bow .product-art__cutout,
   .product-card .product-art--jewelry-pink .product-art__cutout,
   .product-card .product-art--jewelry-silver .product-art__cutout,
-  .product-card .product-art--ring-heart .product-art__cutout,
   .product-card .product-art--lashes-diy .product-art__cutout {
-    width: 96%;
-    height: 98%;
+    width: 94%;
+    height: 96%;
+    object-fit: contain;
+    transform: translate(-50%, -50%) scale(1.22);
+    transform-origin: center center;
     filter:
       contrast(1.06)
       saturate(1.08)
-      drop-shadow(0 14px 16px rgba(0, 0, 0, 0.72))
-      drop-shadow(0 0 14px rgba(255, 45, 149, 0.2));
+      drop-shadow(0 12px 14px rgba(0, 0, 0, 0.72))
+      drop-shadow(0 0 12px rgba(255, 45, 149, 0.2));
   }
 
   .product-card .product-art--ring-heart .product-art__cutout {
-    width: 88%;
-    height: 90%;
-  }
-
-  .product-card__body {
-    padding: 9px 10px 11px;
+    width: 82%;
+    height: 84%;
+    transform: translate(-50%, -50%) scale(1.16);
   }
 
   .product-card__drop-timer {
