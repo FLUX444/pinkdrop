@@ -10563,9 +10563,14 @@ a.checkout-summary__product-name:active {
 
 @media (max-width: 819px) {
   .product-card__image-wrap {
-    min-height: 168px;
-    height: 46vw;
-    max-height: 215px;
+    min-height: 196px;
+    height: 54vw;
+    max-height: 252px;
+  }
+
+  .product-card .product-art__orb {
+    width: 58%;
+    opacity: 0.38;
   }
 
   .product-card .product-art__cutout,
@@ -10574,28 +10579,42 @@ a.checkout-summary__product-name:active {
   .product-card .product-art--jewelry-silver .product-art__cutout,
   .product-card .product-art--ring-heart .product-art__cutout,
   .product-card .product-art--lashes-diy .product-art__cutout {
-    width: 92%;
-    height: 94%;
+    width: 96%;
+    height: 98%;
+    filter:
+      contrast(1.06)
+      saturate(1.08)
+      drop-shadow(0 14px 16px rgba(0, 0, 0, 0.72))
+      drop-shadow(0 0 14px rgba(255, 45, 149, 0.2));
+  }
+
+  .product-card .product-art--ring-heart .product-art__cutout {
+    width: 88%;
+    height: 90%;
+  }
+
+  .product-card__body {
+    padding: 9px 10px 11px;
   }
 
   .product-card__drop-timer {
-    bottom: 6px;
-    right: 6px;
+    bottom: 5px;
+    right: 5px;
   }
 
   .product-card__drop-timer .price-drop-badge--compact {
-    padding: 2px 6px;
-    gap: 3px;
+    padding: 2px 5px;
+    gap: 2px;
     border-radius: 999px;
   }
 
   .product-card__drop-timer .price-drop-badge--compact .price-drop-badge__timer {
-    font-size: 0.58rem;
+    font-size: 0.56rem;
     letter-spacing: 0.02em;
   }
 
   .product-card__drop-timer .price-drop-badge--compact .price-drop-badge__discount {
-    font-size: 0.56rem;
+    font-size: 0.54rem;
   }
 }
 
