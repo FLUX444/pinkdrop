@@ -132,13 +132,13 @@ export function ProductCard({ product, onPriceDropDue }: ProductCardProps) {
         <div className="product-card__badges">
           {isHit && (
             <span className="badge badge--hit">
-              <ChromeStar size={14} /> ХИТ
+              <ChromeStar size={16} /> ХИТ
             </span>
           )}
           <span className="badge badge--type">{cardTitle.type}</span>
           {isFree && (
             <span className="badge badge--free">
-              <Y2KIcon name="gift" size={13} /> FREE
+              <Y2KIcon name="gift" size={15} /> FREE
             </span>
           )}
         </div>
